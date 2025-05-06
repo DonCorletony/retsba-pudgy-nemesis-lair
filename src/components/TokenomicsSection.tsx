@@ -67,7 +67,7 @@ const TokenomicsSection = () => {
         
         <motion.div 
           className="mt-16 flex justify-center"
-          initial={{ opacity: dem0, y: 20 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.8 }}
@@ -84,3 +84,4 @@ const TokenomicsSection = () => {
 };
 
 export default TokenomicsSection;
+
