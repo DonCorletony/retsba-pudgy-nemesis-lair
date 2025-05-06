@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 const HeroSection = () => {
@@ -31,7 +32,7 @@ const HeroSection = () => {
             
             <div className="mt-10">
               <a href="#how-to-buy" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block hover:translate-y-1">
-                JOIN THE VILLAIN SIDE
+                BE THE VILLAIN
               </a>
             </div>
           </motion.div>

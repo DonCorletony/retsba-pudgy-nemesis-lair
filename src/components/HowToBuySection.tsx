@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 const steps = [
   {
     id: 1,
-    title: "Create a Wallet",
-    description: "Download and install a compatible wallet like MetaMask or TrustWallet to store your RETSBA tokens."
+    title: "Get on Abstract",
+    description: "1. Get on Abstract."
   },
   {
     id: 2,
