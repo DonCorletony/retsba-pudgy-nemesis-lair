@@ -6,27 +6,22 @@ const steps = [
   {
     id: 1,
     title: "Get on Abstract",
-    description: "1. Get on Abstract."
+    description: "Go to abs.xyz."
   },
   {
     id: 2,
-    title: "Get Abstract Tokens",
-    description: "Purchase Abstract tokens from a major exchange and transfer them to your wallet."
+    title: "Fund your account",
+    description: "Click the \"Fund\" button and bridge Abstract ETH, or transfer straight from another wallet."
   },
   {
     id: 3,
-    title: "Connect to DEX",
-    description: "Visit an Abstract-based decentralized exchange (DEX) and connect your wallet."
+    title: "Click \"Trade\"",
+    description: "Navigate to the trading section on Abstract."
   },
   {
     id: 4,
-    title: "Swap for RETSBA",
-    description: "Search for the RETSBA token using the contract address and swap your Abstract tokens for RETSBA."
-  },
-  {
-    id: 5,
-    title: "Join the Villain Side",
-    description: "Congratulations! You're now part of Retsba's villain army ready to take on the Pudgy Penguins."
+    title: "Buy $RETSBA",
+    description: "Search for and purchase RETSBA tokens."
   }
 ];
 
@@ -92,9 +87,9 @@ const HowToBuySection = () => {
             className="flex justify-center"
           >
             <img 
-              src="/lovable-uploads/b72e0ba3-037a-4f06-a099-24442c1f52c0.png" 
-              alt="Retsba Character" 
-              className="max-w-md villain-shadow hover-float"
+              src="/lovable-uploads/d2d19891-1719-49bb-9d84-2bc89aadbae6.png" 
+              alt="Abstract Trading Interface" 
+              className="max-w-md rounded-lg border-4 border-black shadow-xl villain-shadow hover-float"
             />
           </motion.div>
         </div>
