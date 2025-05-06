@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 const HeroSection = () => {
   return (
     <section className="pt-16 pb-24 md:pt-24 md:pb-32 relative overflow-hidden">
-      <div className="absolute inset-0 bg-black z-0"></div>
+      <div className="absolute inset-0 bg-retsba z-0"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center">
@@ -32,7 +32,7 @@ const HeroSection = () => {
             <div className="mt-10">
               <a 
                 href="#how-to-buy" 
-                className="bg-retsba hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block hover:translate-y-1"
+                className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block hover:translate-y-1"
               >
                 JOIN THE VILLAIN SIDE
               </a>

@@ -32,7 +32,7 @@ const steps = [
 
 const HowToBuySection = () => {
   return (
-    <section id="how-to-buy" className="py-20 bg-gradient-to-b from-retsba to-black relative">
+    <section id="how-to-buy" className="py-20 bg-retsba relative">
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-16"
@@ -42,7 +42,7 @@ const HowToBuySection = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-stroke text-white text-5xl mb-4">HOW TO BUY</h2>
-          <div className="w-24 h-1 bg-white mx-auto"></div>
+          <div className="w-24 h-1 bg-black mx-auto"></div>
         </motion.div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -57,7 +57,7 @@ const HowToBuySection = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 * index }}
                 >
-                  <div className="bg-retsba text-stroke text-white text-2xl w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="bg-black text-stroke text-white text-2xl w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
                     {step.id}
                   </div>
                   <div>
@@ -77,7 +77,7 @@ const HowToBuySection = () => {
             >
               <a 
                 href="#" 
-                className="bg-retsba hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block"
+                className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block"
               >
                 BUY NOW
               </a>

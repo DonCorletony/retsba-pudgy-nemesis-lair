@@ -22,7 +22,7 @@ const NavBar = () => {
   return (
     <motion.nav 
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-black py-2' : 'bg-transparent py-4'
+        isScrolled ? 'bg-retsba py-2' : 'bg-transparent py-4'
       }`}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -40,12 +40,12 @@ const NavBar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#about" className="text-stroke text-white hover:text-retsba transition-colors">ABOUT</a>
-            <a href="#tokenomics" className="text-stroke text-white hover:text-retsba transition-colors">TOKENOMICS</a>
-            <a href="#how-to-buy" className="text-stroke text-white hover:text-retsba transition-colors">HOW TO BUY</a>
+            <a href="#about" className="text-stroke text-white hover:text-black transition-colors">ABOUT</a>
+            <a href="#tokenomics" className="text-stroke text-white hover:text-black transition-colors">TOKENOMICS</a>
+            <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors">HOW TO BUY</a>
             <a 
               href="#how-to-buy" 
-              className="bg-retsba hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke"
+              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke"
             >
               BUY NOW
             </a>
@@ -74,7 +74,7 @@ const NavBar = () => {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <motion.div 
-          className="md:hidden bg-black mt-2"
+          className="md:hidden bg-retsba mt-2"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.3 }}
@@ -82,28 +82,28 @@ const NavBar = () => {
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             <a 
               href="#about" 
-              className="text-stroke text-white hover:text-retsba transition-colors py-2"
+              className="text-stroke text-white hover:text-black transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               ABOUT
             </a>
             <a 
               href="#tokenomics" 
-              className="text-stroke text-white hover:text-retsba transition-colors py-2"
+              className="text-stroke text-white hover:text-black transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               TOKENOMICS
             </a>
             <a 
               href="#how-to-buy" 
-              className="text-stroke text-white hover:text-retsba transition-colors py-2"
+              className="text-stroke text-white hover:text-black transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               HOW TO BUY
             </a>
             <a 
               href="#how-to-buy" 
-              className="bg-retsba hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke"
+              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               BUY NOW
