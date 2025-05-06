@@ -19,7 +19,7 @@ const FooterSection = () => {
               href="https://www.x.com/retsbaxyz" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-lg hover:text-black transition-colors"
+              className="text-stroke text-white text-xl hover:text-black transition-colors"
             >
               X
             </a>
@@ -27,7 +27,7 @@ const FooterSection = () => {
               href="https://www.t.me/retsbaonabstract" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-lg hover:text-black transition-colors"
+              className="text-stroke text-white text-xl hover:text-black transition-colors"
             >
               Telegram
             </a>
@@ -35,7 +35,7 @@ const FooterSection = () => {
               href="https://memedepot.com/d/retsba" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-lg hover:text-black transition-colors"
+              className="text-stroke text-white text-xl hover:text-black transition-colors"
             >
               Memedepot
             </a>
@@ -43,7 +43,7 @@ const FooterSection = () => {
               href="https://dexscreener.com/abstract/0x26e7f241fc81bb168f9f81401184cde74dcc8f31" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-lg hover:text-black transition-colors"
+              className="text-stroke text-white text-xl hover:text-black transition-colors"
             >
               Dexscreener
             </a>
@@ -51,7 +51,7 @@ const FooterSection = () => {
         </div>
         
         <div className="mt-8 border-t border-black pt-8 text-center">
-          <p className="text-stroke text-white text-lg">
+          <p className="text-stroke text-white text-xl">
             © {new Date().getFullYear()} RETSBA. Evil. On chain.
           </p>
         </div>

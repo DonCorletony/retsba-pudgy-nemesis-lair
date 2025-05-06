@@ -52,12 +52,12 @@ const HowToBuySection = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 * index }}
                 >
-                  <div className="bg-black text-stroke text-white text-2xl w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="bg-black text-stroke text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
                     {step.id}
                   </div>
                   <div>
-                    <h3 className="text-stroke text-white text-2xl mb-2">{step.title}</h3>
-                    <p className="text-white text-lg">{step.description}</p>
+                    <h3 className="text-stroke text-white text-3xl mb-2">{step.title}</h3>
+                    <p className="text-white text-xl">{step.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -74,7 +74,7 @@ const HowToBuySection = () => {
                 href="https://abs.xyz" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block"
+                className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block"
               >
                 BUY NOW
               </a>

@@ -40,13 +40,13 @@ const NavBar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#about" className="text-stroke text-white hover:text-black transition-colors">ABOUT</a>
-            <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors">HOW TO BUY</a>
+            <a href="#about" className="text-stroke text-white hover:text-black transition-colors text-xl">ABOUT</a>
+            <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors text-xl">HOW TO BUY</a>
             <a 
               href="https://abs.xyz" 
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke"
+              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke text-xl"
             >
               BUY NOW
             </a>
@@ -83,14 +83,14 @@ const NavBar = () => {
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             <a 
               href="#about" 
-              className="text-stroke text-white hover:text-black transition-colors py-2"
+              className="text-stroke text-white hover:text-black transition-colors py-2 text-xl"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               ABOUT
             </a>
             <a 
               href="#how-to-buy" 
-              className="text-stroke text-white hover:text-black transition-colors py-2"
+              className="text-stroke text-white hover:text-black transition-colors py-2 text-xl"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               HOW TO BUY
@@ -99,7 +99,7 @@ const NavBar = () => {
               href="https://abs.xyz" 
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke"
+              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke text-xl"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               BUY NOW
