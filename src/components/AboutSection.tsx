@@ -52,9 +52,7 @@ With Retsba, the intention is clear. He is the evil. He is the villain. Where th
 Retsba has only one goal in mind and that is to take over Abstract at all cost. </p>
             <p className="text-stroke text-white mb-6 text-2xl">Retsba is the first purely villainous memecoin in the crypto, and his legacy will be cemented on the blockchain in ash.</p>
             <p className="text-stroke text-white text-xl">
-              Join Retsba's army of villains and embrace the chaos that's about to unfold 
-              in the crypto universe. The reign of the cute is over - it's time for the villain era!
-            </p>
+          </p>
           </motion.div>
         </div>
       </div>
