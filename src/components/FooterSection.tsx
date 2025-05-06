@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'lucide-react';
 
 const FooterSection = () => {
   return (
@@ -14,17 +15,51 @@ const FooterSection = () => {
             />
           </div>
           
-          <div className="flex space-x-6">
-            <a href="#" className="text-stroke text-white text-lg hover:text-black transition-colors">Twitter</a>
-            <a href="#" className="text-stroke text-white text-lg hover:text-black transition-colors">Telegram</a>
-            <a href="#" className="text-stroke text-white text-lg hover:text-black transition-colors">Discord</a>
-            <a href="#" className="text-stroke text-white text-lg hover:text-black transition-colors">Medium</a>
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+            <a 
+              href="https://www.x.com/retsbaxyz" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-stroke text-white text-lg hover:text-black transition-colors"
+            >
+              X
+            </a>
+            <a 
+              href="https://www.t.me/retsbaonabstract" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-stroke text-white text-lg hover:text-black transition-colors"
+            >
+              Telegram
+            </a>
+            <a 
+              href="#" 
+              className="text-stroke text-white text-lg hover:text-black transition-colors"
+            >
+              Discord
+            </a>
+            <a 
+              href="https://memedepot.com/d/retsba" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-stroke text-white text-lg hover:text-black transition-colors"
+            >
+              Memedepot
+            </a>
+            <a 
+              href="https://dexscreener.com/abstract/0x26e7f241fc81bb168f9f81401184cde74dcc8f31" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-stroke text-white text-lg hover:text-black transition-colors"
+            >
+              Dexscreener
+            </a>
           </div>
         </div>
         
         <div className="mt-8 border-t border-black pt-8 text-center">
           <p className="text-stroke text-white text-lg">
-            © {new Date().getFullYear()} RETSBA. The Ultimate Villain of the Abstract Blockchain.
+            © {new Date().getFullYear()} RETSBA. Evil. On chain.
           </p>
         </div>
       </div>
