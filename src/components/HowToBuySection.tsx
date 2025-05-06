@@ -29,6 +29,20 @@ const HowToBuySection = () => {
   return (
     <section id="how-to-buy" className="py-20 bg-retsba relative">
       <div className="container mx-auto px-4">
+        <motion.div
+          className="flex justify-center mb-12"
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <img 
+            src="/lovable-uploads/76f2f823-eb8a-488a-b531-c00101fa6d9d.png" 
+            alt="RETSBA Villain Penguin" 
+            className="w-48 md:w-64 lg:w-80 villain-shadow hover-float"
+          />
+        </motion.div>
+        
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
