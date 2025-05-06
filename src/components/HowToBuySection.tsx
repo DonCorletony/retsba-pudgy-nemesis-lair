@@ -71,7 +71,9 @@ const HowToBuySection = () => {
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <a 
-                href="#" 
+                href="https://abs.xyz" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block"
               >
                 BUY NOW

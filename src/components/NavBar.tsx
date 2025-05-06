@@ -43,7 +43,9 @@ const NavBar = () => {
             <a href="#about" className="text-stroke text-white hover:text-black transition-colors">ABOUT</a>
             <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors">HOW TO BUY</a>
             <a 
-              href="#how-to-buy" 
+              href="https://abs.xyz" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke"
             >
               BUY NOW
@@ -94,7 +96,9 @@ const NavBar = () => {
               HOW TO BUY
             </a>
             <a 
-              href="#how-to-buy" 
+              href="https://abs.xyz" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke"
               onClick={() => setIsMobileMenuOpen(false)}
             >

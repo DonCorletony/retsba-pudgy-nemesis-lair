@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+
 const HeroSection = () => {
   return <section className="pt-16 pb-24 md:pt-24 md:pb-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-retsba z-0"></div>
@@ -31,7 +32,7 @@ const HeroSection = () => {
             <p className="text-stroke text-white md:text-2xl max-w-2xl mx-auto text-3xl">Crypto has a villain. And his name is Retsba.</p>
             
             <div className="mt-10">
-              <a href="#how-to-buy" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block hover:translate-y-1">
+              <a href="https://abs.xyz" target="_blank" rel="noopener noreferrer" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-2xl inline-block hover:translate-y-1">
                 BE THE VILLAIN
               </a>
             </div>
@@ -40,4 +41,5 @@ const HeroSection = () => {
       </div>
     </section>;
 };
+
 export default HeroSection;
