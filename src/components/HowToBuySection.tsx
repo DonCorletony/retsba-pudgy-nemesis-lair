@@ -91,7 +91,7 @@ const HowToBuySection = () => {
             <img 
               src="/lovable-uploads/d2d19891-1719-49bb-9d84-2bc89aadbae6.png" 
               alt="Abstract Trading Interface" 
-              className="max-w-md rounded-lg border-4 border-black shadow-xl villain-shadow hover-float"
+              className="w-full sm:w-4/5 md:w-3/4 lg:max-w-md rounded-lg border-4 border-black shadow-xl villain-shadow hover-float"
             />
           </motion.div>
         </div>
