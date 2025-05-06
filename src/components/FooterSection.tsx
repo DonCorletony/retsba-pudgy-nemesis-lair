@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Link } from 'lucide-react';
 
 const FooterSection = () => {
   return (
@@ -31,12 +30,6 @@ const FooterSection = () => {
               className="text-stroke text-white text-lg hover:text-black transition-colors"
             >
               Telegram
-            </a>
-            <a 
-              href="#" 
-              className="text-stroke text-white text-lg hover:text-black transition-colors"
-            >
-              Discord
             </a>
             <a 
               href="https://memedepot.com/d/retsba" 

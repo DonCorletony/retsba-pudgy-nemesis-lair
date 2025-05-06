@@ -41,7 +41,6 @@ const NavBar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             <a href="#about" className="text-stroke text-white hover:text-black transition-colors">ABOUT</a>
-            <a href="#tokenomics" className="text-stroke text-white hover:text-black transition-colors">TOKENOMICS</a>
             <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors">HOW TO BUY</a>
             <a 
               href="#how-to-buy" 
@@ -86,13 +85,6 @@ const NavBar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               ABOUT
-            </a>
-            <a 
-              href="#tokenomics" 
-              className="text-stroke text-white hover:text-black transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              TOKENOMICS
             </a>
             <a 
               href="#how-to-buy" 
