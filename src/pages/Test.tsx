@@ -4,7 +4,7 @@ import { TradingInterface } from '@/components/TradingInterface';
 
 const Test = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-retsba text-foreground">
       {/* Header with wallet connection */}
       <div className="flex justify-end p-4">
         <WalletConnect />

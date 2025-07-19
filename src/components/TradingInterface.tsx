@@ -352,24 +352,24 @@ export const TradingInterface = () => {
   return (
     <Card className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
       <CardHeader>
-        <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
+        <CardTitle className="text-center text-black">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* ETH Balance */}
-        <div className="p-4 border rounded-lg bg-background">
+        <div className="p-4 border rounded-lg bg-white">
           <Label className="text-sm font-medium text-muted-foreground">Abstract ETH Balance</Label>
           <div className="mt-2">
-            <p className="text-lg font-semibold text-foreground">
+            <p className="text-lg font-semibold text-black">
               {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
             </p>
           </div>
         </div>
 
         {/* RETSBA Balance */}
-        <div className="p-4 border rounded-lg bg-background">
+        <div className="p-4 border rounded-lg bg-white">
           <Label className="text-sm font-medium text-muted-foreground">RETSBA Balance</Label>
           {retsbaLoading ? (
-            <p className="text-lg font-semibold text-foreground">Loading...</p>
+            <p className="text-lg font-semibold text-black">Loading...</p>
           ) : retsbaError ? (
             <div>
               <p className="text-lg font-semibold text-destructive">Contract Error</p>
@@ -388,7 +388,7 @@ export const TradingInterface = () => {
               )}
             </div>
           ) : (
-            <p className="text-lg font-semibold text-foreground">
+            <p className="text-lg font-semibold text-black">
               {retsbaBalance && retsbaDecimals 
                 ? `${parseFloat(formatEther(retsbaBalance)).toFixed(4)} RETSBA`
                 : '0 RETSBA'
@@ -410,7 +410,7 @@ export const TradingInterface = () => {
               placeholder="0.0"
               value={swapAmount}
               onChange={(e) => setSwapAmount(e.target.value)}
-              className="mt-1 text-white placeholder:text-gray-400"
+              className="mt-1 text-black placeholder:text-gray-400"
               step="0.001"
               min="0"
             />
