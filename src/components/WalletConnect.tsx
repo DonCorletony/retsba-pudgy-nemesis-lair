@@ -72,14 +72,6 @@ export const WalletConnect = () => {
   console.log('Address:', address)
   console.log('========================')
 
-  // NUCLEAR auto-disconnect - ONLY on initial mount, not manual connections
-  useEffect(() => {
-    // Only disconnect if connected on page load (not manual connection)
-    if (isConnected && address) {
-      console.log('🚨 AUTO-CONNECTION DETECTED ON MOUNT! Force disconnecting...', address)
-      handleDisconnect()
-    }
-  }, []) // Empty dependencies - only run once on mount
 
   // Filter connectors - let's be more flexible with OKX naming
   const filteredConnectors = connectors.filter(connector => 
@@ -90,70 +82,19 @@ export const WalletConnect = () => {
     connector.id === 'injected' // This might be how OKX appears
   )
 
-  // Nuclear disconnect - clears everything aggressively
+  // Simple disconnect function
   const handleDisconnect = async () => {
     try {
-      // First disconnect from wagmi
       await disconnect()
-      
-      // Clear ALL localStorage and sessionStorage
-      localStorage.clear()
-      sessionStorage.clear()
-      
-      // Clear all possible wallet-related data from indexedDB
-      if ('indexedDB' in window) {
-        try {
-          const dbs = ['wagmi', 'walletconnect', 'okx', 'phantom', 'metamask']
-          for (const dbName of dbs) {
-            indexedDB.deleteDatabase(dbName)
-          }
-        } catch (e) {
-          console.log('IndexedDB clear failed:', e)
-        }
-      }
-      
-      // Revoke permissions for all known wallet providers
-      const walletProviders = [
-        (window as any).ethereum,
-        (window as any).okxwallet, 
-        (window as any).phantom?.ethereum,
-        (window as any).solana,
-        (window as any).web3
-      ]
-      
-      for (const provider of walletProviders) {
-        if (provider) {
-          try {
-            await provider.request({
-              method: 'wallet_revokePermissions',
-              params: [{ eth_accounts: {} }]
-            }).catch(() => {})
-            
-            await provider.request({
-              method: 'eth_requestAccounts', 
-              params: []
-            }).catch(() => {})
-          } catch (e) {
-            console.log('Provider disconnect failed:', e)
-          }
-        }
-      }
-      
       toast({
-        title: "Hard Reset Complete",
-        description: "All wallet data nuked. Page will reload in 2 seconds.",
+        title: "Disconnected",
+        description: "Wallet disconnected successfully.",
       })
-      
-      // Force reload after short delay
-      setTimeout(() => {
-        window.location.href = window.location.href // Hard reload
-      }, 2000)
-      
     } catch (error) {
-      console.error('Nuclear disconnect error:', error)
+      console.error('Disconnect error:', error)
       toast({
-        title: "Reset Failed", 
-        description: "Manual browser refresh required to clear wallet state.",
+        title: "Disconnect Failed", 
+        description: "Failed to disconnect wallet.",
         variant: "destructive"
       })
     }
@@ -200,7 +141,7 @@ export const WalletConnect = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleDisconnect}>
-            Nuclear Disconnect (Clear Everything)
+            Disconnect
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
