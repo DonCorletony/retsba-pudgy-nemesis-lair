@@ -73,14 +73,17 @@ export const WalletConnect = () => {
   console.log('========================')
 
 
-  // Filter connectors - let's be more flexible with OKX naming
-  const filteredConnectors = connectors.filter(connector => 
-    connector.name === 'MetaMask' || 
-    connector.name === 'WalletConnect' ||
-    connector.name.toLowerCase().includes('okx') ||
-    connector.name.toLowerCase().includes('injected') ||
-    connector.id === 'injected' // This might be how OKX appears
-  )
+  // Filter connectors - avoid duplicates and only show relevant ones
+  const filteredConnectors = connectors.filter(connector => {
+    // Only show MetaMask, WalletConnect, and ONE OKX option (prefer "OKX Wallet" over "Injected")
+    if (connector.name === 'MetaMask' || connector.name === 'WalletConnect') return true
+    if (connector.name === 'OKX Wallet') return true
+    // Only show Injected if no OKX Wallet exists
+    if (connector.name === 'Injected') {
+      return !connectors.some(c => c.name === 'OKX Wallet')
+    }
+    return false
+  })
 
   // Simple disconnect function
   const handleDisconnect = async () => {
@@ -164,7 +167,7 @@ export const WalletConnect = () => {
             onClick={() => connect({ connector })}
             disabled={isPending}
           >
-            {connector.name.toLowerCase().includes('okx') || connector.id === 'injected' ? 'OKX' : connector.name}
+            {connector.name === 'Injected' ? 'OKX' : connector.name}
           </DropdownMenuItem>
         ))}
         

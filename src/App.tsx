@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AbstractWalletProvider } from "@abstract-foundation/agw-react";
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
