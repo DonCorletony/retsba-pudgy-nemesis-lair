@@ -373,17 +373,24 @@ export const TradingInterface = () => {
       throw new Error('Missing required parameters')
     }
 
+    // Ensure minimum amount (DeBridge may have minimum thresholds)
+    const amount = parseEther(swapAmount);
+    if (amount < parseEther('0.01')) {
+      throw new Error('Minimum bridge amount is 0.01 ETH')
+    }
+
     // Build query parameters for GET request
     const params = new URLSearchParams({
       srcChainId: selectedToken.chainId.toString(),
       srcChainTokenIn: selectedToken.address,
-      srcChainTokenInAmount: parseEther(swapAmount).toString(),
+      srcChainTokenInAmount: amount.toString(),
       dstChainId: '100000017', // Abstract's INTERNAL Chain ID per DeBridge docs
       dstChainTokenOut: WETH_ADDRESS, // Abstract WETH - confirmed by user
+      dstChainTokenOutAmount: 'auto', // Let DeBridge calculate the output amount
       dstChainTokenOutRecipient: address,
       srcChainOrderAuthorityAddress: address,
       dstChainOrderAuthorityAddress: address,
-      // Remove estimationOnly for now to see if that's causing the 500 error
+      estimationOnly: 'true', // Add back for estimation
     })
 
     console.log('DeBridge request URL:', `${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`)
