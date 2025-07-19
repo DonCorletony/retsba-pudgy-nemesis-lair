@@ -31,13 +31,6 @@ export const WalletConnect = () => {
       } else if (connectorName === 'OKX') {
         connector = connectors.find(c => c.name === 'OKX Wallet' || c.id === 'com.okex.wallet') ||
                    connectors.find(c => c.name === 'Injected' || c.id === 'injected')
-      } else if (connectorName === 'Abstract Global Wallet') {
-        // Look for the official AGW connector
-        connector = connectors.find(c => 
-          c.name === 'Abstract Global Wallet' || 
-          c.id === 'abstract' ||
-          c.name.toLowerCase().includes('abstract')
-        )
       }
       
       if (connector) {
@@ -94,12 +87,6 @@ export const WalletConnect = () => {
     }
   }, [error, toast])
 
-  // Debug logging for AGW setup
-  console.log('=== AGW SETUP DEBUG ===')
-  console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id, uid: c.uid })))
-  console.log('Is connected:', isConnected)
-  console.log('Address:', address)
-  console.log('========================')
 
   // Simple disconnect function
   const handleDisconnect = async () => {
@@ -192,12 +179,6 @@ export const WalletConnect = () => {
           WalletConnect
         </DropdownMenuItem>
         
-        <DropdownMenuItem
-          onClick={() => handleWalletConnection('Abstract Global Wallet')}
-          disabled={isPending}
-        >
-          Abstract Global Wallet
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
