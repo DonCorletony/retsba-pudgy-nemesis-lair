@@ -27,6 +27,14 @@ const TOKENS = [
     isAbstractNative: true
   },
   {
+    symbol: 'ETH',
+    name: 'Ethereum ETH',
+    address: '0x0000000000000000000000000000000000000000', // Native ETH
+    decimals: 18,
+    chainId: 1, // Ethereum Mainnet
+    isAbstractNative: false
+  },
+  {
     symbol: 'AVAX',
     name: 'Avalanche',
     address: '0x0000000000000000000000000000000000000000', // Native AVAX
