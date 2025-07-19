@@ -7,25 +7,22 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 
-const RETSBA_DEX_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // Verify this exists
-const WETH_ADDRESS = '0x9EDCde0257F2386Ce177C3a7FCdd97787F0D841d' as `0x${string}` // Official WETH9 on Abstract testnet
+const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
+const ABSETH_ADDRESS = '0x0000000000000000000000000000000000000000' as `0x${string}` // AbsETH (zero address for native ETH)
 
 export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   const [swapAmount, setSwapAmount] = useState('')
   
-  // Get WETH balance (official wrapped ETH on Abstract)
-  const { data: wethBalance, error: wethError, isLoading: wethLoading } = useReadContract({
-    address: WETH_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
+  // Get native ETH balance for AbsETH (zero address)
+  const { data: ethBalance } = useBalance({
+    address: address,
   })
 
-  // Get Retsba token balance from DEX
+  // Get RETSBA token balance 
   const { data: retsbaBalance, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
-    address: RETSBA_DEX_ADDRESS,
+    address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -35,26 +32,18 @@ export const TradingInterface = () => {
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
     console.log('Connected Address:', address)
-    console.log('WETH Contract (Official):', WETH_ADDRESS)
-    console.log('WETH Balance:', wethBalance)
-    console.log('WETH Error:', wethError)
-    console.log('WETH Loading:', wethLoading)
-    console.log('Retsba DEX Contract:', RETSBA_DEX_ADDRESS)
-    console.log('Retsba Balance:', retsbaBalance)
-    console.log('Retsba Error:', retsbaError)
+    console.log('AbsETH (Native ETH):', ABSETH_ADDRESS)
+    console.log('ETH Balance:', ethBalance)
+    console.log('RETSBA Contract:', RETSBA_TOKEN_ADDRESS)
+    console.log('RETSBA Balance:', retsbaBalance)
+    console.log('RETSBA Error:', retsbaError)
+    console.log('RETSBA Loading:', retsbaLoading)
     console.log('========================')
-  }, [address, wethBalance, wethError, wethLoading, retsbaBalance, retsbaError])
+  }, [address, ethBalance, retsbaBalance, retsbaError, retsbaLoading])
 
-  // Get WETH token decimals
-  const { data: wethDecimals } = useReadContract({
-    address: WETH_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'decimals',
-  })
-
-  // Get Retsba token decimals
+  // Get RETSBA token decimals
   const { data: retsbaDecimals } = useReadContract({
-    address: RETSBA_DEX_ADDRESS,
+    address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'decimals',
   })
@@ -97,16 +86,16 @@ export const TradingInterface = () => {
       // Interact with the DEX contract for swapping
       toast({
         title: "Swap Initiated", 
-        description: `Swapping ${swapAmount} WETH for Retsba via DEX contract ${RETSBA_DEX_ADDRESS}`,
+        description: `Swapping ${swapAmount} AbsETH for RETSBA via contract ${RETSBA_TOKEN_ADDRESS}`,
       })
       
       // Note: This would require the actual DEX contract ABI and proper implementation
       // For now, we're showing the interface structure
       console.log('Swap parameters:', {
-        dexAddress: RETSBA_DEX_ADDRESS,
+        retsbaContract: RETSBA_TOKEN_ADDRESS,
         amount: parseEther(swapAmount),
-        tokenIn: WETH_ADDRESS,
-        tokenOut: RETSBA_DEX_ADDRESS
+        tokenIn: ABSETH_ADDRESS, // Native ETH
+        tokenOut: RETSBA_TOKEN_ADDRESS
       })
       
     } catch (error) {
@@ -137,37 +126,37 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* WETH Balance */}
+        {/* AbsETH Balance (Native ETH) */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">WETH Balance</Label>
-          {wethLoading ? (
+          <Label className="text-sm font-medium text-muted-foreground">AbsETH Balance</Label>
+          <p className="text-lg font-semibold text-foreground">
+            {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} AbsETH` : '0 AbsETH'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Native ETH on Abstract
+          </p>
+        </div>
+
+        {/* RETSBA Balance */}
+        <div className="p-4 border rounded-lg bg-background">
+          <Label className="text-sm font-medium text-muted-foreground">RETSBA Balance</Label>
+          {retsbaLoading ? (
             <p className="text-lg font-semibold text-foreground">Loading...</p>
-          ) : wethError ? (
+          ) : retsbaError ? (
             <div>
-              <p className="text-lg font-semibold text-destructive">Error loading WETH balance</p>
-              <p className="text-xs text-destructive mt-1">{wethError.message || 'Unknown error'}</p>
+              <p className="text-lg font-semibold text-destructive">Error loading RETSBA balance</p>
+              <p className="text-xs text-destructive mt-1">{retsbaError.message || 'Unknown error'}</p>
             </div>
           ) : (
             <p className="text-lg font-semibold text-foreground">
-              {wethBalance && wethDecimals 
-                ? `${parseFloat(formatEther(wethBalance)).toFixed(4)} WETH` 
-                : '0 WETH'
+              {retsbaBalance && retsbaDecimals 
+                ? `${parseFloat(formatEther(retsbaBalance)).toFixed(4)} RETSBA`
+                : '0 RETSBA'
               }
             </p>
           )}
           <p className="text-xs text-muted-foreground mt-1">
-            Contract: {WETH_ADDRESS.slice(0, 8)}...{WETH_ADDRESS.slice(-6)}
-          </p>
-        </div>
-
-        {/* Retsba Balance */}
-        <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">Retsba Balance</Label>
-          <p className="text-lg font-semibold text-foreground">
-            {retsbaBalance && retsbaDecimals 
-              ? `${parseFloat(formatEther(retsbaBalance)).toFixed(4)} RETSBA`
-              : '0 RETSBA'
-            }
+            Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 8)}...{RETSBA_TOKEN_ADDRESS.slice(-6)}
           </p>
         </div>
 
@@ -175,7 +164,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div>
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of WETH to swap
+              Amount of AbsETH to swap
             </Label>
             <Input
               id="swap-amount"
@@ -194,14 +183,14 @@ export const TradingInterface = () => {
             disabled={isPending || !swapAmount}
             className="w-full"
           >
-            {isPending ? 'Swapping...' : 'Swap WETH for Retsba'}
+            {isPending ? 'Swapping...' : 'Swap AbsETH for RETSBA'}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          DEX Contract: {RETSBA_DEX_ADDRESS.slice(0, 6)}...{RETSBA_DEX_ADDRESS.slice(-4)}
+          RETSBA Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
           <br />
-          WETH Token (Official): {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
+          AbsETH: Native ETH on Abstract
         </p>
       </CardContent>
     </Card>
