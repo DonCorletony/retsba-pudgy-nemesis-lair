@@ -11,10 +11,39 @@ import { ChevronDown, Wallet } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export const WalletConnect = () => {
-  const { connectors, connect, isPending } = useConnect()
+  const { connectors, connect, isPending, error } = useConnect()
   const { disconnect } = useDisconnect()
   const { isConnected, address } = useAccount()
   const { toast } = useToast()
+
+  // Add connection timeout
+  useEffect(() => {
+    if (isPending) {
+      const timeout = setTimeout(() => {
+        toast({
+          title: "Connection Timeout",
+          description: "Connection took too long. Please try again.",
+          variant: "destructive"
+        })
+        // Force reset pending state by disconnecting
+        disconnect()
+      }, 10000) // 10 second timeout
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isPending, toast, disconnect])
+
+  // Handle connection errors
+  useEffect(() => {
+    if (error) {
+      console.error('Connection error:', error)
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Failed to connect wallet. Please try again.",
+        variant: "destructive"
+      })
+    }
+  }, [error, toast])
 
   // Debug logging
   console.log('=== CONNECTOR DEBUG ===')
@@ -162,7 +191,7 @@ export const WalletConnect = () => {
       <DropdownMenuTrigger asChild>
         <Button disabled={isPending} className="gap-2">
           <Wallet className="h-4 w-4" />
-          Connect Wallet
+          {isPending ? 'Connecting...' : 'Connect Wallet'}
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
