@@ -444,26 +444,21 @@ export const TradingInterface = () => {
     }
   }, [address, isConnected, toast])
 
-  // DeBridge integration for cross-chain swaps
+  // Cross-chain bridge handler
   const handleCrossChainSwap = async () => {
     if (!selectedToken.isAbstractNative) {
       toast({
-        title: "Cross-Chain Swap",
-        description: `Bridging ${selectedToken.symbol} to Abstract, then swapping to RETSBA`,
+        title: "Cross-Chain Bridge",
+        description: `Step 1: Bridging ${selectedToken.symbol} to WETH on Abstract`,
       })
       
       try {
-        // For now, let's test with supported chains only
-        if (selectedToken.chainId === 2741) {
-          throw new Error('Abstract bridging is still being configured')
-        }
-        
-        // Step 1: Get Relay Bridge quote
+        // Step 1: Get Relay Bridge quote to bridge to WETH on Abstract
         const bridgeQuote = await getRelayQuote()
         
         toast({
           title: "Bridge Quote Received",
-          description: `Quote: ${bridgeQuote.details.currencyOut.amountFormatted} ETH on Abstract`,
+          description: `Will receive ${bridgeQuote.details.currencyOut.amountFormatted} WETH on Abstract`,
         })
         
         // Step 2: Execute the bridge transaction
@@ -484,13 +479,13 @@ export const TradingInterface = () => {
             
             toast({
               title: "Bridge Transaction Sent",
-              description: "Bridging to Abstract in progress...",
+              description: "Step 1: Bridging to WETH on Abstract. After confirmation, switch to Abstract network and swap WETH to RETSBA.",
             })
           }
         }
         
       } catch (error: any) {
-        console.error('Cross-chain swap error:', error)
+        console.error('Cross-chain bridge error:', error)
         toast({
           title: "Bridge Failed",
           description: error.message || "There was an error with the cross-chain bridge",
