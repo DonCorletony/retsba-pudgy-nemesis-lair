@@ -47,9 +47,7 @@ const AboutSection = () => {
           delay: 0.4
         }}>
             <h3 className="text-stroke text-white mb-6 text-4xl">The memecoin with a darkside</h3>
-            <p className="text-stroke text-white mb-6 text-2xl">Forget what you know about memecoins. Every great story in human history has one commonality: there is good, and there is evil.  Both playing crucial roles in the narrative.
-With Retsba, the intention is clear. He is the evil. He is the villain. Where there are Pudgy Penguins, there is Retsba. And where there is Retsba, there is trouble.
-Retsba has only one goal in mind and that is to take over Abstract at all cost. </p>
+            <p className="text-stroke text-white mb-6 text-2xl">Forget what you know about memecoins. Every great story in human history has one commonality: there is good, and there is evil.  Both ends of this duality play a crucial role in a story's narrative. With Retsba, the intention is clear. He is the evil. He is the villain. Where there are Pudgy Penguins, there is Retsba. And where there is Retsba, there is trouble. Retsba has only one goal in mind and that is to take over Abstract at all cost. </p>
             <p className="text-stroke text-white mb-6 text-2xl">Retsba is the first purely villainous memecoin in the history of crypto, and his legacy will be cemented on the blockchain in ash.</p>
             <p className="text-stroke text-white text-xl">
           </p>
