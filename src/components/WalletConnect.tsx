@@ -23,13 +23,14 @@ export const WalletConnect = () => {
   console.log('Address:', address)
   console.log('========================')
 
-  // NUCLEAR auto-disconnect - run immediately if connected
+  // NUCLEAR auto-disconnect - ONLY on initial mount, not manual connections
   useEffect(() => {
+    // Only disconnect if connected on page load (not manual connection)
     if (isConnected && address) {
-      console.log('🚨 AUTO-CONNECTION DETECTED! Force disconnecting...', address)
+      console.log('🚨 AUTO-CONNECTION DETECTED ON MOUNT! Force disconnecting...', address)
       handleDisconnect()
     }
-  }, [isConnected, address])
+  }, []) // Empty dependencies - only run once on mount
 
   // Filter connectors - let's be more flexible with OKX naming
   const filteredConnectors = connectors.filter(connector => 
@@ -110,12 +111,6 @@ export const WalletConnect = () => {
 
   // Listen for account changes in the wallet extension
   useEffect(() => {
-    // Completely disable auto-connection by disconnecting on mount if connected
-    if (isConnected) {
-      console.log('Auto-connection detected, forcing disconnect...')
-      handleDisconnect()
-    }
-
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
         // User disconnected all accounts - clear everything
@@ -141,7 +136,7 @@ export const WalletConnect = () => {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
       }
     }
-  }, []) // Remove isConnected, address dependencies to prevent re-runs
+  }, [isConnected, address, toast])
 
   if (isConnected) {
     return (
