@@ -65,8 +65,8 @@ export const WalletConnect = () => {
     }
   }, [error, toast])
 
-  // Debug logging
-  console.log('=== CONNECTOR DEBUG ===')
+  // Debug logging for AGW setup
+  console.log('=== AGW SETUP DEBUG ===')
   console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id, uid: c.uid })))
   console.log('Is connected:', isConnected)
   console.log('Address:', address)
