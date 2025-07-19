@@ -1,10 +1,10 @@
 import { createConfig, http } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 
-// Abstract Testnet configuration
-const abstractTestnet = {
-  id: 11124,
-  name: 'Abstract Testnet',
+// Abstract Mainnet configuration
+const abstractMainnet = {
+  id: 2741, // Abstract mainnet chain ID
+  name: 'Abstract',
   nativeCurrency: {
     decimals: 18,
     name: 'ETH',
@@ -12,20 +12,20 @@ const abstractTestnet = {
   },
   rpcUrls: {
     default: {
-      http: ['https://api.testnet.abs.xyz'],
+      http: ['https://api.mainnet.abs.xyz'],
     },
   },
   blockExplorers: {
-    default: { name: 'Abstract Explorer', url: 'https://explorer.testnet.abs.xyz' },
+    default: { name: 'Abstract Explorer', url: 'https://abscan.org' },
   },
 } as const
 
 export const config = createConfig({
-  chains: [abstractTestnet],
+  chains: [abstractMainnet],
   connectors: [
     injected(),
   ],
   transports: {
-    [abstractTestnet.id]: http(),
+    [abstractMainnet.id]: http(),
   },
 })

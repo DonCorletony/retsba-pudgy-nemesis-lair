@@ -191,7 +191,7 @@ export const TradingInterface = () => {
             Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 8)}...{RETSBA_TOKEN_ADDRESS.slice(-6)}
           </p>
           <p className="text-xs text-muted-foreground">
-            Network: Abstract Testnet (Chain ID: 11124)
+            Network: Abstract Mainnet (Chain ID: 2741)
           </p>
         </div>
 
