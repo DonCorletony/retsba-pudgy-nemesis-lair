@@ -453,10 +453,10 @@ export const TradingInterface = () => {
         
         // Step 2: Mock successful bridge + WETH swap
         setTimeout(() => {
-          swapWethToRetsba(mockQuote.outputAmount)
+          // Mock the WETH swap instead of executing real transaction
           toast({
-            title: "Bridge Completed",
-            description: "Successfully bridged to Abstract. Now swapping WETH to RETSBA...",
+            title: "WETH Swapped Successfully", 
+            description: `Converted ${mockQuote.outputAmount} WETH to ${(Number(mockQuote.outputAmount) * (currentPrice || 1)).toFixed(6)} RETSBA`,
           })
         }, 2000)
         
