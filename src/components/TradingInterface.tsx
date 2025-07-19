@@ -16,21 +16,28 @@ const V3_PAIR_ADDRESS = '0x1176Bf6483763c9fc74F80a575497e17cAe9ca18' as `0x${str
 const V2_ROUTER_ADDRESS = '0xad1eCa41E6F772bE3cb5A48A6141f9bcc1AF9F7c' as `0x${string}` // UniswapV2Router02 on Abstract
 const V3_ROUTER_ADDRESS = '0x7712FA47387542819d4E35A23f8116C90C18767C' as `0x${string}` // SwapRouter02 on Abstract
 
-// Define available tokens
+// Define available tokens with network info
 const TOKENS = [
   {
     symbol: 'ETH',
     name: 'Abstract ETH',
     address: '0x0000000000000000000000000000000000000000', // Native ETH
-    decimals: 18
+    decimals: 18,
+    chainId: 2741, // Abstract
+    isAbstractNative: true
   },
   {
     symbol: 'AVAX',
     name: 'Avalanche',
-    address: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041', // Placeholder AVAX address
-    decimals: 18
+    address: '0x0000000000000000000000000000000000000000', // Native AVAX
+    decimals: 18,
+    chainId: 43114, // Avalanche C-Chain
+    isAbstractNative: false
   }
 ]
+
+// DeBridge configuration
+const DEBRIDGE_API_URL = 'https://api.dln.trade/v1.0'
 
 // Uniswap V2 Pair ABI (minimal)
 const uniswapV2PairAbi = [
@@ -316,6 +323,66 @@ export const TradingInterface = () => {
     }
   }, [address, isConnected, toast])
 
+  // DeBridge integration for cross-chain swaps
+  const handleCrossChainSwap = async () => {
+    if (!selectedToken.isAbstractNative) {
+      toast({
+        title: "Cross-Chain Swap",
+        description: `Bridging ${selectedToken.symbol} to Abstract WETH, then swapping to RETSBA`,
+      })
+      
+      try {
+        // Step 1: Get DeBridge quote for AVAX -> Abstract WETH
+        const bridgeQuote = await getDeBridgeQuote()
+        
+        // Step 2: Execute bridge transaction
+        const bridgeTx = await executeDeBridgeTx(bridgeQuote)
+        
+        // Step 3: Wait for bridge completion and auto-swap WETH -> RETSBA
+        // This would be handled by monitoring the bridge completion
+        
+      } catch (error: any) {
+        console.error('Cross-chain swap error:', error)
+        toast({
+          title: "Bridge Failed",
+          description: error.message || "There was an error with the cross-chain bridge",
+          variant: "destructive"
+        })
+      }
+    }
+  }
+
+  // DeBridge helper functions
+  const getDeBridgeQuote = async () => {
+    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/quote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        srcChainId: selectedToken.chainId,
+        srcChainTokenIn: selectedToken.address,
+        srcChainTokenInAmount: parseEther(swapAmount).toString(),
+        dstChainId: 2741, // Abstract
+        dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
+        dstChainTokenOutRecipient: address,
+        srcChainOrderAuthorityAddress: address,
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to get bridge quote')
+    }
+    
+    return await response.json()
+  }
+
+  const executeDeBridgeTx = async (quote: any) => {
+    // This would execute the bridge transaction
+    // Implementation depends on DeBridge SDK/API specifics
+    console.log('Executing bridge with quote:', quote)
+  }
+
   const handleSwap = async () => {
     if (!swapAmount || !address || !currentPrice) {
       toast({
@@ -326,6 +393,12 @@ export const TradingInterface = () => {
       return
     }
 
+    // Check if this is a cross-chain swap
+    if (!selectedToken.isAbstractNative) {
+      return handleCrossChainSwap()
+    }
+
+    // For Abstract native tokens (ETH), continue with existing swap logic
     if (!ethBalance || Number(formatEther(ethBalance.value)) < parseFloat(swapAmount)) {
       toast({
         title: "Insufficient Balance",
@@ -514,6 +587,7 @@ export const TradingInterface = () => {
             {isPending ? 'Submitting...' : 
              isConfirming ? 'Confirming...' :
              currentPrice === 0 ? 'Loading Price...' : 
+             !selectedToken.isAbstractNative ? `Bridge ${selectedToken.symbol} & Swap` :
              'Become the Villain'}
           </Button>
         </div>
