@@ -157,9 +157,22 @@ export const TradingInterface = () => {
     hash: swapTxHash as `0x${string}`,
   })
   
-  // Get native ETH balance with refetch capability
-  const { data: ethBalance, refetch: refetchEthBalance } = useBalance({
+  // Get native ETH balance on Abstract (current chain) with refetch capability
+  const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address: address,
+    chainId: 2741, // Abstract chain
+  })
+  
+  // Get native ETH balance on Ethereum mainnet with refetch capability
+  const { data: mainnetEthBalance, refetch: refetchMainnetEthBalance } = useBalance({
+    address: address,
+    chainId: 1, // Ethereum mainnet
+  })
+  
+  // Get native AVAX balance on Avalanche with refetch capability
+  const { data: avaxBalance, refetch: refetchAvaxBalance } = useBalance({
+    address: address,
+    chainId: 43114, // Avalanche C-Chain
   })
   
   // Get WETH balance for swapping with refetch capability
@@ -256,11 +269,27 @@ export const TradingInterface = () => {
     }
   }, [pairReserves, token0, token1])
 
+  // Helper function to get the current balance for the selected token
+  const getCurrentTokenBalance = () => {
+    switch (selectedToken.chainId) {
+      case 2741: // Abstract
+        return abstractEthBalance
+      case 1: // Ethereum mainnet
+        return mainnetEthBalance
+      case 43114: // Avalanche
+        return avaxBalance
+      default:
+        return null
+    }
+  }
+
   // Debug logging
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
     console.log('Connected Address:', address)
-    console.log('ETH Balance:', ethBalance)
+    console.log('Abstract ETH Balance:', abstractEthBalance)
+    console.log('Mainnet ETH Balance:', mainnetEthBalance)
+    console.log('AVAX Balance:', avaxBalance)
     console.log('WETH Balance:', wethBalance)
     console.log('RETSBA Contract:', RETSBA_TOKEN_ADDRESS)
     console.log('RETSBA Balance:', retsbaBalance)
@@ -274,7 +303,7 @@ export const TradingInterface = () => {
     console.log('RETSBA Name Error:', retsbaNameError)
     console.log('Current Price:', currentPrice)
     console.log('========================')
-  }, [address, ethBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
+  }, [address, abstractEthBalance, mainnetEthBalance, avaxBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
 
   // Calculate estimated RETSBA output when swap amount changes
   useEffect(() => {
@@ -299,7 +328,9 @@ export const TradingInterface = () => {
       })
       
       // Refresh all balances after successful swap
-      refetchEthBalance()
+      refetchAbstractEthBalance()
+      refetchMainnetEthBalance()
+      refetchAvaxBalance()
       refetchWethBalance()
       refetchRetsbaBalance()
       
@@ -307,7 +338,7 @@ export const TradingInterface = () => {
       setSwapAmount('')
       setSwapTxHash(undefined)
     }
-  }, [isConfirmed, swapTxHash, toast, refetchEthBalance, refetchWethBalance, refetchRetsbaBalance])
+  }, [isConfirmed, swapTxHash, toast, refetchAbstractEthBalance, refetchMainnetEthBalance, refetchAvaxBalance, refetchWethBalance, refetchRetsbaBalance])
 
   // Listen for account changes and refresh interface
   useEffect(() => {
@@ -437,10 +468,11 @@ export const TradingInterface = () => {
     }
 
     // For Abstract native tokens (ETH), continue with existing swap logic
-    if (!ethBalance || Number(formatEther(ethBalance.value)) < parseFloat(swapAmount)) {
+    const currentBalance = getCurrentTokenBalance()
+    if (!currentBalance || Number(formatEther(currentBalance.value)) < parseFloat(swapAmount)) {
       toast({
         title: "Insufficient Balance",
-        description: "You don't have enough ETH for this swap.",
+        description: `You don't have enough ${selectedToken.symbol} for this swap.`,
         variant: "destructive"
       })
       return
@@ -512,12 +544,15 @@ export const TradingInterface = () => {
                 >
                   <div className="flex flex-col items-start">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold text-black">
-                        {selectedToken.symbol === 'ETH' 
-                          ? (ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ${selectedToken.symbol}` : '0 ETH')
-                          : `0 ${selectedToken.symbol}` // Placeholder for other tokens
-                        }
-                      </span>
+                       <span className="text-lg font-semibold text-black">
+                         {(() => {
+                           const balance = getCurrentTokenBalance()
+                           if (balance) {
+                             return `${parseFloat(formatEther(balance.value)).toFixed(4)} ${selectedToken.symbol}`
+                           }
+                           return `0 ${selectedToken.symbol}`
+                         })()}
+                       </span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <span className="text-sm text-muted-foreground">{selectedToken.name}</span>
