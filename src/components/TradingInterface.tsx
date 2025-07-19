@@ -216,10 +216,10 @@ export const TradingInterface = () => {
       return
     }
 
-    if (!wethBalance || Number(formatEther(wethBalance)) < parseFloat(swapAmount)) {
+    if (!ethBalance || Number(formatEther(ethBalance.value)) < parseFloat(swapAmount)) {
       toast({
         title: "Insufficient Balance",
-        description: "You don't have enough WETH. Please wrap your ETH first or use a smaller amount.",
+        description: "You don't have enough ETH for this swap.",
         variant: "destructive"
       })
       return
@@ -228,14 +228,14 @@ export const TradingInterface = () => {
     try {
       toast({
         title: "Swap Initiated", 
-        description: `Preparing to swap ${swapAmount} WETH for ${estimatedRetsba} RETSBA`,
+        description: `Preparing to swap ${swapAmount} ETH for ${estimatedRetsba} RETSBA`,
       })
       
       // This is a placeholder for the actual swap implementation
       // You would need to implement the actual DEX router calls here
       // For now, we'll show what parameters would be used
       console.log('Swap parameters:', {
-        inputToken: WETH_ADDRESS,
+        inputToken: 'Native ETH (auto-wrapped to WETH)',
         outputToken: RETSBA_TOKEN_ADDRESS,
         amountIn: parseEther(swapAmount),
         amountOutMin: parseEther(estimatedRetsba),
@@ -278,25 +278,16 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* ETH and WETH Balances */}
+        {/* ETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">Available Balances</Label>
-          <div className="space-y-2 mt-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Native ETH:</span>
-              <span className="text-sm font-semibold text-foreground">
-                {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)}` : '0'} ETH
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">WETH (for swapping):</span>
-              <span className="text-sm font-semibold text-foreground">
-                {wethBalance ? `${parseFloat(formatEther(wethBalance)).toFixed(4)}` : '0'} WETH
-              </span>
-            </div>
+          <Label className="text-sm font-medium text-muted-foreground">Available Balance</Label>
+          <div className="mt-2">
+            <p className="text-lg font-semibold text-foreground">
+              {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
+            </p>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            You need WETH to swap for RETSBA
+            Native ETH will be automatically wrapped during swap
           </p>
         </div>
 
@@ -357,7 +348,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div>
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of WETH to swap
+              Amount of ETH to swap
             </Label>
             <Input
               id="swap-amount"
@@ -381,7 +372,7 @@ export const TradingInterface = () => {
                 {estimatedRetsba} RETSBA
               </p>
               <p className="text-xs text-muted-foreground">
-                Rate: 1 WETH = {(1 / currentPrice).toFixed(2)} RETSBA (0.5% slippage applied)
+                Rate: 1 ETH = {(1 / currentPrice).toFixed(2)} RETSBA (0.5% slippage applied)
               </p>
             </div>
           )}
@@ -402,14 +393,14 @@ export const TradingInterface = () => {
           >
             {isPending ? 'Swapping...' : 
              currentPrice === 0 ? 'Loading Price...' : 
-             'Swap WETH for RETSBA'}
+             'Swap ETH for RETSBA'}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
           RETSBA: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
           <br />
-          WETH: {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
+          ETH automatically wraps to WETH: {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
           <br />
           V2 Pool: {V2_PAIR_ADDRESS.slice(0, 6)}...{V2_PAIR_ADDRESS.slice(-4)}
         </p>
