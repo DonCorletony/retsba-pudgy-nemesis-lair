@@ -357,15 +357,12 @@ export const TradingInterface = () => {
       <CardContent className="space-y-4">
         {/* ETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">Available Balance</Label>
+          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH</Label>
           <div className="mt-2">
             <p className="text-lg font-semibold text-foreground">
               {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Native ETH will be automatically wrapped during swap
-          </p>
         </div>
 
         {/* RETSBA Balance */}
@@ -398,12 +395,6 @@ export const TradingInterface = () => {
               }
             </p>
           )}
-          <p className="text-xs text-muted-foreground mt-1">
-            Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 8)}...{RETSBA_TOKEN_ADDRESS.slice(-6)}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Network: Abstract Mainnet (Chain ID: 2741)
-          </p>
         </div>
 
         {/* Current Price Display */}
