@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react'
 import { useConnect, useDisconnect, useAccount } from 'wagmi'
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react'
-import { createConfig, http } from 'wagmi'
-import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,33 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ChevronDown, Wallet } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-
-// Create a separate wagmi instance for traditional wallets
-const traditionalWalletConfig = createConfig({
-  chains: [{
-    id: 2741,
-    name: 'Abstract',
-    nativeCurrency: { decimals: 18, name: 'ETH', symbol: 'ETH' },
-    rpcUrls: { default: { http: ['https://api.mainnet.abs.xyz'] } },
-    blockExplorers: { default: { name: 'Abstract Explorer', url: 'https://abscan.org' } },
-  }],
-  connectors: [
-    metaMask(),
-    injected(),
-    walletConnect({
-      projectId: 'demo',
-      metadata: {
-        name: 'RETSBA Trading',
-        description: 'Trade RETSBA tokens',
-        url: 'https://retsba.com',
-        icons: ['https://retsba.com/icon.png']
-      }
-    }),
-  ],
-  transports: {
-    2741: http(),
-  },
-})
 
 export const WalletConnect = () => {
   const { connectors, connect, isPending, error } = useConnect()
@@ -65,22 +36,31 @@ export const WalletConnect = () => {
     }
   }
 
-  // Traditional wallet handler - use separate config
+  // Traditional wallet handler - use the same wagmi context
   const handleTraditionalWallet = async (connectorName: string) => {
     try {
-      const traditionalConnector = traditionalWalletConfig.connectors.find(c => 
-        c.name === connectorName || 
-        (connectorName === 'OKX' && (c.name === 'OKX Wallet' || c.name === 'Injected'))
-      )
+      // Find the connector from the available connectors in the current wagmi context
+      const connector = connectors.find(c => {
+        if (connectorName === 'MetaMask') return c.name === 'MetaMask'
+        if (connectorName === 'WalletConnect') return c.name === 'WalletConnect'
+        if (connectorName === 'OKX') return c.name === 'OKX Wallet' || c.name === 'Injected'
+        return false
+      })
       
-      if (traditionalConnector) {
-        await traditionalConnector.connect()
+      if (connector) {
+        await connect({ connector })
         toast({
           title: "Success",
           description: `Connected to ${connectorName}!`,
         })
       } else {
-        throw new Error(`${connectorName} connector not found`)
+        // If connector not found in current context, show available options for debugging
+        console.log('Available connectors:', connectors.map(c => c.name))
+        toast({
+          title: "Connector Not Found",
+          description: `${connectorName} connector not available. Check console for available options.`,
+          variant: "destructive"
+        })
       }
     } catch (error) {
       console.error(`${connectorName} connection error:`, error)
