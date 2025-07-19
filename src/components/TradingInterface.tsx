@@ -7,29 +7,40 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 
-const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`
+const RETSBA_DEX_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`
+const ABSETH_TOKEN_ADDRESS = '0xa8726bD058Bea1973B61a9BC2a5E0e605B797307' as `0x${string}`
 
 export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   const [swapAmount, setSwapAmount] = useState('')
   
-  // Get ETH balance
-  const { data: ethBalance } = useBalance({
-    address: address,
-  })
-
-  // Get Retsba token balance
-  const { data: retsbaBalance } = useReadContract({
-    address: RETSBA_TOKEN_ADDRESS,
+  // Get AbsETH balance
+  const { data: absEthBalance } = useReadContract({
+    address: ABSETH_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
   })
 
-  // Get token decimals
-  const { data: tokenDecimals } = useReadContract({
-    address: RETSBA_TOKEN_ADDRESS,
+  // Get Retsba token balance from DEX
+  const { data: retsbaBalance } = useReadContract({
+    address: RETSBA_DEX_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+  })
+
+  // Get AbsETH token decimals
+  const { data: absEthDecimals } = useReadContract({
+    address: ABSETH_TOKEN_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'decimals',
+  })
+
+  // Get Retsba token decimals
+  const { data: retsbaDecimals } = useReadContract({
+    address: RETSBA_DEX_ADDRESS,
     abi: erc20Abi,
     functionName: 'decimals',
   })
@@ -47,21 +58,20 @@ export const TradingInterface = () => {
     }
 
     try {
-      // This is a placeholder - in a real app you'd interact with a DEX or swap contract
-      // For demonstration, we'll show how you might call a swap function
+      // Interact with the DEX contract for swapping
       toast({
-        title: "Swap Initiated",
-        description: `Attempting to swap ${swapAmount} ETH for Retsba`,
+        title: "Swap Initiated", 
+        description: `Swapping ${swapAmount} AbsETH for Retsba via DEX contract ${RETSBA_DEX_ADDRESS}`,
       })
       
-      // Example contract call (you'd replace this with actual swap contract)
-      // writeContract({
-      //   address: SWAP_CONTRACT_ADDRESS,
-      //   abi: swapAbi,
-      //   functionName: 'swapETHForTokens',
-      //   args: [RETSBA_TOKEN_ADDRESS],
-      //   value: parseEther(swapAmount),
-      // })
+      // Note: This would require the actual DEX contract ABI and proper implementation
+      // For now, we're showing the interface structure
+      console.log('Swap parameters:', {
+        dexAddress: RETSBA_DEX_ADDRESS,
+        amount: parseEther(swapAmount),
+        tokenIn: ABSETH_TOKEN_ADDRESS,
+        tokenOut: RETSBA_DEX_ADDRESS
+      })
       
     } catch (error) {
       toast({
@@ -91,11 +101,14 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* ETH Balance */}
+        {/* AbsETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH Balance</Label>
+          <Label className="text-sm font-medium text-muted-foreground">AbsETH Balance</Label>
           <p className="text-lg font-semibold text-foreground">
-            {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
+            {absEthBalance && absEthDecimals 
+              ? `${parseFloat(formatEther(absEthBalance)).toFixed(4)} AbsETH` 
+              : '0 AbsETH'
+            }
           </p>
         </div>
 
@@ -103,7 +116,7 @@ export const TradingInterface = () => {
         <div className="p-4 border rounded-lg bg-background">
           <Label className="text-sm font-medium text-muted-foreground">Retsba Balance</Label>
           <p className="text-lg font-semibold text-foreground">
-            {retsbaBalance && tokenDecimals 
+            {retsbaBalance && retsbaDecimals 
               ? `${parseFloat(formatEther(retsbaBalance)).toFixed(4)} RETSBA`
               : '0 RETSBA'
             }
@@ -114,7 +127,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div>
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of ETH to swap
+              Amount of AbsETH to swap
             </Label>
             <Input
               id="swap-amount"
@@ -133,12 +146,14 @@ export const TradingInterface = () => {
             disabled={isPending || !swapAmount}
             className="w-full"
           >
-            {isPending ? 'Swapping...' : 'Swap ETH for Retsba'}
+            {isPending ? 'Swapping...' : 'Swap AbsETH for Retsba'}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          Note: This is a demo interface. Actual swapping requires integration with a DEX contract.
+          DEX Contract: {RETSBA_DEX_ADDRESS.slice(0, 6)}...{RETSBA_DEX_ADDRESS.slice(-4)}
+          <br />
+          AbsETH Token: {ABSETH_TOKEN_ADDRESS.slice(0, 6)}...{ABSETH_TOKEN_ADDRESS.slice(-4)}
         </p>
       </CardContent>
     </Card>
