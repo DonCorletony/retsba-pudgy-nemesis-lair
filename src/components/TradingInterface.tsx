@@ -400,7 +400,7 @@ export const TradingInterface = () => {
 
         {/* Swap Interface */}
         <div className="space-y-3">
-          <div>
+          <div className="p-4 border rounded-lg bg-white">
             <Label htmlFor="swap-amount" className="text-sm font-medium">
               Amount of ETH to swap
             </Label>
