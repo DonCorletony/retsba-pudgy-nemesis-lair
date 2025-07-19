@@ -36,29 +36,38 @@ export const WalletConnect = () => {
     }
   }
 
-  // Traditional wallet handler - use the same wagmi context
+  // Traditional wallet handler - fix the connector matching
   const handleTraditionalWallet = async (connectorName: string) => {
     try {
-      // Find the connector from the available connectors in the current wagmi context
-      const connector = connectors.find(c => {
-        if (connectorName === 'MetaMask') return c.name === 'MetaMask'
-        if (connectorName === 'WalletConnect') return c.name === 'WalletConnect'
-        if (connectorName === 'OKX') return c.name === 'OKX Wallet' || c.name === 'Injected'
-        return false
-      })
+      console.log(`Attempting to connect to ${connectorName}`)
+      console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })))
+      
+      // Find the connector with more flexible matching
+      let connector = null
+      
+      if (connectorName === 'MetaMask') {
+        connector = connectors.find(c => c.name === 'MetaMask' || c.id === 'metaMaskSDK')
+      } else if (connectorName === 'WalletConnect') {
+        connector = connectors.find(c => c.name === 'WalletConnect' || c.id === 'walletConnect')
+      } else if (connectorName === 'OKX') {
+        // Try OKX Wallet first, then Injected as fallback
+        connector = connectors.find(c => c.name === 'OKX Wallet' || c.id === 'com.okex.wallet') ||
+                   connectors.find(c => c.name === 'Injected' || c.id === 'injected')
+      }
       
       if (connector) {
+        console.log(`Found connector:`, { name: connector.name, id: connector.id })
         await connect({ connector })
         toast({
           title: "Success",
           description: `Connected to ${connectorName}!`,
         })
       } else {
-        // If connector not found in current context, show available options for debugging
-        console.log('Available connectors:', connectors.map(c => c.name))
+        console.error(`No connector found for ${connectorName}`)
+        console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })))
         toast({
           title: "Connector Not Found",
-          description: `${connectorName} connector not available. Check console for available options.`,
+          description: `${connectorName} connector not available. Available: ${connectors.map(c => c.name).join(', ')}`,
           variant: "destructive"
         })
       }
@@ -66,7 +75,7 @@ export const WalletConnect = () => {
       console.error(`${connectorName} connection error:`, error)
       toast({
         title: "Connection Failed",
-        description: `Failed to connect to ${connectorName}. Please try again.`,
+        description: `Failed to connect to ${connectorName}: ${error.message}`,
         variant: "destructive"
       })
     }

@@ -32,8 +32,8 @@ const abstractMainnet = {
 
 const queryClient = new QueryClient();
 
-// Create enhanced wagmi config with traditional connectors
-const enhancedWagmiConfig = createConfig({
+// Create wagmi config with traditional connectors
+const wagmiConfig = createConfig({
   chains: [abstractMainnet],
   connectors: [
     metaMask(),
@@ -55,7 +55,7 @@ const enhancedWagmiConfig = createConfig({
 
 const App = () => {
   return (
-    <WagmiProvider config={enhancedWagmiConfig}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <AbstractWalletProvider chain={abstractMainnet}>
           <TooltipProvider>
