@@ -366,28 +366,28 @@ export const TradingInterface = () => {
       throw new Error('Missing required parameters')
     }
 
-    const requestBody = {
-      srcChainId: selectedToken.chainId,
+    // Build query parameters for GET request
+    const params = new URLSearchParams({
+      srcChainId: selectedToken.chainId.toString(),
       srcChainTokenIn: selectedToken.address === '0x0000000000000000000000000000000000000000' 
         ? '0x0000000000000000000000000000000000000000' 
         : selectedToken.address,
       srcChainTokenInAmount: parseEther(swapAmount).toString(),
-      dstChainId: 2741, // Abstract
+      dstChainId: '2741', // Abstract
       dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
       dstChainTokenOutRecipient: address,
       srcChainOrderAuthorityAddress: address,
       dstChainOrderAuthorityAddress: address,
-      estimationOnly: true, // Just get a quote first
-    }
+      estimationOnly: 'true', // Just get a quote first
+    })
 
-    console.log('DeBridge request:', requestBody)
+    console.log('DeBridge request URL:', `${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`)
 
-    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/create-tx`, {
-      method: 'POST',
+    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody)
     })
     
     console.log('DeBridge response status:', response.status)
