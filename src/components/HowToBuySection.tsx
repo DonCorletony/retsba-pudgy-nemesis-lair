@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { TradingInterface } from './TradingInterface';
 
 const steps = [
   {
@@ -27,7 +28,7 @@ const steps = [
 
 const HowToBuySection = () => {
   return (
-    <section id="how-to-buy" className="py-20 bg-retsba relative">
+    <section id="buy-now" className="py-20 bg-retsba relative">
       <div className="container mx-auto px-4">
         <motion.div
           className="flex justify-center mb-12"
@@ -50,65 +51,19 @@ const HowToBuySection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-stroke text-white text-5xl mb-4">HOW TO BUY</h2>
+          <h2 className="text-stroke text-white text-5xl mb-4">BUY NOW</h2>
           <div className="w-24 h-1 bg-black mx-auto"></div>
         </motion.div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="space-y-8">
-              {steps.map((step, index) => (
-                <motion.div 
-                  key={step.id}
-                  className="flex items-start gap-4"
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 * index }}
-                >
-                  <div className="bg-black text-stroke text-white text-3xl w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                    {step.id}
-                  </div>
-                  <div>
-                    <h3 className="text-stroke text-white text-3xl mb-2">{step.title}</h3>
-                    <p className="text-white text-xl">{step.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            
-            <motion.div 
-              className="mt-12"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <a 
-                href="https://abs.xyz" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block"
-              >
-                BUY NOW
-              </a>
-            </motion.div>
-          </div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex justify-center"
-          >
-            <img 
-              src="/lovable-uploads/d2d19891-1719-49bb-9d84-2bc89aadbae6.png" 
-              alt="Abstract Trading Interface" 
-              className="w-full sm:w-4/5 md:w-3/4 lg:max-w-md rounded-lg border-4 border-black shadow-xl villain-shadow hover-float"
-            />
-          </motion.div>
-        </div>
+        <motion.div 
+          className="flex justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <TradingInterface />
+        </motion.div>
       </div>
     </section>
   );

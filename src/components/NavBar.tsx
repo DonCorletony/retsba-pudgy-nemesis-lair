@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { WalletConnect } from './WalletConnect';
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -41,15 +42,8 @@ const NavBar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             <a href="#about" className="text-stroke text-white hover:text-black transition-colors text-xl">ABOUT</a>
-            <a href="#how-to-buy" className="text-stroke text-white hover:text-black transition-colors text-xl">HOW TO BUY</a>
-            <a 
-              href="https://abs.xyz" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-stroke text-xl"
-            >
-              BUY NOW
-            </a>
+            <a href="#buy-now" className="text-stroke text-white hover:text-black transition-colors text-xl">BUY NOW</a>
+            <WalletConnect />
           </div>
           
           {/* Mobile Menu Button */}
@@ -89,21 +83,15 @@ const NavBar = () => {
               ABOUT
             </a>
             <a 
-              href="#how-to-buy" 
+              href="#buy-now" 
               className="text-stroke text-white hover:text-black transition-colors py-2 text-xl"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              HOW TO BUY
-            </a>
-            <a 
-              href="https://abs.xyz" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-black hover:bg-opacity-80 transition-all px-6 py-2 rounded-lg text-center text-stroke text-xl"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               BUY NOW
             </a>
+            <div className="pt-2">
+              <WalletConnect />
+            </div>
           </div>
         </motion.div>
       )}
