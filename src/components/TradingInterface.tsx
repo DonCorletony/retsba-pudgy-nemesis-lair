@@ -440,8 +440,13 @@ export const TradingInterface = () => {
       // Refresh balances
       refetchAbstractEthBalance()
       if (address) {
-        fetchCrossChainBalance(1, 'https://eth.llamarpc.com').then(setMainnetEthBalance)
-        fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc').then(setAvaxBalance)
+        const fetchBalances = async () => {
+          const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
+          setMainnetEthBalance(ethBalance)
+          const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
+          setAvaxBalance(avaxBal)
+        }
+        fetchBalances()
       }
       refetchWethBalance()
       refetchRetsbaBalance()
