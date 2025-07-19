@@ -23,6 +23,14 @@ export const WalletConnect = () => {
   console.log('Address:', address)
   console.log('========================')
 
+  // NUCLEAR auto-disconnect - run immediately if connected
+  useEffect(() => {
+    if (isConnected && address) {
+      console.log('🚨 AUTO-CONNECTION DETECTED! Force disconnecting...', address)
+      handleDisconnect()
+    }
+  }, [isConnected, address])
+
   // Filter connectors - let's be more flexible with OKX naming
   const filteredConnectors = connectors.filter(connector => 
     connector.name === 'MetaMask' || 

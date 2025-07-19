@@ -33,27 +33,35 @@ const abstractMainnet = {
 const queryClient = new QueryClient();
 
 // Create a fresh config each time to prevent auto-connection
-const getFreshConfig = () => createConfig({
-  chains: [abstractMainnet],
-  connectors: [
-    metaMask(),
-    injected(),
-    walletConnect({
-      projectId: 'demo', // You should replace this with your actual WalletConnect project ID
-      metadata: {
-        name: 'RETSBA Trading',
-        description: 'Trade RETSBA tokens',
-        url: 'https://retsba.com',
-        icons: ['https://retsba.com/icon.png']
-      }
-    }),
-  ],
-  transports: {
-    [abstractMainnet.id]: http(),
-  },
-  // Completely disable any auto-connection behavior
-  multiInjectedProviderDiscovery: false,
-})
+const getFreshConfig = () => {
+  // Clear all wallet connection data BEFORE creating config
+  if (typeof window !== 'undefined') {
+    localStorage.clear()
+    sessionStorage.clear()
+  }
+  
+  return createConfig({
+    chains: [abstractMainnet],
+    connectors: [
+      metaMask(),
+      injected(),
+      walletConnect({
+        projectId: 'demo',
+        metadata: {
+          name: 'RETSBA Trading',
+          description: 'Trade RETSBA tokens',
+          url: 'https://retsba.com',
+          icons: ['https://retsba.com/icon.png']
+        }
+      }),
+    ],
+    transports: {
+      [abstractMainnet.id]: http(),
+    },
+    // Completely disable any auto-connection behavior
+    multiInjectedProviderDiscovery: false,
+  })
+}
 
 const App = () => {
   // Get fresh config on each render to prevent persistence
