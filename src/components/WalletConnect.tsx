@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useConnect, useDisconnect, useAccount } from 'wagmi'
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,15 +15,33 @@ export const WalletConnect = () => {
   const { connectors, connect, isPending, error } = useConnect()
   const { disconnect } = useDisconnect()
   const { isConnected, address } = useAccount()
+  const { login: loginWithAbstract } = useLoginWithAbstract()
   const { toast } = useToast()
 
-  // Traditional wallet handler - now includes AGW
-  const handleWalletConnection = async (connectorName: string) => {
+  // Real AGW handler using the proper hook
+  const handleAbstractWallet = async () => {
+    try {
+      await loginWithAbstract()
+      toast({
+        title: "Success",
+        description: "Connected to Abstract Global Wallet!",
+      })
+    } catch (error) {
+      console.error('AGW connection error:', error)
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect to Abstract Global Wallet: ${error.message}`,
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Traditional wallet handler  
+  const handleTraditionalWallet = async (connectorName: string) => {
     try {
       console.log(`Attempting to connect to ${connectorName}`)
       console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })))
       
-      // Find the connector
       let connector = null
       
       if (connectorName === 'MetaMask') {
@@ -32,8 +51,6 @@ export const WalletConnect = () => {
       } else if (connectorName === 'OKX') {
         connector = connectors.find(c => c.name === 'OKX Wallet' || c.id === 'com.okex.wallet') ||
                    connectors.find(c => c.name === 'Injected' || c.id === 'injected')
-      } else if (connectorName === 'Abstract Global Wallet') {
-        connector = connectors.find(c => c.name === 'Abstract Global Wallet' || c.id === 'abstract')
       }
       
       if (connector) {
@@ -166,30 +183,31 @@ export const WalletConnect = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* All wallet options using unified handler */}
+        {/* Traditional wallet options */}
         <DropdownMenuItem
-          onClick={() => handleWalletConnection('MetaMask')}
+          onClick={() => handleTraditionalWallet('MetaMask')}
           disabled={isPending}
         >
           MetaMask
         </DropdownMenuItem>
         
         <DropdownMenuItem
-          onClick={() => handleWalletConnection('OKX')}
+          onClick={() => handleTraditionalWallet('OKX')}
           disabled={isPending}
         >
           OKX
         </DropdownMenuItem>
         
         <DropdownMenuItem
-          onClick={() => handleWalletConnection('WalletConnect')}
+          onClick={() => handleTraditionalWallet('WalletConnect')}
           disabled={isPending}
         >
           WalletConnect
         </DropdownMenuItem>
         
+        {/* Real AGW option using proper hook */}
         <DropdownMenuItem
-          onClick={() => handleWalletConnection('Abstract Global Wallet')}
+          onClick={handleAbstractWallet}
           disabled={isPending}
         >
           Abstract Global Wallet

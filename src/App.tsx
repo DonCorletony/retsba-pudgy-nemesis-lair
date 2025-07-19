@@ -1,10 +1,10 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AbstractWalletProvider } from "@abstract-foundation/agw-react";
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { metaMask, injected, walletConnect } from 'wagmi/connectors'
-import { abstractWallet } from './connectors/abstractConnector'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
@@ -32,7 +32,7 @@ const abstractMainnet = {
 
 const queryClient = new QueryClient();
 
-// Single wagmi config with ALL connectors including AGW
+// Traditional wagmi config - this will be enhanced by AbstractWalletProvider
 const wagmiConfig = createConfig({
   chains: [abstractMainnet],
   connectors: [
@@ -47,7 +47,6 @@ const wagmiConfig = createConfig({
         icons: ['https://retsba.com/icon.png']
       }
     }),
-    abstractWallet(), // Custom AGW connector
   ],
   transports: {
     [abstractMainnet.id]: http(),
@@ -58,18 +57,20 @@ const App = () => {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/freemoney" element={<FreeMoney />} />
-              <Route path="/test" element={<Test />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <AbstractWalletProvider chain={abstractMainnet}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/freemoney" element={<FreeMoney />} />
+                <Route path="/test" element={<Test />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AbstractWalletProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
