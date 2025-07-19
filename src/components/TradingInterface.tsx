@@ -45,7 +45,7 @@ const TOKENS = [
 ]
 
 // DeBridge configuration
-const DEBRIDGE_API_URL = 'https://api.dln.trade/v1.0'
+const DEBRIDGE_API_URL = 'https://dln.debridge.finance/v1.0'
 
 // Uniswap V2 Pair ABI (minimal)
 const uniswapV2PairAbi = [
@@ -362,27 +362,45 @@ export const TradingInterface = () => {
 
   // DeBridge helper functions
   const getDeBridgeQuote = async () => {
-    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/quote`, {
+    if (!address || !swapAmount) {
+      throw new Error('Missing required parameters')
+    }
+
+    const requestBody = {
+      srcChainId: selectedToken.chainId,
+      srcChainTokenIn: selectedToken.address === '0x0000000000000000000000000000000000000000' 
+        ? '0x0000000000000000000000000000000000000000' 
+        : selectedToken.address,
+      srcChainTokenInAmount: parseEther(swapAmount).toString(),
+      dstChainId: 2741, // Abstract
+      dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
+      dstChainTokenOutRecipient: address,
+      srcChainOrderAuthorityAddress: address,
+      dstChainOrderAuthorityAddress: address,
+      estimationOnly: true, // Just get a quote first
+    }
+
+    console.log('DeBridge request:', requestBody)
+
+    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/create-tx`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        srcChainId: selectedToken.chainId,
-        srcChainTokenIn: selectedToken.address,
-        srcChainTokenInAmount: parseEther(swapAmount).toString(),
-        dstChainId: 2741, // Abstract
-        dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
-        dstChainTokenOutRecipient: address,
-        srcChainOrderAuthorityAddress: address,
-      })
+      body: JSON.stringify(requestBody)
     })
     
+    console.log('DeBridge response status:', response.status)
+    
     if (!response.ok) {
-      throw new Error('Failed to get bridge quote')
+      const errorText = await response.text()
+      console.log('DeBridge error response:', errorText)
+      throw new Error(`DeBridge API error: ${response.status} - ${errorText}`)
     }
     
-    return await response.json()
+    const result = await response.json()
+    console.log('DeBridge quote result:', result)
+    return result
   }
 
   const executeDeBridgeTx = async (quote: any) => {
