@@ -11,6 +11,8 @@ const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x
 const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}` // WETH (AbsETH) on Abstract
 const V2_PAIR_ADDRESS = '0x26E7f241Fc81Bb168F9f81401184CDe74dcC8f31' as `0x${string}` // V2 Pair for price data
 const V3_PAIR_ADDRESS = '0x1176Bf6483763c9fc74F80a575497e17cAe9ca18' as `0x${string}` // V3 Pair for swaps
+const V2_ROUTER_ADDRESS = '0xad1eCa41E6F772bE3cb5A48A6141f9bcc1AF9F7c' as `0x${string}` // UniswapV2Router02 on Abstract
+const V3_ROUTER_ADDRESS = '0x7712FA47387542819d4E35A23f8116C90C18767C' as `0x${string}` // SwapRouter02 on Abstract
 
 // Uniswap V2 Pair ABI (minimal)
 const uniswapV2PairAbi = [
@@ -37,6 +39,47 @@ const uniswapV2PairAbi = [
     inputs: [],
     name: 'token1',
     outputs: [{ name: '', type: 'address' }],
+    type: 'function'
+  }
+] as const
+
+// Uniswap V2 Router ABI (minimal)
+const uniswapV2RouterAbi = [
+  {
+    inputs: [
+      { name: 'amountOutMin', type: 'uint256' },
+      { name: 'path', type: 'address[]' },
+      { name: 'to', type: 'address' },
+      { name: 'deadline', type: 'uint256' }
+    ],
+    name: 'swapExactETHForTokens',
+    outputs: [{ name: 'amounts', type: 'uint256[]' }],
+    stateMutability: 'payable',
+    type: 'function'
+  }
+] as const
+
+// Uniswap V3 Router ABI (minimal)  
+const uniswapV3RouterAbi = [
+  {
+    inputs: [
+      {
+        components: [
+          { name: 'tokenIn', type: 'address' },
+          { name: 'tokenOut', type: 'address' },
+          { name: 'fee', type: 'uint24' },
+          { name: 'recipient', type: 'address' },
+          { name: 'amountIn', type: 'uint256' },
+          { name: 'amountOutMinimum', type: 'uint256' },
+          { name: 'sqrtPriceLimitX96', type: 'uint160' }
+        ],
+        name: 'params',
+        type: 'tuple'
+      }
+    ],
+    name: 'exactInputSingle',
+    outputs: [{ name: 'amountOut', type: 'uint256' }],
+    stateMutability: 'payable',
     type: 'function'
   }
 ] as const
@@ -226,34 +269,68 @@ export const TradingInterface = () => {
     }
 
     try {
+      const deadline = Math.floor(Date.now() / 1000) + 600 // 10 minutes from now
+      const amountOutMin = parseEther(estimatedRetsba) // Using our calculated estimate with slippage
+      const amountIn = parseEther(swapAmount)
+
       toast({
         title: "Swap Initiated", 
-        description: `Preparing to swap ${swapAmount} ETH for ${estimatedRetsba} RETSBA`,
+        description: `Swapping ${swapAmount} ETH for ${estimatedRetsba} RETSBA`,
       })
+
+      // Try V2 swap first (typically has better liquidity for this pair)
+      try {
+        await writeContract({
+          address: V2_ROUTER_ADDRESS,
+          abi: uniswapV2RouterAbi,
+          functionName: 'swapExactETHForTokens',
+          args: [
+            amountOutMin,
+            [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS], // Path: ETH -> WETH -> RETSBA
+            address,
+            BigInt(deadline)
+          ],
+          value: amountIn,
+        } as any)
+
+        toast({
+          title: "V2 Swap Submitted",
+          description: "Transaction submitted via Uniswap V2 router. Please confirm in your wallet.",
+        })
+
+      } catch (v2Error) {
+        console.log('V2 swap failed, trying V3:', v2Error)
+        
+        // If V2 fails, try V3
+        await writeContract({
+          address: V3_ROUTER_ADDRESS,
+          abi: uniswapV3RouterAbi,
+          functionName: 'exactInputSingle',
+          args: [
+            {
+              tokenIn: WETH_ADDRESS,
+              tokenOut: RETSBA_TOKEN_ADDRESS,
+              fee: 3000, // 0.3% fee tier
+              recipient: address,
+              amountIn: amountIn,
+              amountOutMinimum: amountOutMin,
+              sqrtPriceLimitX96: 0n, // No price limit
+            }
+          ],
+          value: amountIn,
+        } as any)
+
+        toast({
+          title: "V3 Swap Submitted",
+          description: "V2 failed, transaction submitted via Uniswap V3 router. Please confirm in your wallet.",
+        })
+      }
       
-      // This is a placeholder for the actual swap implementation
-      // You would need to implement the actual DEX router calls here
-      // For now, we'll show what parameters would be used
-      console.log('Swap parameters:', {
-        inputToken: 'Native ETH (auto-wrapped to WETH)',
-        outputToken: RETSBA_TOKEN_ADDRESS,
-        amountIn: parseEther(swapAmount),
-        amountOutMin: parseEther(estimatedRetsba),
-        v2Pair: V2_PAIR_ADDRESS,
-        v3Pair: V3_PAIR_ADDRESS,
-        currentPrice: currentPrice
-      })
-      
-      toast({
-        title: "Implementation Needed",
-        description: "Swap interface ready - DEX router integration required for execution",
-        variant: "default"
-      })
-      
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Swap error:', error)
       toast({
         title: "Swap Failed",
-        description: "There was an error processing your swap",
+        description: error.message || "There was an error processing your swap",
         variant: "destructive"
       })
     }
@@ -400,9 +477,9 @@ export const TradingInterface = () => {
         <p className="text-xs text-muted-foreground text-center">
           RETSBA: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
           <br />
-          ETH automatically wraps to WETH: {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
+          V2 Router: {V2_ROUTER_ADDRESS.slice(0, 6)}...{V2_ROUTER_ADDRESS.slice(-4)}
           <br />
-          V2 Pool: {V2_PAIR_ADDRESS.slice(0, 6)}...{V2_PAIR_ADDRESS.slice(-4)}
+          V3 Router: {V3_ROUTER_ADDRESS.slice(0, 6)}...{V3_ROUTER_ADDRESS.slice(-4)}
         </p>
       </CardContent>
     </Card>
