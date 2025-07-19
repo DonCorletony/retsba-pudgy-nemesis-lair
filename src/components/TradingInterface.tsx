@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAccount, useBalance, useReadContract, useWriteContract } from 'wagmi'
+import { useAccount, useBalance, useReadContract, useWriteContract, useEstimateGas } from 'wagmi'
 import { formatEther, parseEther, erc20Abi } from 'viem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,8 @@ export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   const [swapAmount, setSwapAmount] = useState('')
+  const [estimatedRetsba, setEstimatedRetsba] = useState('')
+  const [swapRate, setSwapRate] = useState(1000) // Placeholder: 1 ETH = 1000 RETSBA
   
   // Get native ETH balance for AbsETH (zero address)
   const { data: ethBalance } = useBalance({
@@ -69,6 +71,24 @@ export const TradingInterface = () => {
   }, [address, ethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError])
 
   const { writeContract, isPending } = useWriteContract()
+
+  // Gas estimation for the swap
+  const { data: gasEstimate } = useEstimateGas({
+    to: RETSBA_TOKEN_ADDRESS,
+    data: '0x', // Placeholder - would be actual swap function call data
+    value: swapAmount ? parseEther(swapAmount) : undefined,
+  })
+
+  // Calculate estimated RETSBA output when swap amount changes
+  useEffect(() => {
+    if (swapAmount && !isNaN(parseFloat(swapAmount))) {
+      const ethAmount = parseFloat(swapAmount)
+      const retsbaOutput = ethAmount * swapRate
+      setEstimatedRetsba(retsbaOutput.toFixed(4))
+    } else {
+      setEstimatedRetsba('')
+    }
+  }, [swapAmount, swapRate])
 
   // Listen for account changes and refresh interface
   useEffect(() => {
@@ -212,6 +232,36 @@ export const TradingInterface = () => {
               min="0"
             />
           </div>
+
+          {/* Estimated RETSBA Output */}
+          {swapAmount && estimatedRetsba && (
+            <div className="p-3 border rounded-lg bg-accent/50">
+              <Label className="text-sm font-medium text-muted-foreground">
+                You will receive (estimated)
+              </Label>
+              <p className="text-lg font-semibold text-foreground">
+                {estimatedRetsba} RETSBA
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Rate: 1 AbsETH = {swapRate.toLocaleString()} RETSBA
+              </p>
+            </div>
+          )}
+
+          {/* Gas Fee Estimate */}
+          {gasEstimate && swapAmount && (
+            <div className="p-3 border rounded-lg bg-muted/50">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Estimated Gas Fee
+              </Label>
+              <p className="text-sm font-semibold text-foreground">
+                {parseFloat(formatEther(gasEstimate * BigInt(20000000000))).toFixed(6)} ETH
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Gas Units: {gasEstimate.toLocaleString()}
+              </p>
+            </div>
+          )}
 
           <Button 
             onClick={handleSwap}
