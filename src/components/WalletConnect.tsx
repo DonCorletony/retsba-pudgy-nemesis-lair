@@ -16,24 +16,66 @@ export const WalletConnect = () => {
   const { isConnected, address } = useAccount()
   const { toast } = useToast()
 
+  // Complete disconnect function that clears all cached data
+  const handleDisconnect = async () => {
+    try {
+      // Disconnect from wagmi
+      await disconnect()
+      
+      // Clear any localStorage data that might be cached
+      localStorage.removeItem('wagmi.store')
+      localStorage.removeItem('wagmi.cache')
+      localStorage.removeItem('wagmi.connected')
+      
+      // Clear any injected wallet connection
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          // Some wallets store connection state - try to clear it
+          await window.ethereum.request({
+            method: 'wallet_requestPermissions',
+            params: [{ eth_accounts: {} }]
+          }).catch(() => {}) // Ignore errors for wallets that don't support this
+        } catch (e) {
+          // Ignore permission errors
+        }
+      }
+      
+      toast({
+        title: "Wallet Disconnected",
+        description: "All wallet data has been cleared. Next connection will be fresh.",
+      })
+      
+      // Force a page reload to ensure complete state reset
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+      
+    } catch (error) {
+      console.error('Disconnect error:', error)
+      toast({
+        title: "Disconnect Error",
+        description: "There was an issue disconnecting. Please refresh the page.",
+        variant: "destructive"
+      })
+    }
+  }
+
   // Listen for account changes in the wallet extension
   useEffect(() => {
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
-        // User disconnected all accounts
-        disconnect()
-        toast({
-          title: "Wallet Disconnected",
-          description: "All accounts have been disconnected",
-        })
+        // User disconnected all accounts - clear everything
+        handleDisconnect()
       } else if (isConnected && accounts[0] !== address) {
-        // Account changed, show notification
+        // Account changed, show notification and refresh
         toast({
           title: "Account Changed",
-          description: `Switched to ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
+          description: `Detected new account: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}. Refreshing...`,
         })
-        // Force page reload to refresh wallet state
-        window.location.reload()
+        // Force page reload to ensure clean state with new account
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
       }
     }
 
@@ -58,8 +100,8 @@ export const WalletConnect = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => disconnect()}>
-            Disconnect
+          <DropdownMenuItem onClick={handleDisconnect}>
+            Disconnect & Clear Cache
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
