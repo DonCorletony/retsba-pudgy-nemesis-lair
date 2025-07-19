@@ -16,7 +16,7 @@ export const TradingInterface = () => {
   const [swapAmount, setSwapAmount] = useState('')
   
   // Get AbsETH balance
-  const { data: absEthBalance } = useReadContract({
+  const { data: absEthBalance, error: absEthError, isLoading: absEthLoading } = useReadContract({
     address: ABSETH_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
@@ -24,12 +24,25 @@ export const TradingInterface = () => {
   })
 
   // Get Retsba token balance from DEX
-  const { data: retsbaBalance } = useReadContract({
+  const { data: retsbaBalance, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
     address: RETSBA_DEX_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
   })
+
+  // Debug logging
+  useEffect(() => {
+    console.log('=== BALANCE DEBUG INFO ===')
+    console.log('Connected Address:', address)
+    console.log('AbsETH Contract:', ABSETH_TOKEN_ADDRESS)
+    console.log('AbsETH Balance:', absEthBalance)
+    console.log('AbsETH Error:', absEthError)
+    console.log('AbsETH Loading:', absEthLoading)
+    console.log('Retsba Balance:', retsbaBalance)
+    console.log('Retsba Error:', retsbaError)
+    console.log('========================')
+  }, [address, absEthBalance, absEthError, absEthLoading, retsbaBalance, retsbaError])
 
   // Get AbsETH token decimals
   const { data: absEthDecimals } = useReadContract({
@@ -126,11 +139,20 @@ export const TradingInterface = () => {
         {/* AbsETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
           <Label className="text-sm font-medium text-muted-foreground">AbsETH Balance</Label>
-          <p className="text-lg font-semibold text-foreground">
-            {absEthBalance && absEthDecimals 
-              ? `${parseFloat(formatEther(absEthBalance)).toFixed(4)} AbsETH` 
-              : '0 AbsETH'
-            }
+          {absEthLoading ? (
+            <p className="text-lg font-semibold text-foreground">Loading...</p>
+          ) : absEthError ? (
+            <p className="text-lg font-semibold text-destructive">Error loading balance</p>
+          ) : (
+            <p className="text-lg font-semibold text-foreground">
+              {absEthBalance && absEthDecimals 
+                ? `${parseFloat(formatEther(absEthBalance)).toFixed(4)} AbsETH` 
+                : '0 AbsETH'
+              }
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            Contract: {ABSETH_TOKEN_ADDRESS.slice(0, 8)}...{ABSETH_TOKEN_ADDRESS.slice(-6)}
           </p>
         </div>
 
