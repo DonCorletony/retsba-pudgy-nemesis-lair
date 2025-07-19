@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { metaMask, injected } from 'wagmi/connectors'
+import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
@@ -38,6 +38,15 @@ const getFreshConfig = () => createConfig({
   connectors: [
     metaMask(),
     injected({ target: 'okxWallet' }),
+    walletConnect({
+      projectId: 'demo', // You should replace this with your actual WalletConnect project ID
+      metadata: {
+        name: 'RETSBA Trading',
+        description: 'Trade RETSBA tokens',
+        url: 'https://retsba.com',
+        icons: ['https://retsba.com/icon.png']
+      }
+    }),
   ],
   transports: {
     [abstractMainnet.id]: http(),
