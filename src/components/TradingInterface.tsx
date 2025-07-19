@@ -541,7 +541,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div className="p-4 border rounded-lg bg-white">
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of {selectedToken.symbol} to swap
+              Amount of {selectedToken.symbol} to corrupt
             </Label>
             <Input
               id="swap-amount"
