@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAccount, useBalance, useReadContract, useWriteContract, useEstimateGas } from 'wagmi'
+import { useAccount, useBalance, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { formatEther, parseEther, erc20Abi } from 'viem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -92,21 +92,50 @@ export const TradingInterface = () => {
   const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
   
-  // Get native ETH balance (we'll need to use WETH for swapping)
-  const { data: ethBalance } = useBalance({
+  // Track swap transaction hash for waiting
+  const [swapTxHash, setSwapTxHash] = useState<string | undefined>()
+  
+  // Contract interactions
+  const { writeContract, data: writeData, isPending } = useWriteContract({
+    mutation: {
+      onSuccess: (hash) => {
+        setSwapTxHash(hash)
+        toast({
+          title: "Transaction Submitted",
+          description: "Please wait for confirmation...",
+        })
+      },
+      onError: (error) => {
+        console.error('Transaction error:', error)
+        toast({
+          title: "Transaction Failed",
+          description: error.message || "There was an error processing your swap",
+          variant: "destructive"
+        })
+      }
+    }
+  })
+  
+  // Wait for transaction confirmation
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: swapTxHash as `0x${string}`,
+  })
+  
+  // Get native ETH balance with refetch capability
+  const { data: ethBalance, refetch: refetchEthBalance } = useBalance({
     address: address,
   })
   
-  // Get WETH balance for swapping
-  const { data: wethBalance } = useReadContract({
+  // Get WETH balance for swapping with refetch capability
+  const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
     address: WETH_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
   })
 
-  // Get RETSBA token balance 
-  const { data: retsbaBalance, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
+  // Get RETSBA token balance with refetch capability
+  const { data: retsbaBalance, error: retsbaError, isLoading: retsbaLoading, refetch: refetchRetsbaBalance } = useReadContract({
     address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
@@ -211,8 +240,6 @@ export const TradingInterface = () => {
     console.log('========================')
   }, [address, ethBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
 
-  const { writeContract, isPending } = useWriteContract()
-
   // Calculate estimated RETSBA output when swap amount changes
   useEffect(() => {
     if (swapAmount && !isNaN(parseFloat(swapAmount)) && currentPrice > 0) {
@@ -226,6 +253,25 @@ export const TradingInterface = () => {
       setEstimatedRetsba('')
     }
   }, [swapAmount, currentPrice])
+  
+  // Handle transaction confirmation
+  useEffect(() => {
+    if (isConfirmed && swapTxHash) {
+      toast({
+        title: "Swap Successful!",
+        description: "Your RETSBA balance has been updated.",
+      })
+      
+      // Refresh all balances after successful swap
+      refetchEthBalance()
+      refetchWethBalance()
+      refetchRetsbaBalance()
+      
+      // Clear swap amount and transaction hash
+      setSwapAmount('')
+      setSwapTxHash(undefined)
+    }
+  }, [isConfirmed, swapTxHash, toast, refetchEthBalance, refetchWethBalance, refetchRetsbaBalance])
 
   // Listen for account changes and refresh interface
   useEffect(() => {
@@ -278,53 +324,20 @@ export const TradingInterface = () => {
         description: `Swapping ${swapAmount} ETH for ${estimatedRetsba} RETSBA`,
       })
 
-      // Try V2 swap first (typically has better liquidity for this pair)
-      try {
-        await writeContract({
-          address: V2_ROUTER_ADDRESS,
-          abi: uniswapV2RouterAbi,
-          functionName: 'swapExactETHForTokens',
-          args: [
-            amountOutMin,
-            [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS], // Path: ETH -> WETH -> RETSBA
-            address,
-            BigInt(deadline)
-          ],
-          value: amountIn,
-        } as any)
+      // Submit the swap transaction
+      writeContract({
+        address: V2_ROUTER_ADDRESS,
+        abi: uniswapV2RouterAbi,
+        functionName: 'swapExactETHForTokens',
+        args: [
+          amountOutMin,
+          [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS], // Path: ETH -> WETH -> RETSBA
+          address,
+          BigInt(deadline)
+        ],
+        value: amountIn,
+      } as any)
 
-        toast({
-          title: "V2 Swap Submitted",
-          description: "Transaction submitted via Uniswap V2 router. Please confirm in your wallet.",
-        })
-
-      } catch (v2Error) {
-        console.log('V2 swap failed, trying V3:', v2Error)
-        
-        // If V2 fails, try V3
-        await writeContract({
-          address: V3_ROUTER_ADDRESS,
-          abi: uniswapV3RouterAbi,
-          functionName: 'exactInputSingle',
-          args: [
-            {
-              tokenIn: WETH_ADDRESS,
-              tokenOut: RETSBA_TOKEN_ADDRESS,
-              fee: 3000, // 0.3% fee tier
-              recipient: address,
-              amountIn: amountIn,
-              amountOutMinimum: amountOutMin,
-              sqrtPriceLimitX96: 0n, // No price limit
-            }
-          ],
-          value: amountIn,
-        } as any)
-
-        toast({
-          title: "V3 Swap Submitted",
-          description: "V2 failed, transaction submitted via Uniswap V3 router. Please confirm in your wallet.",
-        })
-      }
       
     } catch (error: any) {
       console.error('Swap error:', error)
@@ -442,10 +455,11 @@ export const TradingInterface = () => {
 
           <Button 
             onClick={handleSwap}
-            disabled={isPending || !swapAmount || currentPrice === 0 || isLoadingPrice}
+            disabled={isPending || isConfirming || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
-            {isPending ? 'Swapping...' : 
+            {isPending ? 'Submitting...' : 
+             isConfirming ? 'Confirming...' :
              currentPrice === 0 ? 'Loading Price...' : 
              'Become the Villain'}
           </Button>
