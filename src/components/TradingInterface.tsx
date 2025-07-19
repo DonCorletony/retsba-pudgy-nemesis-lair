@@ -31,15 +31,15 @@ const TOKENS = [
     name: 'Ethereum ETH',
     address: '0x0000000000000000000000000000000000000000', // Native ETH
     decimals: 18,
-    chainId: 1, // Ethereum Mainnet - SUPPORTED by DeBridge
+    chainId: 1, // Ethereum Mainnet
     isAbstractNative: false
   },
   {
-    symbol: 'BNB',
-    name: 'BNB Smart Chain',
-    address: '0x0000000000000000000000000000000000000000', // Native BNB
+    symbol: 'AVAX',
+    name: 'Avalanche',
+    address: '0x0000000000000000000000000000000000000000', // Native AVAX
     decimals: 18,
-    chainId: 56, // BSC - SUPPORTED by DeBridge
+    chainId: 43114, // Avalanche C-Chain - CONFIRMED SUPPORTED
     isAbstractNative: false
   }
 ]
@@ -373,7 +373,7 @@ export const TradingInterface = () => {
         ? '0x0000000000000000000000000000000000000000' 
         : selectedToken.address,
       srcChainTokenInAmount: parseEther(swapAmount).toString(),
-      dstChainId: '2741', // Abstract
+      dstChainId: '100000017', // Abstract's INTERNAL Chain ID per DeBridge docs
       dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
       dstChainTokenOutRecipient: address,
       srcChainOrderAuthorityAddress: address,
