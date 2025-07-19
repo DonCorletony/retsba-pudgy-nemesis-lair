@@ -23,10 +23,14 @@ const abstractMainnet = {
     default: {
       http: ['https://api.mainnet.abs.xyz'],
     },
+    public: {
+      http: ['https://api.mainnet.abs.xyz'],
+    },
   },
   blockExplorers: {
     default: { name: 'Abstract Explorer', url: 'https://abscan.org' },
   },
+  testnet: false,
 } as const
 
 const queryClient = new QueryClient();
