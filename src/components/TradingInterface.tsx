@@ -47,6 +47,28 @@ export const TradingInterface = () => {
 
   const { writeContract, isPending } = useWriteContract()
 
+  // Listen for account changes and refresh interface
+  useEffect(() => {
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length > 0 && accounts[0] !== address) {
+        toast({
+          title: "Account Updated",
+          description: "Refreshing balances for new account...",
+        })
+        setSwapAmount('') // Clear any pending swap amount
+        // The useReadContract hooks will automatically refresh with the new address
+      }
+    }
+
+    if (typeof window !== 'undefined' && window.ethereum && isConnected) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged)
+      
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
+      }
+    }
+  }, [address, isConnected, toast])
+
   const handleSwap = async () => {
     if (!swapAmount || !address) {
       toast({
