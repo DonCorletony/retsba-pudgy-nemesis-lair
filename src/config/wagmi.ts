@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi'
-import { injected } from 'wagmi/connectors'
+import { metaMask, walletConnect } from 'wagmi/connectors'
 
 // Abstract Mainnet configuration
 const abstractMainnet = {
@@ -23,7 +23,16 @@ const abstractMainnet = {
 export const config = createConfig({
   chains: [abstractMainnet],
   connectors: [
-    injected(),
+    metaMask(),
+    walletConnect({
+      projectId: 'demo', // You should replace this with your actual WalletConnect project ID
+      metadata: {
+        name: 'RETSBA Trading',
+        description: 'Trade RETSBA tokens',
+        url: 'https://retsba.com',
+        icons: ['https://retsba.com/icon.png']
+      }
+    }),
   ],
   transports: {
     [abstractMainnet.id]: http(),
