@@ -7,17 +7,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 
-const RETSBA_DEX_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`
-const ABSETH_TOKEN_ADDRESS = '0xa8726bD058Bea1973B61a9BC2a5E0e605B797307' as `0x${string}`
+const RETSBA_DEX_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // Verify this exists
+const WETH_ADDRESS = '0x9EDCde0257F2386Ce177C3a7FCdd97787F0D841d' as `0x${string}` // Official WETH9 on Abstract testnet
 
 export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   const [swapAmount, setSwapAmount] = useState('')
   
-  // Get AbsETH balance
-  const { data: absEthBalance, error: absEthError, isLoading: absEthLoading } = useReadContract({
-    address: ABSETH_TOKEN_ADDRESS,
+  // Get WETH balance (official wrapped ETH on Abstract)
+  const { data: wethBalance, error: wethError, isLoading: wethLoading } = useReadContract({
+    address: WETH_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
@@ -35,18 +35,19 @@ export const TradingInterface = () => {
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
     console.log('Connected Address:', address)
-    console.log('AbsETH Contract:', ABSETH_TOKEN_ADDRESS)
-    console.log('AbsETH Balance:', absEthBalance)
-    console.log('AbsETH Error:', absEthError)
-    console.log('AbsETH Loading:', absEthLoading)
+    console.log('WETH Contract (Official):', WETH_ADDRESS)
+    console.log('WETH Balance:', wethBalance)
+    console.log('WETH Error:', wethError)
+    console.log('WETH Loading:', wethLoading)
+    console.log('Retsba DEX Contract:', RETSBA_DEX_ADDRESS)
     console.log('Retsba Balance:', retsbaBalance)
     console.log('Retsba Error:', retsbaError)
     console.log('========================')
-  }, [address, absEthBalance, absEthError, absEthLoading, retsbaBalance, retsbaError])
+  }, [address, wethBalance, wethError, wethLoading, retsbaBalance, retsbaError])
 
-  // Get AbsETH token decimals
-  const { data: absEthDecimals } = useReadContract({
-    address: ABSETH_TOKEN_ADDRESS,
+  // Get WETH token decimals
+  const { data: wethDecimals } = useReadContract({
+    address: WETH_ADDRESS,
     abi: erc20Abi,
     functionName: 'decimals',
   })
@@ -96,7 +97,7 @@ export const TradingInterface = () => {
       // Interact with the DEX contract for swapping
       toast({
         title: "Swap Initiated", 
-        description: `Swapping ${swapAmount} AbsETH for Retsba via DEX contract ${RETSBA_DEX_ADDRESS}`,
+        description: `Swapping ${swapAmount} WETH for Retsba via DEX contract ${RETSBA_DEX_ADDRESS}`,
       })
       
       // Note: This would require the actual DEX contract ABI and proper implementation
@@ -104,7 +105,7 @@ export const TradingInterface = () => {
       console.log('Swap parameters:', {
         dexAddress: RETSBA_DEX_ADDRESS,
         amount: parseEther(swapAmount),
-        tokenIn: ABSETH_TOKEN_ADDRESS,
+        tokenIn: WETH_ADDRESS,
         tokenOut: RETSBA_DEX_ADDRESS
       })
       
@@ -136,23 +137,26 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* AbsETH Balance */}
+        {/* WETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">AbsETH Balance</Label>
-          {absEthLoading ? (
+          <Label className="text-sm font-medium text-muted-foreground">WETH Balance</Label>
+          {wethLoading ? (
             <p className="text-lg font-semibold text-foreground">Loading...</p>
-          ) : absEthError ? (
-            <p className="text-lg font-semibold text-destructive">Error loading balance</p>
+          ) : wethError ? (
+            <div>
+              <p className="text-lg font-semibold text-destructive">Error loading WETH balance</p>
+              <p className="text-xs text-destructive mt-1">{wethError.message || 'Unknown error'}</p>
+            </div>
           ) : (
             <p className="text-lg font-semibold text-foreground">
-              {absEthBalance && absEthDecimals 
-                ? `${parseFloat(formatEther(absEthBalance)).toFixed(4)} AbsETH` 
-                : '0 AbsETH'
+              {wethBalance && wethDecimals 
+                ? `${parseFloat(formatEther(wethBalance)).toFixed(4)} WETH` 
+                : '0 WETH'
               }
             </p>
           )}
           <p className="text-xs text-muted-foreground mt-1">
-            Contract: {ABSETH_TOKEN_ADDRESS.slice(0, 8)}...{ABSETH_TOKEN_ADDRESS.slice(-6)}
+            Contract: {WETH_ADDRESS.slice(0, 8)}...{WETH_ADDRESS.slice(-6)}
           </p>
         </div>
 
@@ -171,7 +175,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div>
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of AbsETH to swap
+              Amount of WETH to swap
             </Label>
             <Input
               id="swap-amount"
@@ -190,14 +194,14 @@ export const TradingInterface = () => {
             disabled={isPending || !swapAmount}
             className="w-full"
           >
-            {isPending ? 'Swapping...' : 'Swap AbsETH for Retsba'}
+            {isPending ? 'Swapping...' : 'Swap WETH for Retsba'}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
           DEX Contract: {RETSBA_DEX_ADDRESS.slice(0, 6)}...{RETSBA_DEX_ADDRESS.slice(-4)}
           <br />
-          AbsETH Token: {ABSETH_TOKEN_ADDRESS.slice(0, 6)}...{ABSETH_TOKEN_ADDRESS.slice(-4)}
+          WETH Token (Official): {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
         </p>
       </CardContent>
     </Card>
