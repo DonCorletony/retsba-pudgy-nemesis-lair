@@ -336,18 +336,25 @@ export const TradingInterface = () => {
     if (!selectedToken.isAbstractNative) {
       toast({
         title: "Cross-Chain Swap",
-        description: `Bridging ${selectedToken.symbol} to Abstract WETH, then swapping to RETSBA`,
+        description: `Bridging ${selectedToken.symbol} to Abstract, then swapping to RETSBA`,
       })
       
       try {
-        // Step 1: Get DeBridge quote for AVAX -> Abstract WETH
+        // For now, let's test with supported chains only
+        if (selectedToken.chainId === 2741) {
+          throw new Error('Abstract bridging is still being configured')
+        }
+        
+        // Step 1: Get DeBridge quote
         const bridgeQuote = await getDeBridgeQuote()
         
-        // Step 2: Execute bridge transaction
-        const bridgeTx = await executeDeBridgeTx(bridgeQuote)
+        toast({
+          title: "Bridge Quote Received",
+          description: `Quote: ${JSON.stringify(bridgeQuote).slice(0, 100)}...`,
+        })
         
-        // Step 3: Wait for bridge completion and auto-swap WETH -> RETSBA
-        // This would be handled by monitoring the bridge completion
+        // Step 2: Execute bridge transaction would go here
+        // const bridgeTx = await executeDeBridgeTx(bridgeQuote)
         
       } catch (error: any) {
         console.error('Cross-chain swap error:', error)
