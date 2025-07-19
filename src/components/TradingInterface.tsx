@@ -397,24 +397,6 @@ export const TradingInterface = () => {
           )}
         </div>
 
-        {/* Current Price Display - Always show with loading state */}
-        <div className="p-3 border rounded-lg bg-accent/20">
-          <Label className="text-sm font-medium text-muted-foreground">
-            Current RETSBA Price
-          </Label>
-          {currentPrice > 0 ? (
-            <p className="text-lg font-semibold text-foreground">
-              {currentPrice.toFixed(8)} WETH
-            </p>
-          ) : (
-            <p className="text-lg font-semibold text-muted-foreground">
-              Loading...
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            {currentPrice > 0 ? 'Live price from V2 pool' : 'Fetching price data'}
-          </p>
-        </div>
 
         {/* Swap Interface */}
         <div className="space-y-3">
