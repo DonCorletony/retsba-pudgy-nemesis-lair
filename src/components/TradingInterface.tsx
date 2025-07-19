@@ -28,6 +28,27 @@ export const TradingInterface = () => {
     args: address ? [address] : undefined,
   })
 
+  // Get RETSBA token decimals
+  const { data: retsbaDecimals, error: retsbaDecimalsError } = useReadContract({
+    address: RETSBA_TOKEN_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'decimals',
+  })
+
+  // Check if RETSBA contract exists by trying to get total supply
+  const { data: retsbaTotalSupply, error: retsbaTotalSupplyError } = useReadContract({
+    address: RETSBA_TOKEN_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'totalSupply',
+  })
+
+  // Try to get the token name to verify it's an ERC20
+  const { data: retsbaName, error: retsbaNameError } = useReadContract({
+    address: RETSBA_TOKEN_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'name',
+  })
+
   // Debug logging
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
@@ -36,17 +57,16 @@ export const TradingInterface = () => {
     console.log('ETH Balance:', ethBalance)
     console.log('RETSBA Contract:', RETSBA_TOKEN_ADDRESS)
     console.log('RETSBA Balance:', retsbaBalance)
-    console.log('RETSBA Error:', retsbaError)
+    console.log('RETSBA Balance Error:', retsbaError)
     console.log('RETSBA Loading:', retsbaLoading)
+    console.log('RETSBA Decimals:', retsbaDecimals)
+    console.log('RETSBA Decimals Error:', retsbaDecimalsError)
+    console.log('RETSBA Total Supply:', retsbaTotalSupply)
+    console.log('RETSBA Total Supply Error:', retsbaTotalSupplyError)
+    console.log('RETSBA Name:', retsbaName)
+    console.log('RETSBA Name Error:', retsbaNameError)
     console.log('========================')
-  }, [address, ethBalance, retsbaBalance, retsbaError, retsbaLoading])
-
-  // Get RETSBA token decimals
-  const { data: retsbaDecimals } = useReadContract({
-    address: RETSBA_TOKEN_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'decimals',
-  })
+  }, [address, ethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError])
 
   const { writeContract, isPending } = useWriteContract()
 
@@ -144,8 +164,20 @@ export const TradingInterface = () => {
             <p className="text-lg font-semibold text-foreground">Loading...</p>
           ) : retsbaError ? (
             <div>
-              <p className="text-lg font-semibold text-destructive">Error loading RETSBA balance</p>
-              <p className="text-xs text-destructive mt-1">{retsbaError.message || 'Unknown error'}</p>
+              <p className="text-lg font-semibold text-destructive">Contract Error</p>
+              <p className="text-xs text-destructive mt-1">
+                {retsbaError.message?.includes('not a contract') 
+                  ? 'Contract does not exist on this network'
+                  : 'Error calling balanceOf function'
+                }
+              </p>
+              {retsbaName ? (
+                <p className="text-xs text-muted-foreground mt-1">Token: {retsbaName}</p>
+              ) : (
+                <p className="text-xs text-destructive mt-1">
+                  Contract verification failed - may not be ERC20
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-lg font-semibold text-foreground">
@@ -157,6 +189,9 @@ export const TradingInterface = () => {
           )}
           <p className="text-xs text-muted-foreground mt-1">
             Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 8)}...{RETSBA_TOKEN_ADDRESS.slice(-6)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Network: Abstract Testnet (Chain ID: 11124)
           </p>
         </div>
 
