@@ -64,21 +64,29 @@ const getFreshConfig = () => {
   })
 }
 
+
 const App = () => {
+  // Get fresh config on each render to prevent persistence
+  const wagmiConfig = getFreshConfig();
+  
   return (
     <AbstractWalletProvider chain={abstractMainnet}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/freemoney" element={<FreeMoney />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/freemoney" element={<FreeMoney />} />
+                <Route path="/test" element={<Test />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </AbstractWalletProvider>
   );
 }
