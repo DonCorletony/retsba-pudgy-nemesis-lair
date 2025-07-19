@@ -16,32 +16,13 @@ export const WalletConnect = () => {
   const { isConnected, address } = useAccount()
   const { toast } = useToast()
 
-  // Abstract Global Wallet handler - custom implementation
-  const handleAbstractWallet = async () => {
-    try {
-      // Direct AGW integration without useLoginWithAbstract
-      window.open('https://wallet.abstract.xyz', '_blank')
-      toast({
-        title: "Abstract Global Wallet",
-        description: "Opening Abstract Global Wallet. Please connect your wallet there.",
-      })
-    } catch (error) {
-      console.error('AGW connection error:', error)
-      toast({
-        title: "Connection Failed", 
-        description: "Failed to open Abstract Global Wallet.",
-        variant: "destructive"
-      })
-    }
-  }
-
-  // Traditional wallet handler - fix the connector matching
-  const handleTraditionalWallet = async (connectorName: string) => {
+  // Traditional wallet handler - now includes AGW
+  const handleWalletConnection = async (connectorName: string) => {
     try {
       console.log(`Attempting to connect to ${connectorName}`)
       console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })))
       
-      // Find the connector with more flexible matching
+      // Find the connector
       let connector = null
       
       if (connectorName === 'MetaMask') {
@@ -49,9 +30,10 @@ export const WalletConnect = () => {
       } else if (connectorName === 'WalletConnect') {
         connector = connectors.find(c => c.name === 'WalletConnect' || c.id === 'walletConnect')
       } else if (connectorName === 'OKX') {
-        // Try OKX Wallet first, then Injected as fallback
         connector = connectors.find(c => c.name === 'OKX Wallet' || c.id === 'com.okex.wallet') ||
                    connectors.find(c => c.name === 'Injected' || c.id === 'injected')
+      } else if (connectorName === 'Abstract Global Wallet') {
+        connector = connectors.find(c => c.name === 'Abstract Global Wallet' || c.id === 'abstract')
       }
       
       if (connector) {
@@ -63,7 +45,6 @@ export const WalletConnect = () => {
         })
       } else {
         console.error(`No connector found for ${connectorName}`)
-        console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })))
         toast({
           title: "Connector Not Found",
           description: `${connectorName} connector not available. Available: ${connectors.map(c => c.name).join(', ')}`,
@@ -79,6 +60,7 @@ export const WalletConnect = () => {
       })
     }
   }
+
 
   // Add connection timeout
   useEffect(() => {
@@ -184,31 +166,30 @@ export const WalletConnect = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* Traditional wallet options using separate config */}
+        {/* All wallet options using unified handler */}
         <DropdownMenuItem
-          onClick={() => handleTraditionalWallet('MetaMask')}
+          onClick={() => handleWalletConnection('MetaMask')}
           disabled={isPending}
         >
           MetaMask
         </DropdownMenuItem>
         
         <DropdownMenuItem
-          onClick={() => handleTraditionalWallet('OKX')}
+          onClick={() => handleWalletConnection('OKX')}
           disabled={isPending}
         >
           OKX
         </DropdownMenuItem>
         
         <DropdownMenuItem
-          onClick={() => handleTraditionalWallet('WalletConnect')}
+          onClick={() => handleWalletConnection('WalletConnect')}
           disabled={isPending}
         >
           WalletConnect
         </DropdownMenuItem>
         
-        {/* Abstract Global Wallet option */}
         <DropdownMenuItem
-          onClick={handleAbstractWallet}
+          onClick={() => handleWalletConnection('Abstract Global Wallet')}
           disabled={isPending}
         >
           Abstract Global Wallet
