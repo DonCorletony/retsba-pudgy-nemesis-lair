@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react'
 import { useConnect, useDisconnect, useAccount } from 'wagmi'
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react'
+import { createConfig, http } from 'wagmi'
+import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,6 +12,33 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ChevronDown, Wallet } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+
+// Create a separate wagmi instance for traditional wallets
+const traditionalWalletConfig = createConfig({
+  chains: [{
+    id: 2741,
+    name: 'Abstract',
+    nativeCurrency: { decimals: 18, name: 'ETH', symbol: 'ETH' },
+    rpcUrls: { default: { http: ['https://api.mainnet.abs.xyz'] } },
+    blockExplorers: { default: { name: 'Abstract Explorer', url: 'https://abscan.org' } },
+  }],
+  connectors: [
+    metaMask(),
+    injected(),
+    walletConnect({
+      projectId: 'demo',
+      metadata: {
+        name: 'RETSBA Trading',
+        description: 'Trade RETSBA tokens',
+        url: 'https://retsba.com',
+        icons: ['https://retsba.com/icon.png']
+      }
+    }),
+  ],
+  transports: {
+    2741: http(),
+  },
+})
 
 export const WalletConnect = () => {
   const { connectors, connect, isPending, error } = useConnect()
@@ -36,6 +65,33 @@ export const WalletConnect = () => {
     }
   }
 
+  // Traditional wallet handler - use separate config
+  const handleTraditionalWallet = async (connectorName: string) => {
+    try {
+      const traditionalConnector = traditionalWalletConfig.connectors.find(c => 
+        c.name === connectorName || 
+        (connectorName === 'OKX' && (c.name === 'OKX Wallet' || c.name === 'Injected'))
+      )
+      
+      if (traditionalConnector) {
+        await traditionalConnector.connect()
+        toast({
+          title: "Success",
+          description: `Connected to ${connectorName}!`,
+        })
+      } else {
+        throw new Error(`${connectorName} connector not found`)
+      }
+    } catch (error) {
+      console.error(`${connectorName} connection error:`, error)
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect to ${connectorName}. Please try again.`,
+        variant: "destructive"
+      })
+    }
+  }
+
   // Add connection timeout
   useEffect(() => {
     if (isPending) {
@@ -45,9 +101,8 @@ export const WalletConnect = () => {
           description: "Connection took too long. Please try again.",
           variant: "destructive"
         })
-        // Force reset pending state by disconnecting
         disconnect()
-      }, 10000) // 10 second timeout
+      }, 10000)
 
       return () => clearTimeout(timeout)
     }
@@ -72,19 +127,6 @@ export const WalletConnect = () => {
   console.log('Address:', address)
   console.log('========================')
 
-
-  // Filter connectors - avoid duplicates and only show relevant ones
-  const filteredConnectors = connectors.filter(connector => {
-    // Only show MetaMask, WalletConnect, and ONE OKX option (prefer "OKX Wallet" over "Injected")
-    if (connector.name === 'MetaMask' || connector.name === 'WalletConnect') return true
-    if (connector.name === 'OKX Wallet') return true
-    // Only show Injected if no OKX Wallet exists
-    if (connector.name === 'Injected') {
-      return !connectors.some(c => c.name === 'OKX Wallet')
-    }
-    return false
-  })
-
   // Simple disconnect function
   const handleDisconnect = async () => {
     try {
@@ -107,22 +149,15 @@ export const WalletConnect = () => {
   useEffect(() => {
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
-        // User disconnected all accounts - clear everything
         handleDisconnect()
       } else if (isConnected && accounts[0] !== address) {
-        // Account changed, show notification and refresh
         toast({
           title: "Account Changed",
-          description: `Detected new account: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}. Refreshing...`,
+          description: `Detected new account: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
         })
-        // Force page reload to ensure clean state with new account
-        setTimeout(() => {
-          window.location.reload()
-        }, 1500)
       }
     }
 
-    // Listen for account changes
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.on('accountsChanged', handleAccountsChanged)
       
@@ -161,15 +196,27 @@ export const WalletConnect = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {filteredConnectors.map((connector) => (
-          <DropdownMenuItem
-            key={connector.uid}
-            onClick={() => connect({ connector })}
-            disabled={isPending}
-          >
-            {connector.name === 'Injected' ? 'OKX' : connector.name}
-          </DropdownMenuItem>
-        ))}
+        {/* Traditional wallet options using separate config */}
+        <DropdownMenuItem
+          onClick={() => handleTraditionalWallet('MetaMask')}
+          disabled={isPending}
+        >
+          MetaMask
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem
+          onClick={() => handleTraditionalWallet('OKX')}
+          disabled={isPending}
+        >
+          OKX
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem
+          onClick={() => handleTraditionalWallet('WalletConnect')}
+          disabled={isPending}
+        >
+          WalletConnect
+        </DropdownMenuItem>
         
         {/* Abstract Global Wallet option */}
         <DropdownMenuItem
