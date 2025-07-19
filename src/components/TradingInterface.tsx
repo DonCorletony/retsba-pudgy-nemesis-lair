@@ -587,7 +587,6 @@ export const TradingInterface = () => {
             {isPending ? 'Submitting...' : 
              isConfirming ? 'Confirming...' :
              currentPrice === 0 ? 'Loading Price...' : 
-             !selectedToken.isAbstractNative ? `Bridge ${selectedToken.symbol} & Swap` :
              'Become the Villain'}
           </Button>
         </div>
