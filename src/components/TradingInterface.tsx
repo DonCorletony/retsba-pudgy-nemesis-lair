@@ -352,7 +352,7 @@ export const TradingInterface = () => {
   return (
     <Card className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
       <CardHeader>
-        <CardTitle className="text-center text-black">Buy Retsba</CardTitle>
+        <CardTitle className="text-center text-black">Buy RETSBA</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* ETH Balance */}
