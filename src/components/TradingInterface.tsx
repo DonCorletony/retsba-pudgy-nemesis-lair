@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
+import { useBridgeAndSwap } from '@/hooks/useBridgeAndSwap'
+import { BridgeStatus } from '@/components/BridgeStatus'
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
 const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}` // WETH (AbsETH) on Abstract
@@ -134,6 +136,9 @@ export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   
+  // Bridge and swap functionality
+  const bridgeAndSwap = useBridgeAndSwap()
+  
   // State for selected token, swap amount and estimated RETSBA output
   const [selectedToken, setSelectedToken] = useState(TOKENS[0]) // Default to ETH
   const [swapAmount, setSwapAmount] = useState('')
@@ -141,14 +146,10 @@ export const TradingInterface = () => {
   const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
   
-  // Track swap transaction hash for waiting
-  const [swapTxHash, setSwapTxHash] = useState<string | undefined>()
-  
-  // Contract interactions
+  // Contract interactions for Abstract native swaps only
   const { writeContract, data: writeData, isPending } = useWriteContract({
     mutation: {
       onSuccess: (hash) => {
-        setSwapTxHash(hash)
         toast({
           title: "Transaction Submitted",
           description: "Please wait for confirmation...",
@@ -163,32 +164,6 @@ export const TradingInterface = () => {
         })
       }
     }
-  })
-
-  // Send raw transaction (for bridge)
-  const { sendTransaction, data: sendTxData, isPending: isSendPending } = useSendTransaction({
-    mutation: {
-      onSuccess: (hash) => {
-        setSwapTxHash(hash)
-        toast({
-          title: "Bridge Transaction Submitted",
-          description: "Please wait for confirmation...",
-        })
-      },
-      onError: (error) => {
-        console.error('Bridge transaction error:', error)
-        toast({
-          title: "Bridge Transaction Failed",
-          description: error.message || "There was an error with the bridge transaction",
-          variant: "destructive"
-        })
-      }
-    }
-  })
-  
-  // Wait for transaction confirmation
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash: swapTxHash as `0x${string}`,
   })
   
   // Get native ETH balance on Abstract (current chain) with refetch capability
@@ -398,29 +373,7 @@ export const TradingInterface = () => {
     }
   }, [swapAmount, currentPrice])
   
-  // Handle transaction confirmation
-  useEffect(() => {
-    if (isConfirmed && swapTxHash) {
-      toast({
-        title: "Swap Successful!",
-        description: "Your RETSBA balance has been updated.",
-      })
-      
-      // Refresh all balances after successful swap
-      refetchAbstractEthBalance()
-      // Re-fetch cross-chain balances
-      if (address) {
-        fetchCrossChainBalance(1, 'https://eth.llamarpc.com').then(setMainnetEthBalance)
-        fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc').then(setAvaxBalance)
-      }
-      refetchWethBalance()
-      refetchRetsbaBalance()
-      
-      // Clear swap amount and transaction hash
-      setSwapAmount('')
-      setSwapTxHash(undefined)
-    }
-  }, [isConfirmed, swapTxHash, toast, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, address, fetchCrossChainBalance])
+  // Transaction confirmation for Abstract native swaps is handled by the writeContract hook
 
   // Listen for account changes and refresh interface
   useEffect(() => {
@@ -444,149 +397,59 @@ export const TradingInterface = () => {
     }
   }, [address, isConnected, toast])
 
-  // Cross-chain bridge handler
-  const handleCrossChainSwap = async () => {
-    if (!selectedToken.isAbstractNative) {
+  // Handle bridge completion and trigger next steps
+  useEffect(() => {
+    if (bridgeAndSwap.isBridgeConfirmed && bridgeAndSwap.currentStep === 'bridging') {
+      // Bridge completed successfully, now approve WETH and swap
+      const wethAmount = swapAmount // Amount we bridged
+      
       toast({
-        title: "Cross-Chain Bridge",
-        description: `Step 1: Bridging ${selectedToken.symbol} to WETH on Abstract`,
+        title: "Bridge Complete!",
+        description: "Now approving WETH for swapping to RETSBA...",
       })
       
-      try {
-        // Step 1: Get Relay Bridge quote to bridge to WETH on Abstract
-        const bridgeQuote = await getRelayQuote()
-        
+      // Step 2: Approve WETH for swapping
+      bridgeAndSwap.approveWethForSwap(wethAmount)
+    }
+  }, [bridgeAndSwap.isBridgeConfirmed, bridgeAndSwap.currentStep, swapAmount, toast, bridgeAndSwap])
+
+  // Handle approval completion and trigger swap
+  useEffect(() => {
+    if (bridgeAndSwap.currentStep === 'approving' && !bridgeAndSwap.isApprovePending) {
+      // Approval completed, now execute the swap
+      const wethAmount = swapAmount
+      
+      setTimeout(() => {
         toast({
-          title: "Bridge Quote Received",
-          description: `Will receive ${bridgeQuote.details.currencyOut.amountFormatted} WETH on Abstract`,
+          title: "Approval Complete!",
+          description: "Now swapping WETH to RETSBA...",
         })
         
-        // Step 2: Execute the bridge transaction
-        if (bridgeQuote.steps && bridgeQuote.steps.length > 0) {
-          const step = bridgeQuote.steps[0]
-          if (step.items && step.items.length > 0) {
-            const txData = step.items[0].data
-            
-            // Execute the bridge transaction using wagmi's sendTransaction for raw data
-            sendTransaction({
-              to: txData.to as `0x${string}`,
-              value: BigInt(txData.value || '0'),
-              data: txData.data as `0x${string}`,
-              gas: BigInt(txData.gasLimit || '300000'),
-              maxFeePerGas: BigInt(txData.maxFeePerGas || '0'),
-              maxPriorityFeePerGas: BigInt(txData.maxPriorityFeePerGas || '0'),
-            })
-            
-            toast({
-              title: "Bridge Transaction Sent",
-              description: "Step 1: Bridging to WETH on Abstract. After confirmation, switch to Abstract network and swap WETH to RETSBA.",
-            })
-          }
-        }
-        
-      } catch (error: any) {
-        console.error('Cross-chain bridge error:', error)
-        toast({
-          title: "Bridge Failed",
-          description: error.message || "There was an error with the cross-chain bridge",
-          variant: "destructive"
-        })
+        // Step 3: Swap WETH to RETSBA
+        bridgeAndSwap.swapWethToRetsba(wethAmount, currentPrice)
+      }, 2000) // Small delay to ensure approval is processed
+    }
+  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, swapAmount, currentPrice, toast, bridgeAndSwap])
+
+  // Handle swap completion
+  useEffect(() => {
+    if (bridgeAndSwap.isSwapConfirmed && bridgeAndSwap.currentStep === 'swapping') {
+      // Complete the entire process
+      bridgeAndSwap.completeProcess()
+      
+      // Refresh balances
+      refetchAbstractEthBalance()
+      if (address) {
+        fetchCrossChainBalance(1, 'https://eth.llamarpc.com').then(setMainnetEthBalance)
+        fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc').then(setAvaxBalance)
       }
-    }
-  }
-
-  // Relay Bridge helper function
-  const getRelayQuote = async () => {
-    if (!address || !swapAmount) {
-      throw new Error('Missing required parameters')
-    }
-
-    // Ensure minimum amount (0.01 ETH minimum)
-    const amount = parseEther(swapAmount);
-    if (amount < parseEther('0.01')) {
-      throw new Error('Minimum bridge amount is 0.01 ETH')
-    }
-
-    const requestBody = {
-      user: address,
-      recipient: address,
-      originChainId: selectedToken.chainId,
-      destinationChainId: 2741, // Abstract
-      originCurrency: selectedToken.address, // ETH = 0x0000000000000000000000000000000000000000
-      destinationCurrency: WETH_ADDRESS, // WETH on Abstract
-      amount: amount.toString(),
-      tradeType: "EXACT_INPUT"
-    }
-
-    console.log('Relay request body:', JSON.stringify(requestBody, null, 2))
-
-    const response = await fetch('https://api.relay.link/quote', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    })
-    
-    console.log('Relay response status:', response.status)
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.log('Relay error response:', errorText)
-      throw new Error(`Relay API error: ${response.status} - ${errorText}`)
-    }
-    
-    const result = await response.json()
-    console.log('Relay quote result:', result)
-    return result
-  }
-
-  // New function to swap WETH to RETSBA after cross-chain bridge
-  const swapWethToRetsba = async (wethAmount: string) => {
-    if (!address || !currentPrice) {
-      throw new Error('Missing required parameters for WETH swap')
-    }
-
-    try {
-      const deadline = Math.floor(Date.now() / 1000) + 600 // 10 minutes from now
+      refetchWethBalance()
+      refetchRetsbaBalance()
       
-      // Calculate expected RETSBA output for WETH input
-      const wethAmountBigInt = parseEther(wethAmount)
-      const expectedRetsba = (Number(wethAmount) * currentPrice * 0.995).toFixed(6) // 0.5% slippage
-      const amountOutMin = parseEther(expectedRetsba)
-
-      toast({
-        title: "Swapping WETH to RETSBA", 
-        description: `Converting ${wethAmount} WETH to ${expectedRetsba} RETSBA`,
-      })
-
-      // First approve WETH spending if needed
-      // Note: This would need to be implemented with proper WETH approval logic
-      
-      // Swap WETH for RETSBA using V2 router
-      // This would use swapExactTokensForTokens instead of swapExactETHForTokens
-      writeContract({
-        address: V2_ROUTER_ADDRESS,
-        abi: uniswapV2RouterAbi,
-        functionName: 'swapExactTokensForTokens',
-        args: [
-          wethAmountBigInt,
-          amountOutMin,
-          [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS], // Path: WETH -> RETSBA
-          address,
-          BigInt(deadline)
-        ],
-      } as any)
-
-    } catch (error: any) {
-      console.error('WETH to RETSBA swap error:', error)
-      toast({
-        title: "WETH Swap Failed",
-        description: error.message || "There was an error swapping WETH to RETSBA",
-        variant: "destructive"
-      })
+      // Clear swap amount
+      setSwapAmount('')
     }
-  }
+  }, [bridgeAndSwap.isSwapConfirmed, bridgeAndSwap.currentStep, address, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, bridgeAndSwap])
 
   const handleSwap = async () => {
     if (!swapAmount || !address || !currentPrice) {
@@ -598,9 +461,20 @@ export const TradingInterface = () => {
       return
     }
 
-    // Check if this is a cross-chain swap
+    // Check if this is a cross-chain bridge + swap
     if (!selectedToken.isAbstractNative) {
-      return handleCrossChainSwap()
+      try {
+        // Execute seamless bridge + swap
+        await bridgeAndSwap.executeBridgeAndSwap(selectedToken.chainId, swapAmount, currentPrice)
+      } catch (error: any) {
+        console.error('Bridge + swap error:', error)
+        toast({
+          title: "Bridge + Swap Failed",
+          description: error.message || "There was an error with the bridge + swap process",
+          variant: "destructive"
+        })
+      }
+      return
     }
 
     // For Abstract native tokens (ETH), continue with existing swap logic
@@ -790,15 +664,26 @@ export const TradingInterface = () => {
 
           <Button 
             onClick={handleSwap}
-            disabled={isPending || isConfirming || !swapAmount || currentPrice === 0 || isLoadingPrice}
+            disabled={isPending || bridgeAndSwap.isProcessing || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
             {isPending ? 'Submitting...' : 
-             isConfirming ? 'Confirming...' :
+             bridgeAndSwap.isProcessing ? 'Processing...' :
              currentPrice === 0 ? 'Loading Price...' : 
              'Become the Villain'}
           </Button>
         </div>
+
+        {/* Bridge Status - Show when bridge is processing */}
+        {bridgeAndSwap.isProcessing && (
+          <div className="mt-4">
+            <BridgeStatus 
+              currentStep={bridgeAndSwap.currentStep}
+              bridgeTxHash={bridgeAndSwap.bridgeTxHash}
+              swapTxHash={bridgeAndSwap.swapTxHash}
+            />
+          </div>
+        )}
 
       </CardContent>
     </Card>
