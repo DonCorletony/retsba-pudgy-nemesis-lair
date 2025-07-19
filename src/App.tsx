@@ -37,13 +37,7 @@ const getFreshConfig = () => createConfig({
   chains: [abstractMainnet],
   connectors: [
     metaMask(),
-    injected({ 
-      target: () => ({
-        id: 'okx',
-        name: 'OKX',
-        provider: (window as any).okxwallet?.ethereum
-      })
-    }),
+    injected(),
     walletConnect({
       projectId: 'demo', // You should replace this with your actual WalletConnect project ID
       metadata: {
