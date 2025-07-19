@@ -410,7 +410,7 @@ export const TradingInterface = () => {
               placeholder="0.0"
               value={swapAmount}
               onChange={(e) => setSwapAmount(e.target.value)}
-              className="mt-1 text-black placeholder:text-gray-400"
+              className="mt-1 text-black placeholder:text-gray-400 bg-white"
               step="0.001"
               min="0"
             />
