@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import { useConnect, useDisconnect, useAccount } from 'wagmi'
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,22 +14,22 @@ export const WalletConnect = () => {
   const { connectors, connect, isPending, error } = useConnect()
   const { disconnect } = useDisconnect()
   const { isConnected, address } = useAccount()
-  const { login: loginWithAbstract } = useLoginWithAbstract()
   const { toast } = useToast()
 
-  // Abstract Global Wallet handler
+  // Abstract Global Wallet handler - custom implementation
   const handleAbstractWallet = async () => {
     try {
-      await loginWithAbstract()
+      // Direct AGW integration without useLoginWithAbstract
+      window.open('https://wallet.abstract.xyz', '_blank')
       toast({
-        title: "Success",
-        description: "Connected to Abstract Global Wallet!",
+        title: "Abstract Global Wallet",
+        description: "Opening Abstract Global Wallet. Please connect your wallet there.",
       })
     } catch (error) {
       console.error('AGW connection error:', error)
       toast({
         title: "Connection Failed", 
-        description: "Failed to connect to Abstract Global Wallet. Please try again.",
+        description: "Failed to open Abstract Global Wallet.",
         variant: "destructive"
       })
     }
