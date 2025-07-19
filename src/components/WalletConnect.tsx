@@ -121,7 +121,8 @@ export const WalletConnect = () => {
         {connectors
           .filter(connector => 
             connector.name === 'MetaMask' || 
-            connector.name === 'WalletConnect'
+            connector.name === 'WalletConnect' ||
+            connector.name === 'OKX Wallet'
           )
           .map((connector) => (
           <DropdownMenuItem
