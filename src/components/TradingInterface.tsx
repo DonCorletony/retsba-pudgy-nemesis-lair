@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAccount, useBalance, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useBalance, useReadContract, useWriteContract, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi'
 import { formatEther, parseEther, erc20Abi } from 'viem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -159,6 +159,27 @@ export const TradingInterface = () => {
         toast({
           title: "Transaction Failed",
           description: error.message || "There was an error processing your swap",
+          variant: "destructive"
+        })
+      }
+    }
+  })
+
+  // Send raw transaction (for bridge)
+  const { sendTransaction, data: sendTxData, isPending: isSendPending } = useSendTransaction({
+    mutation: {
+      onSuccess: (hash) => {
+        setSwapTxHash(hash)
+        toast({
+          title: "Bridge Transaction Submitted",
+          description: "Please wait for confirmation...",
+        })
+      },
+      onError: (error) => {
+        console.error('Bridge transaction error:', error)
+        toast({
+          title: "Bridge Transaction Failed",
+          description: error.message || "There was an error with the bridge transaction",
           variant: "destructive"
         })
       }
@@ -451,15 +472,15 @@ export const TradingInterface = () => {
           if (step.items && step.items.length > 0) {
             const txData = step.items[0].data
             
-            // Execute the bridge transaction using wagmi
-            writeContract({
-              address: txData.to as `0x${string}`,
-              abi: [], // Relay provides the encoded data
-              functionName: 'fallback',
-              args: [],
+            // Execute the bridge transaction using wagmi's sendTransaction for raw data
+            sendTransaction({
+              to: txData.to as `0x${string}`,
               value: BigInt(txData.value || '0'),
               data: txData.data as `0x${string}`,
-            } as any)
+              gas: BigInt(txData.gasLimit || '300000'),
+              maxFeePerGas: BigInt(txData.maxFeePerGas || '0'),
+              maxPriorityFeePerGas: BigInt(txData.maxPriorityFeePerGas || '0'),
+            })
             
             toast({
               title: "Bridge Transaction Sent",
