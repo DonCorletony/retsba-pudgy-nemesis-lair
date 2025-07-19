@@ -49,12 +49,22 @@ export const WalletConnect = () => {
         }
       })
       
-      // Clear OKX specific connection state
+      // Clear OKX specific connection state and revoke permissions
       if (typeof window !== 'undefined') {
-        // OKX Wallet specific disconnect
+        // Try to revoke OKX permissions specifically
         if ((window as any).okxwallet) {
           try {
-            await (window as any).okxwallet.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] }).catch(() => {})
+            // Revoke all permissions for this site
+            await (window as any).okxwallet.request({
+              method: 'wallet_revokePermissions',
+              params: [{ eth_accounts: {} }]
+            }).catch(() => {})
+            
+            // Disconnect explicitly
+            await (window as any).okxwallet.request({
+              method: 'eth_requestAccounts',
+              params: []
+            }).catch(() => {})
           } catch (e) {}
         }
         
@@ -62,7 +72,7 @@ export const WalletConnect = () => {
         if (window.ethereum) {
           try {
             await window.ethereum.request({
-              method: 'wallet_requestPermissions',
+              method: 'wallet_revokePermissions', 
               params: [{ eth_accounts: {} }]
             }).catch(() => {})
           } catch (e) {}

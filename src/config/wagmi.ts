@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi'
-import { metaMask, walletConnect } from 'wagmi/connectors'
+import { metaMask, walletConnect, injected } from 'wagmi/connectors'
 
 // Abstract Mainnet configuration
 const abstractMainnet = {
@@ -24,6 +24,7 @@ export const config = createConfig({
   chains: [abstractMainnet],
   connectors: [
     metaMask(),
+    injected({ target: 'okxWallet' }),
     walletConnect({
       projectId: 'demo', // You should replace this with your actual WalletConnect project ID
       metadata: {
