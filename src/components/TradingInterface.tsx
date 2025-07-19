@@ -31,15 +31,15 @@ const TOKENS = [
     name: 'Ethereum ETH',
     address: '0x0000000000000000000000000000000000000000', // Native ETH
     decimals: 18,
-    chainId: 1, // Ethereum Mainnet
+    chainId: 1, // Ethereum Mainnet - SUPPORTED by DeBridge
     isAbstractNative: false
   },
   {
-    symbol: 'AVAX',
-    name: 'Avalanche',
-    address: '0x0000000000000000000000000000000000000000', // Native AVAX
+    symbol: 'BNB',
+    name: 'BNB Smart Chain',
+    address: '0x0000000000000000000000000000000000000000', // Native BNB
     decimals: 18,
-    chainId: 43114, // Avalanche C-Chain
+    chainId: 56, // BSC - SUPPORTED by DeBridge
     isAbstractNative: false
   }
 ]
