@@ -443,7 +443,7 @@ export const TradingInterface = () => {
           <Button 
             onClick={handleSwap}
             disabled={isPending || !swapAmount || currentPrice === 0 || isLoadingPrice}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
             {isPending ? 'Swapping...' : 
              currentPrice === 0 ? 'Loading Price...' : 
