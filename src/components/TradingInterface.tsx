@@ -89,6 +89,19 @@ const uniswapV2RouterAbi = [
     outputs: [{ name: 'amounts', type: 'uint256[]' }],
     stateMutability: 'payable',
     type: 'function'
+  },
+  {
+    inputs: [
+      { name: 'amountIn', type: 'uint256' },
+      { name: 'amountOutMin', type: 'uint256' },
+      { name: 'path', type: 'address[]' },
+      { name: 'to', type: 'address' },
+      { name: 'deadline', type: 'uint256' }
+    ],
+    name: 'swapExactTokensForTokens',
+    outputs: [{ name: 'amounts', type: 'uint256[]' }],
+    stateMutability: 'nonpayable',
+    type: 'function'
   }
 ] as const
 
@@ -498,6 +511,53 @@ export const TradingInterface = () => {
     // This would execute the bridge transaction
     // Implementation depends on DeBridge SDK/API specifics
     console.log('Executing bridge with quote:', quote)
+  }
+
+  // New function to swap WETH to RETSBA after cross-chain bridge
+  const swapWethToRetsba = async (wethAmount: string) => {
+    if (!address || !currentPrice) {
+      throw new Error('Missing required parameters for WETH swap')
+    }
+
+    try {
+      const deadline = Math.floor(Date.now() / 1000) + 600 // 10 minutes from now
+      
+      // Calculate expected RETSBA output for WETH input
+      const wethAmountBigInt = parseEther(wethAmount)
+      const expectedRetsba = (Number(wethAmount) * currentPrice * 0.995).toFixed(6) // 0.5% slippage
+      const amountOutMin = parseEther(expectedRetsba)
+
+      toast({
+        title: "Swapping WETH to RETSBA", 
+        description: `Converting ${wethAmount} WETH to ${expectedRetsba} RETSBA`,
+      })
+
+      // First approve WETH spending if needed
+      // Note: This would need to be implemented with proper WETH approval logic
+      
+      // Swap WETH for RETSBA using V2 router
+      // This would use swapExactTokensForTokens instead of swapExactETHForTokens
+      writeContract({
+        address: V2_ROUTER_ADDRESS,
+        abi: uniswapV2RouterAbi,
+        functionName: 'swapExactTokensForTokens',
+        args: [
+          wethAmountBigInt,
+          amountOutMin,
+          [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS], // Path: WETH -> RETSBA
+          address,
+          BigInt(deadline)
+        ],
+      } as any)
+
+    } catch (error: any) {
+      console.error('WETH to RETSBA swap error:', error)
+      toast({
+        title: "WETH Swap Failed",
+        description: error.message || "There was an error swapping WETH to RETSBA",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleSwap = async () => {
