@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
 const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}` // WETH (AbsETH) on Abstract
@@ -13,6 +15,22 @@ const V2_PAIR_ADDRESS = '0x26E7f241Fc81Bb168F9f81401184CDe74dcC8f31' as `0x${str
 const V3_PAIR_ADDRESS = '0x1176Bf6483763c9fc74F80a575497e17cAe9ca18' as `0x${string}` // V3 Pair for swaps
 const V2_ROUTER_ADDRESS = '0xad1eCa41E6F772bE3cb5A48A6141f9bcc1AF9F7c' as `0x${string}` // UniswapV2Router02 on Abstract
 const V3_ROUTER_ADDRESS = '0x7712FA47387542819d4E35A23f8116C90C18767C' as `0x${string}` // SwapRouter02 on Abstract
+
+// Define available tokens
+const TOKENS = [
+  {
+    symbol: 'ETH',
+    name: 'Abstract ETH',
+    address: '0x0000000000000000000000000000000000000000', // Native ETH
+    decimals: 18
+  },
+  {
+    symbol: 'AVAX',
+    name: 'Avalanche',
+    address: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041', // Placeholder AVAX address
+    decimals: 18
+  }
+]
 
 // Uniswap V2 Pair ABI (minimal)
 const uniswapV2PairAbi = [
@@ -87,6 +105,9 @@ const uniswapV3RouterAbi = [
 export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
+  
+  // State for selected token, swap amount and estimated RETSBA output
+  const [selectedToken, setSelectedToken] = useState(TOKENS[0]) // Default to ETH
   const [swapAmount, setSwapAmount] = useState('')
   const [estimatedRetsba, setEstimatedRetsba] = useState('')
   const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
@@ -368,13 +389,45 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-black">Buy RETSBA</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* ETH Balance */}
+        {/* Token Selection Balance */}
         <div className="p-4 border rounded-lg bg-white">
-          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH Balance</Label>
+          <Label className="text-sm font-medium text-muted-foreground">Token Balance</Label>
           <div className="mt-2">
-            <p className="text-lg font-semibold text-black">
-              {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
-            </p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between p-0 h-auto text-left hover:bg-transparent"
+                >
+                  <div className="flex flex-col items-start">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-semibold text-black">
+                        {selectedToken.symbol === 'ETH' 
+                          ? (ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ${selectedToken.symbol}` : '0 ETH')
+                          : `0 ${selectedToken.symbol}` // Placeholder for other tokens
+                        }
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">{selectedToken.name}</span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full min-w-[200px] bg-white border shadow-lg z-50">
+                {TOKENS.map((token) => (
+                  <DropdownMenuItem 
+                    key={token.symbol}
+                    onClick={() => setSelectedToken(token)}
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium">{token.symbol}</span>
+                      <span className="text-sm text-muted-foreground">{token.name}</span>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -415,7 +468,7 @@ export const TradingInterface = () => {
         <div className="space-y-3">
           <div className="p-4 border rounded-lg bg-white">
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of ETH to swap
+              Amount of {selectedToken.symbol} to swap
             </Label>
             <Input
               id="swap-amount"
