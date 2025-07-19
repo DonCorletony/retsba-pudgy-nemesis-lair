@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import { useConnect, useDisconnect, useAccount } from 'wagmi'
-import { useLoginWithAbstract } from "@abstract-foundation/agw-react"
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,9 +15,14 @@ export const WalletConnect = () => {
   const { disconnect } = useDisconnect()
   const { isConnected, address } = useAccount()
   const { toast } = useToast()
-  
-  // Abstract Global Wallet integration
-  const { login: loginWithAbstract } = useLoginWithAbstract()
+
+  // Abstract Global Wallet handler
+  const handleAbstractWallet = () => {
+    toast({
+      title: "Abstract Global Wallet",
+      description: "Coming soon! This feature is being integrated.",
+    })
+  }
 
   // Add connection timeout
   useEffect(() => {
@@ -212,7 +216,7 @@ export const WalletConnect = () => {
         
         {/* Abstract Global Wallet option */}
         <DropdownMenuItem
-          onClick={loginWithAbstract}
+          onClick={handleAbstractWallet}
           disabled={isPending}
         >
           Abstract Global Wallet
