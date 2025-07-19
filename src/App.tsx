@@ -1,10 +1,6 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, createConfig, http } from 'wagmi'
-import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { AbstractWalletProvider } from "@abstract-foundation/agw-react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -31,62 +27,21 @@ const abstractMainnet = {
   },
 } as const
 
-const queryClient = new QueryClient();
-
-// Create a fresh config each time to prevent auto-connection
-const getFreshConfig = () => {
-  // Clear all wallet connection data BEFORE creating config
-  if (typeof window !== 'undefined') {
-    localStorage.clear()
-    sessionStorage.clear()
-  }
-  
-  return createConfig({
-    chains: [abstractMainnet],
-    connectors: [
-      metaMask(),
-      injected(),
-      walletConnect({
-        projectId: 'demo',
-        metadata: {
-          name: 'RETSBA Trading',
-          description: 'Trade RETSBA tokens',
-          url: 'https://retsba.com',
-          icons: ['https://retsba.com/icon.png']
-        }
-      }),
-    ],
-    transports: {
-      [abstractMainnet.id]: http(),
-    },
-    // Completely disable any auto-connection behavior
-    multiInjectedProviderDiscovery: false,
-  })
-}
-
-
 const App = () => {
-  // Get fresh config on each render to prevent persistence
-  const wagmiConfig = getFreshConfig();
-  
   return (
     <AbstractWalletProvider chain={abstractMainnet}>
-      <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/freemoney" element={<FreeMoney />} />
-                <Route path="/test" element={<Test />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/freemoney" element={<FreeMoney />} />
+            <Route path="/test" element={<Test />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </AbstractWalletProvider>
   );
 }

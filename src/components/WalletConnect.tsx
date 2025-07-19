@@ -86,6 +86,7 @@ export const WalletConnect = () => {
     connector.name === 'MetaMask' || 
     connector.name === 'WalletConnect' ||
     connector.name.toLowerCase().includes('okx') ||
+    connector.name.toLowerCase().includes('injected') ||
     connector.id === 'injected' // This might be how OKX appears
   )
 
