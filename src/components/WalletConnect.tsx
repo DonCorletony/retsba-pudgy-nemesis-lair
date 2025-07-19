@@ -170,7 +170,7 @@ export const WalletConnect = () => {
             onClick={() => connect({ connector })}
             disabled={isPending}
           >
-            {connector.name.toLowerCase().includes('okx') ? 'OKX' : connector.name}
+            {connector.name.toLowerCase().includes('okx') || connector.id === 'injected' ? 'OKX' : connector.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
