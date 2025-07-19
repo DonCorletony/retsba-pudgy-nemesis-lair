@@ -36,7 +36,7 @@ const wagmiConfig = createConfig({
   chains: [abstractMainnet],
   connectors: [
     metaMask(),
-    injected(),
+    injected({ target: 'okxWallet' }),
     walletConnect({
       projectId: 'demo',
       metadata: {
