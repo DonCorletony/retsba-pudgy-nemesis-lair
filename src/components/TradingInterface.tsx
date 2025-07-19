@@ -376,16 +376,14 @@ export const TradingInterface = () => {
     // Build query parameters for GET request
     const params = new URLSearchParams({
       srcChainId: selectedToken.chainId.toString(),
-      srcChainTokenIn: selectedToken.address === '0x0000000000000000000000000000000000000000' 
-        ? '0x0000000000000000000000000000000000000000' 
-        : selectedToken.address,
+      srcChainTokenIn: selectedToken.address,
       srcChainTokenInAmount: parseEther(swapAmount).toString(),
       dstChainId: '100000017', // Abstract's INTERNAL Chain ID per DeBridge docs
-      dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
+      dstChainTokenOut: WETH_ADDRESS, // Abstract WETH - confirmed by user
       dstChainTokenOutRecipient: address,
       srcChainOrderAuthorityAddress: address,
       dstChainOrderAuthorityAddress: address,
-      estimationOnly: 'true', // Just get a quote first
+      // Remove estimationOnly for now to see if that's causing the 500 error
     })
 
     console.log('DeBridge request URL:', `${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`)
