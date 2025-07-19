@@ -163,17 +163,62 @@ export const TradingInterface = () => {
     chainId: 2741, // Abstract chain
   })
   
-  // Get native ETH balance on Ethereum mainnet with refetch capability
-  const { data: mainnetEthBalance, refetch: refetchMainnetEthBalance } = useBalance({
-    address: address,
-    chainId: 1, // Ethereum mainnet
-  })
+  // For cross-chain balances, we'll need to use RPC calls directly
+  const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
+  const [avaxBalance, setAvaxBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   
-  // Get native AVAX balance on Avalanche with refetch capability
-  const { data: avaxBalance, refetch: refetchAvaxBalance } = useBalance({
-    address: address,
-    chainId: 43114, // Avalanche C-Chain
-  })
+  // Function to fetch cross-chain balances using RPC
+  const fetchCrossChainBalance = async (chainId: number, rpcUrl: string) => {
+    if (!address) return null
+    
+    try {
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_getBalance',
+          params: [address, 'latest'],
+          id: 1
+        })
+      })
+      
+      const data = await response.json()
+      if (data.result) {
+        const balanceWei = BigInt(data.result)
+        return {
+          value: balanceWei,
+          decimals: 18,
+          formatted: formatEther(balanceWei),
+          symbol: 'ETH'
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching balance for chain ${chainId}:`, error)
+    }
+    return null
+  }
+  
+  // Fetch cross-chain balances when address changes
+  useEffect(() => {
+    const fetchBalances = async () => {
+      if (!address) {
+        setMainnetEthBalance(null)
+        setAvaxBalance(null)
+        return
+      }
+      
+      // Fetch Ethereum mainnet balance
+      const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
+      setMainnetEthBalance(ethBalance)
+      
+      // Fetch Avalanche balance  
+      const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
+      setAvaxBalance(avaxBal)
+    }
+    
+    fetchBalances()
+  }, [address])
   
   // Get WETH balance for swapping with refetch capability
   const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
@@ -329,8 +374,11 @@ export const TradingInterface = () => {
       
       // Refresh all balances after successful swap
       refetchAbstractEthBalance()
-      refetchMainnetEthBalance()
-      refetchAvaxBalance()
+      // Re-fetch cross-chain balances
+      if (address) {
+        fetchCrossChainBalance(1, 'https://eth.llamarpc.com').then(setMainnetEthBalance)
+        fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc').then(setAvaxBalance)
+      }
       refetchWethBalance()
       refetchRetsbaBalance()
       
@@ -338,7 +386,7 @@ export const TradingInterface = () => {
       setSwapAmount('')
       setSwapTxHash(undefined)
     }
-  }, [isConfirmed, swapTxHash, toast, refetchAbstractEthBalance, refetchMainnetEthBalance, refetchAvaxBalance, refetchWethBalance, refetchRetsbaBalance])
+  }, [isConfirmed, swapTxHash, toast, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, address, fetchCrossChainBalance])
 
   // Listen for account changes and refresh interface
   useEffect(() => {
