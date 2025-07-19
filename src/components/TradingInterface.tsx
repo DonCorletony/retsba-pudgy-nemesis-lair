@@ -451,13 +451,6 @@ export const TradingInterface = () => {
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground text-center">
-          RETSBA: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
-          <br />
-          V2 Router: {V2_ROUTER_ADDRESS.slice(0, 6)}...{V2_ROUTER_ADDRESS.slice(-4)}
-          <br />
-          V3 Router: {V3_ROUTER_ADDRESS.slice(0, 6)}...{V3_ROUTER_ADDRESS.slice(-4)}
-        </p>
       </CardContent>
     </Card>
   )
