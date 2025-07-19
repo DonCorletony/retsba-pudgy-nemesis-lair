@@ -23,6 +23,14 @@ export const WalletConnect = () => {
   console.log('Address:', address)
   console.log('========================')
 
+  // Filter connectors - let's be more flexible with OKX naming
+  const filteredConnectors = connectors.filter(connector => 
+    connector.name === 'MetaMask' || 
+    connector.name === 'WalletConnect' ||
+    connector.name.toLowerCase().includes('okx') ||
+    connector.id === 'injected' // This might be how OKX appears
+  )
+
   // Nuclear disconnect - clears everything aggressively
   const handleDisconnect = async () => {
     try {
@@ -156,13 +164,7 @@ export const WalletConnect = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {connectors
-          .filter(connector => 
-            connector.name === 'MetaMask' || 
-            connector.name === 'WalletConnect' ||
-            connector.name === 'OKX Wallet'
-          )
-          .map((connector) => (
+        {filteredConnectors.map((connector) => (
           <DropdownMenuItem
             key={connector.uid}
             onClick={() => connect({ connector })}
