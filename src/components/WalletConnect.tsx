@@ -94,6 +94,12 @@ export const WalletConnect = () => {
 
   // Listen for account changes in the wallet extension
   useEffect(() => {
+    // Completely disable auto-connection by disconnecting on mount if connected
+    if (isConnected) {
+      console.log('Auto-connection detected, forcing disconnect...')
+      handleDisconnect()
+    }
+
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) {
         // User disconnected all accounts - clear everything
@@ -119,7 +125,7 @@ export const WalletConnect = () => {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
       }
     }
-  }, [isConnected, address, disconnect, toast])
+  }, []) // Remove isConnected, address dependencies to prevent re-runs
 
   if (isConnected) {
     return (

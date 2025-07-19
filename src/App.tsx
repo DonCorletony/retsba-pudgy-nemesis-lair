@@ -42,6 +42,8 @@ const getFreshConfig = () => createConfig({
   transports: {
     [abstractMainnet.id]: http(),
   },
+  // Completely disable any auto-connection behavior
+  multiInjectedProviderDiscovery: false,
 })
 
 const App = () => {
