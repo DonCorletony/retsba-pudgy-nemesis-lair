@@ -357,7 +357,7 @@ export const TradingInterface = () => {
       <CardContent className="space-y-4">
         {/* ETH Balance */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH</Label>
+          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH Balance</Label>
           <div className="mt-2">
             <p className="text-lg font-semibold text-foreground">
               {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} ETH` : '0 ETH'}
@@ -397,20 +397,24 @@ export const TradingInterface = () => {
           )}
         </div>
 
-        {/* Current Price Display */}
-        {currentPrice > 0 && (
-          <div className="p-3 border rounded-lg bg-accent/20">
-            <Label className="text-sm font-medium text-muted-foreground">
-              Current RETSBA Price
-            </Label>
+        {/* Current Price Display - Always show with loading state */}
+        <div className="p-3 border rounded-lg bg-accent/20">
+          <Label className="text-sm font-medium text-muted-foreground">
+            Current RETSBA Price
+          </Label>
+          {currentPrice > 0 ? (
             <p className="text-lg font-semibold text-foreground">
               {currentPrice.toFixed(8)} WETH
             </p>
-            <p className="text-xs text-muted-foreground">
-              Live price from V2 pool
+          ) : (
+            <p className="text-lg font-semibold text-muted-foreground">
+              Loading...
             </p>
-          </div>
-        )}
+          )}
+          <p className="text-xs text-muted-foreground">
+            {currentPrice > 0 ? 'Live price from V2 pool' : 'Fetching price data'}
+          </p>
+        </div>
 
         {/* Swap Interface */}
         <div className="space-y-3">
@@ -436,7 +440,7 @@ export const TradingInterface = () => {
               <Label className="text-sm font-medium text-muted-foreground">
                 You will receive (estimated)
               </Label>
-              <p className="text-lg font-semibold text-foreground">
+              <p className="text-lg font-semibold text-black">
                 {estimatedRetsba} RETSBA
               </p>
               <p className="text-xs text-muted-foreground">
