@@ -16,84 +16,77 @@ export const WalletConnect = () => {
   const { isConnected, address } = useAccount()
   const { toast } = useToast()
 
-  // Complete disconnect function that clears all cached data
+  // Debug logging
+  console.log('=== CONNECTOR DEBUG ===')
+  console.log('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id, uid: c.uid })))
+  console.log('Is connected:', isConnected)
+  console.log('Address:', address)
+  console.log('========================')
+
+  // Nuclear disconnect - clears everything aggressively
   const handleDisconnect = async () => {
     try {
-      // Disconnect from wagmi
+      // First disconnect from wagmi
       await disconnect()
       
-      // Clear all possible localStorage/sessionStorage keys
-      const keysToRemove = [
-        'wagmi.store',
-        'wagmi.cache', 
-        'wagmi.connected',
-        'wagmi.connector',
-        'wagmi.recentConnectorId',
-        'okx-wallet.isConnected',
-        'okx-wallet.selectedAddress',
-        'walletconnect',
-        'wc@2',
-        '-walletlink',
-        'metamask.isConnected'
+      // Clear ALL localStorage and sessionStorage
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      // Clear all possible wallet-related data from indexedDB
+      if ('indexedDB' in window) {
+        try {
+          const dbs = ['wagmi', 'walletconnect', 'okx', 'phantom', 'metamask']
+          for (const dbName of dbs) {
+            indexedDB.deleteDatabase(dbName)
+          }
+        } catch (e) {
+          console.log('IndexedDB clear failed:', e)
+        }
+      }
+      
+      // Revoke permissions for all known wallet providers
+      const walletProviders = [
+        (window as any).ethereum,
+        (window as any).okxwallet, 
+        (window as any).phantom?.ethereum,
+        (window as any).solana,
+        (window as any).web3
       ]
       
-      keysToRemove.forEach(key => {
-        localStorage.removeItem(key)
-        sessionStorage.removeItem(key)
-      })
-      
-      // Clear all localStorage keys that start with wallet-related prefixes
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('wagmi') || key.startsWith('okx') || key.startsWith('wc@') || key.startsWith('walletconnect')) {
-          localStorage.removeItem(key)
-        }
-      })
-      
-      // Clear OKX specific connection state and revoke permissions
-      if (typeof window !== 'undefined') {
-        // Try to revoke OKX permissions specifically
-        if ((window as any).okxwallet) {
+      for (const provider of walletProviders) {
+        if (provider) {
           try {
-            // Revoke all permissions for this site
-            await (window as any).okxwallet.request({
+            await provider.request({
               method: 'wallet_revokePermissions',
               params: [{ eth_accounts: {} }]
             }).catch(() => {})
             
-            // Disconnect explicitly
-            await (window as any).okxwallet.request({
-              method: 'eth_requestAccounts',
+            await provider.request({
+              method: 'eth_requestAccounts', 
               params: []
             }).catch(() => {})
-          } catch (e) {}
-        }
-        
-        // General ethereum provider disconnect
-        if (window.ethereum) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_revokePermissions', 
-              params: [{ eth_accounts: {} }]
-            }).catch(() => {})
-          } catch (e) {}
+          } catch (e) {
+            console.log('Provider disconnect failed:', e)
+          }
         }
       }
       
       toast({
-        title: "Wallet Disconnected", 
-        description: "All wallet data cleared. Refresh the page and reconnect with your current account.",
+        title: "Hard Reset Complete",
+        description: "All wallet data nuked. Page will reload in 2 seconds.",
       })
       
-      // Force page reload for clean state
+      // Force reload after short delay
       setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+        window.location.href = window.location.href // Hard reload
+      }, 2000)
       
     } catch (error) {
-      console.error('Disconnect error:', error)
+      console.error('Nuclear disconnect error:', error)
       toast({
-        title: "Disconnect Error",
-        description: "Please manually refresh the page to clear wallet state.",
+        title: "Reset Failed", 
+        description: "Manual browser refresh required to clear wallet state.",
         variant: "destructive"
       })
     }
@@ -140,7 +133,7 @@ export const WalletConnect = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleDisconnect}>
-            Disconnect & Clear Cache
+            Nuclear Disconnect (Clear Everything)
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
