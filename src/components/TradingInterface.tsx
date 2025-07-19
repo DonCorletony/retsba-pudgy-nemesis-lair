@@ -437,28 +437,36 @@ export const TradingInterface = () => {
           throw new Error('Abstract bridging is still being configured')
         }
         
-        // Step 1: Mock bridge quote for now (DeBridge API having issues)
-        const mockQuote = {
-          srcChainId: selectedToken.chainId,
-          dstChainId: 2741,
-          inputAmount: swapAmount,
-          outputAmount: (Number(swapAmount) * 0.99).toFixed(6), // Mock 1% bridge fee
-          estimatedTime: "2-5 minutes"
-        }
+        // Step 1: Get Relay Bridge quote
+        const bridgeQuote = await getRelayQuote()
         
         toast({
           title: "Bridge Quote Received",
-          description: `Mock bridge: ${swapAmount} ${selectedToken.symbol} → ${mockQuote.outputAmount} WETH on Abstract`,
+          description: `Quote: ${bridgeQuote.details.currencyOut.amountFormatted} ETH on Abstract`,
         })
         
-        // Step 2: Mock successful bridge + WETH swap
-        setTimeout(() => {
-          // Mock the WETH swap instead of executing real transaction
-          toast({
-            title: "WETH Swapped Successfully", 
-            description: `Converted ${mockQuote.outputAmount} WETH to ${(Number(mockQuote.outputAmount) * (currentPrice || 1)).toFixed(6)} RETSBA`,
-          })
-        }, 2000)
+        // Step 2: Execute the bridge transaction
+        if (bridgeQuote.steps && bridgeQuote.steps.length > 0) {
+          const step = bridgeQuote.steps[0]
+          if (step.items && step.items.length > 0) {
+            const txData = step.items[0].data
+            
+            // Execute the bridge transaction using wagmi
+            writeContract({
+              address: txData.to as `0x${string}`,
+              abi: [], // Relay provides the encoded data
+              functionName: 'fallback',
+              args: [],
+              value: BigInt(txData.value || '0'),
+              data: txData.data as `0x${string}`,
+            } as any)
+            
+            toast({
+              title: "Bridge Transaction Sent",
+              description: "Bridging to Abstract in progress...",
+            })
+          }
+        }
         
       } catch (error: any) {
         console.error('Cross-chain swap error:', error)
@@ -471,56 +479,50 @@ export const TradingInterface = () => {
     }
   }
 
-  // DeBridge helper functions
-  const getDeBridgeQuote = async () => {
+  // Relay Bridge helper function
+  const getRelayQuote = async () => {
     if (!address || !swapAmount) {
       throw new Error('Missing required parameters')
     }
 
-    // Ensure minimum amount (DeBridge may have minimum thresholds)
+    // Ensure minimum amount (0.01 ETH minimum)
     const amount = parseEther(swapAmount);
     if (amount < parseEther('0.01')) {
       throw new Error('Minimum bridge amount is 0.01 ETH')
     }
 
-    // Build query parameters for GET request
-    const params = new URLSearchParams({
-      srcChainId: selectedToken.chainId.toString(),
-      srcChainTokenIn: selectedToken.address,
-      srcChainTokenInAmount: amount.toString(),
-      dstChainId: '100000017', // DeBridge's internal ID for Abstract
-      dstChainTokenOut: WETH_ADDRESS, // Abstract WETH
-      dstChainTokenOutRecipient: address,
-      srcChainOrderAuthorityAddress: address,
-      dstChainOrderAuthorityAddress: address,
-    })
+    const requestBody = {
+      user: address,
+      recipient: address,
+      originChainId: selectedToken.chainId,
+      destinationChainId: 2741, // Abstract
+      originCurrency: selectedToken.address, // ETH = 0x0000000000000000000000000000000000000000
+      destinationCurrency: WETH_ADDRESS, // WETH on Abstract
+      amount: amount.toString(),
+      tradeType: "EXACT_INPUT"
+    }
 
-    console.log('DeBridge request URL:', `${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`)
+    console.log('Relay request body:', JSON.stringify(requestBody, null, 2))
 
-    const response = await fetch(`${DEBRIDGE_API_URL}/dln/order/create-tx?${params.toString()}`, {
-      method: 'GET',
+    const response = await fetch('https://api.relay.link/quote', {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(requestBody)
     })
     
-    console.log('DeBridge response status:', response.status)
+    console.log('Relay response status:', response.status)
     
     if (!response.ok) {
       const errorText = await response.text()
-      console.log('DeBridge error response:', errorText)
-      throw new Error(`DeBridge API error: ${response.status} - ${errorText}`)
+      console.log('Relay error response:', errorText)
+      throw new Error(`Relay API error: ${response.status} - ${errorText}`)
     }
     
     const result = await response.json()
-    console.log('DeBridge quote result:', result)
+    console.log('Relay quote result:', result)
     return result
-  }
-
-  const executeDeBridgeTx = async (quote: any) => {
-    // This would execute the bridge transaction
-    // Implementation depends on DeBridge SDK/API specifics
-    console.log('Executing bridge with quote:', quote)
   }
 
   // New function to swap WETH to RETSBA after cross-chain bridge
