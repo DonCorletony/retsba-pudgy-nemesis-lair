@@ -8,18 +8,58 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
-const ABSETH_ADDRESS = '0x0000000000000000000000000000000000000000' as `0x${string}` // AbsETH (zero address for native ETH)
+const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}` // WETH (AbsETH) on Abstract
+const V2_PAIR_ADDRESS = '0x26E7f241Fc81Bb168F9f81401184CDe74dcC8f31' as `0x${string}` // V2 Pair for price data
+const V3_PAIR_ADDRESS = '0x1176Bf6483763c9fc74F80a575497e17cAe9ca18' as `0x${string}` // V3 Pair for swaps
+
+// Uniswap V2 Pair ABI (minimal)
+const uniswapV2PairAbi = [
+  {
+    constant: true,
+    inputs: [],
+    name: 'getReserves',
+    outputs: [
+      { name: '_reserve0', type: 'uint112' },
+      { name: '_reserve1', type: 'uint112' },
+      { name: '_blockTimestampLast', type: 'uint32' }
+    ],
+    type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'token0',
+    outputs: [{ name: '', type: 'address' }],
+    type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: 'token1',
+    outputs: [{ name: '', type: 'address' }],
+    type: 'function'
+  }
+] as const
 
 export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   const [swapAmount, setSwapAmount] = useState('')
   const [estimatedRetsba, setEstimatedRetsba] = useState('')
-  const [swapRate, setSwapRate] = useState(1000) // Placeholder: 1 ETH = 1000 RETSBA
+  const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false)
   
-  // Get native ETH balance for AbsETH (zero address)
+  // Get native ETH balance (we'll need to use WETH for swapping)
   const { data: ethBalance } = useBalance({
     address: address,
+  })
+  
+  // Get WETH balance for swapping
+  const { data: wethBalance } = useReadContract({
+    address: WETH_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
   })
 
   // Get RETSBA token balance 
@@ -51,12 +91,69 @@ export const TradingInterface = () => {
     functionName: 'name',
   })
 
+  // Get V2 pair reserves for price calculation
+  const { data: pairReserves, error: pairReservesError } = useReadContract({
+    address: V2_PAIR_ADDRESS,
+    abi: uniswapV2PairAbi,
+    functionName: 'getReserves',
+  })
+
+  // Get token order in the pair
+  const { data: token0 } = useReadContract({
+    address: V2_PAIR_ADDRESS,
+    abi: uniswapV2PairAbi,
+    functionName: 'token0',
+  })
+
+  const { data: token1 } = useReadContract({
+    address: V2_PAIR_ADDRESS,
+    abi: uniswapV2PairAbi,
+    functionName: 'token1',
+  })
+
+  // Calculate current RETSBA price from V2 pair reserves
+  useEffect(() => {
+    if (pairReserves && token0 && token1) {
+      setIsLoadingPrice(true)
+      try {
+        // Type assertion for the reserves array
+        const reserves = pairReserves as [bigint, bigint, number]
+        const [reserve0, reserve1] = reserves
+        
+        // Type assertion for token addresses
+        const token0Address = token0 as string
+        const token1Address = token1 as string
+        
+        // Determine which token is RETSBA and which is WETH
+        const isRetsbaToken0 = token0Address.toLowerCase() === RETSBA_TOKEN_ADDRESS.toLowerCase()
+        const retsbaReserve = isRetsbaToken0 ? reserve0 : reserve1
+        const wethReserve = isRetsbaToken0 ? reserve1 : reserve0
+        
+        // Calculate price: RETSBA price in WETH = wethReserve / retsbaReserve
+        const price = Number(formatEther(wethReserve)) / Number(formatEther(retsbaReserve))
+        setCurrentPrice(price)
+        
+        console.log('=== PRICE CALCULATION ===')
+        console.log('Token0:', token0Address)
+        console.log('Token1:', token1Address)
+        console.log('RETSBA Reserve:', formatEther(retsbaReserve))
+        console.log('WETH Reserve:', formatEther(wethReserve))
+        console.log('RETSBA Price in WETH:', price)
+        console.log('========================')
+      } catch (error) {
+        console.error('Error calculating price:', error)
+      } finally {
+        setIsLoadingPrice(false)
+      }
+    }
+  }, [pairReserves, token0, token1])
+
   // Debug logging
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
     console.log('Connected Address:', address)
-    console.log('AbsETH (Native ETH):', ABSETH_ADDRESS)
     console.log('ETH Balance:', ethBalance)
+    console.log('WETH Balance:', wethBalance)
     console.log('RETSBA Contract:', RETSBA_TOKEN_ADDRESS)
     console.log('RETSBA Balance:', retsbaBalance)
     console.log('RETSBA Balance Error:', retsbaError)
@@ -67,28 +164,25 @@ export const TradingInterface = () => {
     console.log('RETSBA Total Supply Error:', retsbaTotalSupplyError)
     console.log('RETSBA Name:', retsbaName)
     console.log('RETSBA Name Error:', retsbaNameError)
+    console.log('Current Price:', currentPrice)
     console.log('========================')
-  }, [address, ethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError])
+  }, [address, ethBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
 
   const { writeContract, isPending } = useWriteContract()
 
-  // Gas estimation for the swap
-  const { data: gasEstimate } = useEstimateGas({
-    to: RETSBA_TOKEN_ADDRESS,
-    data: '0x', // Placeholder - would be actual swap function call data
-    value: swapAmount ? parseEther(swapAmount) : undefined,
-  })
-
   // Calculate estimated RETSBA output when swap amount changes
   useEffect(() => {
-    if (swapAmount && !isNaN(parseFloat(swapAmount))) {
-      const ethAmount = parseFloat(swapAmount)
-      const retsbaOutput = ethAmount * swapRate
-      setEstimatedRetsba(retsbaOutput.toFixed(4))
+    if (swapAmount && !isNaN(parseFloat(swapAmount)) && currentPrice > 0) {
+      const wethAmount = parseFloat(swapAmount)
+      // Calculate RETSBA output: WETH amount / RETSBA price in WETH
+      const retsbaOutput = wethAmount / currentPrice
+      // Apply 0.5% slippage tolerance
+      const slippageAdjusted = retsbaOutput * 0.995
+      setEstimatedRetsba(slippageAdjusted.toFixed(4))
     } else {
       setEstimatedRetsba('')
     }
-  }, [swapAmount, swapRate])
+  }, [swapAmount, currentPrice])
 
   // Listen for account changes and refresh interface
   useEffect(() => {
@@ -113,29 +207,47 @@ export const TradingInterface = () => {
   }, [address, isConnected, toast])
 
   const handleSwap = async () => {
-    if (!swapAmount || !address) {
+    if (!swapAmount || !address || !currentPrice) {
       toast({
         title: "Error",
-        description: "Please enter an amount and connect your wallet",
+        description: "Please enter an amount, connect your wallet, and wait for price data",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!wethBalance || Number(formatEther(wethBalance)) < parseFloat(swapAmount)) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough WETH. Please wrap your ETH first or use a smaller amount.",
         variant: "destructive"
       })
       return
     }
 
     try {
-      // Interact with the DEX contract for swapping
       toast({
         title: "Swap Initiated", 
-        description: `Swapping ${swapAmount} AbsETH for RETSBA via contract ${RETSBA_TOKEN_ADDRESS}`,
+        description: `Preparing to swap ${swapAmount} WETH for ${estimatedRetsba} RETSBA`,
       })
       
-      // Note: This would require the actual DEX contract ABI and proper implementation
-      // For now, we're showing the interface structure
+      // This is a placeholder for the actual swap implementation
+      // You would need to implement the actual DEX router calls here
+      // For now, we'll show what parameters would be used
       console.log('Swap parameters:', {
-        retsbaContract: RETSBA_TOKEN_ADDRESS,
-        amount: parseEther(swapAmount),
-        tokenIn: ABSETH_ADDRESS, // Native ETH
-        tokenOut: RETSBA_TOKEN_ADDRESS
+        inputToken: WETH_ADDRESS,
+        outputToken: RETSBA_TOKEN_ADDRESS,
+        amountIn: parseEther(swapAmount),
+        amountOutMin: parseEther(estimatedRetsba),
+        v2Pair: V2_PAIR_ADDRESS,
+        v3Pair: V3_PAIR_ADDRESS,
+        currentPrice: currentPrice
+      })
+      
+      toast({
+        title: "Implementation Needed",
+        description: "Swap interface ready - DEX router integration required for execution",
+        variant: "default"
       })
       
     } catch (error) {
@@ -166,14 +278,25 @@ export const TradingInterface = () => {
         <CardTitle className="text-center text-foreground">Buy Retsba</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* AbsETH Balance (Native ETH) */}
+        {/* ETH and WETH Balances */}
         <div className="p-4 border rounded-lg bg-background">
-          <Label className="text-sm font-medium text-muted-foreground">AbsETH Balance</Label>
-          <p className="text-lg font-semibold text-foreground">
-            {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)} AbsETH` : '0 AbsETH'}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Native ETH on Abstract
+          <Label className="text-sm font-medium text-muted-foreground">Available Balances</Label>
+          <div className="space-y-2 mt-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Native ETH:</span>
+              <span className="text-sm font-semibold text-foreground">
+                {ethBalance ? `${parseFloat(formatEther(ethBalance.value)).toFixed(4)}` : '0'} ETH
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">WETH (for swapping):</span>
+              <span className="text-sm font-semibold text-foreground">
+                {wethBalance ? `${parseFloat(formatEther(wethBalance)).toFixed(4)}` : '0'} WETH
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            You need WETH to swap for RETSBA
           </p>
         </div>
 
@@ -215,11 +338,26 @@ export const TradingInterface = () => {
           </p>
         </div>
 
+        {/* Current Price Display */}
+        {currentPrice > 0 && (
+          <div className="p-3 border rounded-lg bg-accent/20">
+            <Label className="text-sm font-medium text-muted-foreground">
+              Current RETSBA Price
+            </Label>
+            <p className="text-lg font-semibold text-foreground">
+              {currentPrice.toFixed(8)} WETH
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Live price from V2 pool
+            </p>
+          </div>
+        )}
+
         {/* Swap Interface */}
         <div className="space-y-3">
           <div>
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of AbsETH to swap
+              Amount of WETH to swap
             </Label>
             <Input
               id="swap-amount"
@@ -234,7 +372,7 @@ export const TradingInterface = () => {
           </div>
 
           {/* Estimated RETSBA Output */}
-          {swapAmount && estimatedRetsba && (
+          {swapAmount && estimatedRetsba && currentPrice > 0 && (
             <div className="p-3 border rounded-lg bg-accent/50">
               <Label className="text-sm font-medium text-muted-foreground">
                 You will receive (estimated)
@@ -243,39 +381,37 @@ export const TradingInterface = () => {
                 {estimatedRetsba} RETSBA
               </p>
               <p className="text-xs text-muted-foreground">
-                Rate: 1 AbsETH = {swapRate.toLocaleString()} RETSBA
+                Rate: 1 WETH = {(1 / currentPrice).toFixed(2)} RETSBA (0.5% slippage applied)
               </p>
             </div>
           )}
 
-          {/* Gas Fee Estimate */}
-          {gasEstimate && swapAmount && (
+          {/* Loading state for price */}
+          {(isLoadingPrice || currentPrice === 0) && swapAmount && (
             <div className="p-3 border rounded-lg bg-muted/50">
               <Label className="text-sm font-medium text-muted-foreground">
-                Estimated Gas Fee
+                Loading price data...
               </Label>
-              <p className="text-sm font-semibold text-foreground">
-                {parseFloat(formatEther(gasEstimate * BigInt(20000000000))).toFixed(6)} ETH
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Gas Units: {gasEstimate.toLocaleString()}
-              </p>
             </div>
           )}
 
           <Button 
             onClick={handleSwap}
-            disabled={isPending || !swapAmount}
+            disabled={isPending || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full"
           >
-            {isPending ? 'Swapping...' : 'Swap AbsETH for RETSBA'}
+            {isPending ? 'Swapping...' : 
+             currentPrice === 0 ? 'Loading Price...' : 
+             'Swap WETH for RETSBA'}
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          RETSBA Contract: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
+          RETSBA: {RETSBA_TOKEN_ADDRESS.slice(0, 6)}...{RETSBA_TOKEN_ADDRESS.slice(-4)}
           <br />
-          AbsETH: Native ETH on Abstract
+          WETH: {WETH_ADDRESS.slice(0, 6)}...{WETH_ADDRESS.slice(-4)}
+          <br />
+          V2 Pool: {V2_PAIR_ADDRESS.slice(0, 6)}...{V2_PAIR_ADDRESS.slice(-4)}
         </p>
       </CardContent>
     </Card>
