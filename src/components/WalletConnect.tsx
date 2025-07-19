@@ -17,11 +17,27 @@ export const WalletConnect = () => {
   const { toast } = useToast()
 
   // Abstract Global Wallet handler
-  const handleAbstractWallet = () => {
-    toast({
-      title: "Abstract Global Wallet",
-      description: "Coming soon! This feature is being integrated.",
-    })
+  const handleAbstractWallet = async () => {
+    try {
+      // Direct integration with Abstract Global Wallet
+      const { createAbstractClient } = await import('@abstract-foundation/agw-client')
+      
+      toast({
+        title: "Abstract Global Wallet",
+        description: "Redirecting to Abstract Global Wallet...",
+      })
+
+      // Open Abstract Global Wallet in new tab
+      window.open('https://wallet.abstract.xyz', '_blank')
+      
+    } catch (error) {
+      console.error('AGW connection error:', error)
+      toast({
+        title: "Connection Failed",
+        description: "Could not open Abstract Global Wallet. Please visit wallet.abstract.xyz manually.",
+        variant: "destructive"
+      })
+    }
   }
 
   // Add connection timeout
