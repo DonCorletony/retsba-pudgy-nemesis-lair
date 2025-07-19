@@ -463,7 +463,7 @@ export const TradingInterface = () => {
       srcChainId: selectedToken.chainId.toString(),
       srcChainTokenIn: selectedToken.address,
       srcChainTokenInAmount: amount.toString(),
-      dstChainId: '100000017', // Abstract's INTERNAL Chain ID per DeBridge docs
+      dstChainId: '2741', // Abstract's actual chain ID - try this instead of internal ID
       dstChainTokenOut: WETH_ADDRESS, // Abstract WETH - confirmed by user
       dstChainTokenOutAmount: 'auto', // Let DeBridge calculate the output amount
       dstChainTokenOutRecipient: address,
