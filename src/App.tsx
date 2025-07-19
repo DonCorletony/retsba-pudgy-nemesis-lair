@@ -31,7 +31,7 @@ const abstractMainnet = {
 
 const queryClient = new QueryClient();
 
-// Single wagmi config with ALL connectors - including official AGW connector
+// Single wagmi config with traditional connectors (step-by-step verification)
 const wagmiConfig = createConfig({
   chains: [abstractMainnet],
   connectors: [
@@ -45,8 +45,7 @@ const wagmiConfig = createConfig({
         url: 'https://retsba.com',
         icons: ['https://retsba.com/icon.png']
       }
-    }),
-    // abstractWallet(), // TODO: Add when import path is correct
+    })
   ],
   transports: {
     [abstractMainnet.id]: http(),
