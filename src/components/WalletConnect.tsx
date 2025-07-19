@@ -118,7 +118,12 @@ export const WalletConnect = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {connectors.map((connector) => (
+        {connectors
+          .filter(connector => 
+            connector.name === 'MetaMask' || 
+            connector.name === 'WalletConnect'
+          )
+          .map((connector) => (
           <DropdownMenuItem
             key={connector.uid}
             onClick={() => connect({ connector })}
