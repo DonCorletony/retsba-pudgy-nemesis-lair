@@ -22,30 +22,59 @@ export const WalletConnect = () => {
       // Disconnect from wagmi
       await disconnect()
       
-      // Clear any localStorage data that might be cached
-      localStorage.removeItem('wagmi.store')
-      localStorage.removeItem('wagmi.cache')
-      localStorage.removeItem('wagmi.connected')
+      // Clear all possible localStorage/sessionStorage keys
+      const keysToRemove = [
+        'wagmi.store',
+        'wagmi.cache', 
+        'wagmi.connected',
+        'wagmi.connector',
+        'wagmi.recentConnectorId',
+        'okx-wallet.isConnected',
+        'okx-wallet.selectedAddress',
+        'walletconnect',
+        'wc@2',
+        '-walletlink',
+        'metamask.isConnected'
+      ]
       
-      // Clear any injected wallet connection
-      if (typeof window !== 'undefined' && window.ethereum) {
-        try {
-          // Some wallets store connection state - try to clear it
-          await window.ethereum.request({
-            method: 'wallet_requestPermissions',
-            params: [{ eth_accounts: {} }]
-          }).catch(() => {}) // Ignore errors for wallets that don't support this
-        } catch (e) {
-          // Ignore permission errors
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      })
+      
+      // Clear all localStorage keys that start with wallet-related prefixes
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('wagmi') || key.startsWith('okx') || key.startsWith('wc@') || key.startsWith('walletconnect')) {
+          localStorage.removeItem(key)
+        }
+      })
+      
+      // Clear OKX specific connection state
+      if (typeof window !== 'undefined') {
+        // OKX Wallet specific disconnect
+        if ((window as any).okxwallet) {
+          try {
+            await (window as any).okxwallet.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] }).catch(() => {})
+          } catch (e) {}
+        }
+        
+        // General ethereum provider disconnect
+        if (window.ethereum) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_requestPermissions',
+              params: [{ eth_accounts: {} }]
+            }).catch(() => {})
+          } catch (e) {}
         }
       }
       
       toast({
-        title: "Wallet Disconnected",
-        description: "All wallet data has been cleared. Next connection will be fresh.",
+        title: "Wallet Disconnected", 
+        description: "All wallet data cleared. Refresh the page and reconnect with your current account.",
       })
       
-      // Force a page reload to ensure complete state reset
+      // Force page reload for clean state
       setTimeout(() => {
         window.location.reload()
       }, 1000)
@@ -54,7 +83,7 @@ export const WalletConnect = () => {
       console.error('Disconnect error:', error)
       toast({
         title: "Disconnect Error",
-        description: "There was an issue disconnecting. Please refresh the page.",
+        description: "Please manually refresh the page to clear wallet state.",
         variant: "destructive"
       })
     }
