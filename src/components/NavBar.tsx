@@ -102,21 +102,44 @@ const NavBar = () => {
             <a href="#about" className="text-stroke text-white hover:text-black transition-colors text-xl">ABOUT</a>
             <a href="#buy-now" className="text-stroke text-white hover:text-black transition-colors text-xl">BUY NOW</a>
             
-            {/* Token Balance Counters */}
-            <TokenBalanceCounter
-              balance={retsbaBalance}
-              isConnected={isConnected}
-              tokenImage="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png"
-              alt="RETSBA Token"
-            />
+            {/* RETSBA Balance Counter */}
+            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+              <div className="relative mr-2">
+                <img 
+                  src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
+                  alt="RETSBA Token"
+                  className="w-6 h-6 rounded-full"
+                />
+              </div>
+              <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                {!isConnected ? "-" : retsbaBalanceData && retsbaDecimals 
+                  ? `${parseFloat(formatEther(retsbaBalanceData)).toFixed(2)}`
+                  : '0.00'
+                }
+              </span>
+            </div>
             
-            <TokenBalanceCounter
-              balance={ethBalance}
-              isConnected={isConnected}
-              tokenImage="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png"
-              badgeImage="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
-              alt="Abstract ETH"
-            />
+            {/* Abstract ETH Balance Counter */}
+            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+              <div className="relative mr-2">
+                <img 
+                  src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
+                  alt="Abstract ETH"
+                  className="w-6 h-6 rounded-full"
+                />
+                <img 
+                  src="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
+                  alt="Abstract badge"
+                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                />
+              </div>
+              <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                {!isConnected ? "-" : abstractEthBalance 
+                  ? `${parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toFixed(4)}`
+                  : '0.0000'
+                }
+              </span>
+            </div>
             
             <WalletConnect />
           </div>
