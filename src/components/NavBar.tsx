@@ -46,7 +46,7 @@ const NavBar = () => {
   // Copy exact balance logic from TradingInterface
   const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address,
-    chainId: 11124,
+    chainId: 2741, // Abstract chain - same as TradingInterface
   });
 
   const { data: retsbaBalance, refetch: refetchRetsbaBalance } = useReadContract({
