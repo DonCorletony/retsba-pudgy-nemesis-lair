@@ -413,7 +413,15 @@ export const TradingInterface = () => {
   }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, currentPrice, toast])
 
   const handleSwap = async () => {
+    console.log('🔴 handleSwap called!')
+    console.log('Selected Token:', selectedToken)
+    console.log('SwapAmount:', swapAmount)
+    console.log('Address:', address)
+    console.log('Current Price:', currentPrice)
+    console.log('Is Abstract Native?:', selectedToken.isAbstractNative)
+    
     if (!swapAmount || !address || !currentPrice) {
+      console.log('❌ Missing required data - stopping')
       toast({
         title: "Error",
         description: "Please enter an amount, connect your wallet, and wait for price data",
@@ -424,11 +432,18 @@ export const TradingInterface = () => {
 
     // Check if this is a cross-chain bridge + swap
     if (!selectedToken.isAbstractNative) {
+      console.log('🌉 Starting cross-chain bridge + swap process...')
+      console.log('Chain ID:', selectedToken.chainId)
+      console.log('Amount:', swapAmount)
+      console.log('Current Price:', currentPrice)
+      
       try {
+        console.log('🚀 Calling executeBridgeAndSwap...')
         // Execute seamless bridge + swap
         await bridgeAndSwap.executeBridgeAndSwap(selectedToken.chainId, swapAmount, currentPrice)
+        console.log('✅ executeBridgeAndSwap completed')
       } catch (error: any) {
-        console.error('Bridge + swap error:', error)
+        console.error('❌ Bridge + swap error:', error)
         toast({
           title: "Bridge + Swap Failed",
           description: error.message || "There was an error with the bridge + swap process",
@@ -437,6 +452,8 @@ export const TradingInterface = () => {
       }
       return
     }
+
+    console.log('💙 Using Abstract native swap path...')
 
     // For Abstract native tokens (ETH), continue with existing swap logic
     const currentBalance = getCurrentTokenBalance()
