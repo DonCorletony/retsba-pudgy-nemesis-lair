@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
-import { parseEther, erc20Abi } from 'viem'
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useWriteContract, useReadContract } from 'wagmi'
+import { parseEther, erc20Abi, formatEther } from 'viem'
 import { useToast } from '@/hooks/use-toast'
 
 const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}`
@@ -191,46 +191,91 @@ export const useBridgeAndSwap = () => {
     }
   }, [address, sendTransaction])
 
-  // Execute WETH approval
-  const approveWethForSwap = useCallback(async (wethAmount: string) => {
+  // Get current WETH balance
+  const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
+    address: WETH_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+  })
+
+  // Execute WETH approval with actual balance
+  const approveWethForSwap = useCallback(async () => {
     if (!address) return
 
-    setCurrentStep('approving')
+    // Refetch WETH balance to get actual amount after bridge
+    const balanceResult = await refetchWethBalance()
+    const actualWethBalance = balanceResult.data
     
-    const amount = parseEther(wethAmount)
+    if (!actualWethBalance || actualWethBalance === 0n) {
+      console.error('No WETH balance found after bridge')
+      toast({
+        title: "No WETH Found",
+        description: "WETH balance is 0 after bridge. Please check your wallet.",
+        variant: "destructive"
+      })
+      setIsProcessing(false)
+      setCurrentStep('idle')
+      return
+    }
+
+    console.log('WETH balance after bridge:', formatEther(actualWethBalance))
+    setCurrentStep('approving')
     
     approveWeth({
       address: WETH_ADDRESS,
       abi: erc20Abi,
       functionName: 'approve',
-      args: [V2_ROUTER_ADDRESS, amount]
+      args: [V2_ROUTER_ADDRESS, actualWethBalance] // Approve full balance
     } as any)
-  }, [address, approveWeth])
+  }, [address, approveWeth, refetchWethBalance, toast])
 
-  // Execute WETH to RETSBA swap
-  const swapWethToRetsba = useCallback(async (wethAmount: string, currentPrice: number) => {
+  // Execute WETH to RETSBA swap with actual balance
+  const swapWethToRetsba = useCallback(async (currentPrice: number) => {
     if (!address || !currentPrice) return
 
+    // Get actual WETH balance
+    const balanceResult = await refetchWethBalance()
+    const actualWethBalance = balanceResult.data
+    
+    if (!actualWethBalance || actualWethBalance === 0n) {
+      console.error('No WETH balance for swap')
+      toast({
+        title: "Swap Failed",
+        description: "No WETH balance available for swap",
+        variant: "destructive"
+      })
+      setIsProcessing(false)
+      setCurrentStep('idle')
+      return
+    }
+
+    const wethAmountInEther = formatEther(actualWethBalance)
+    console.log('Swapping WETH amount:', wethAmountInEther)
+    console.log('Current RETSBA price:', currentPrice)
+    
     setCurrentStep('swapping')
 
     const deadline = Math.floor(Date.now() / 1000) + 600 // 10 minutes
-    const wethAmountBigInt = parseEther(wethAmount)
-    const expectedRetsba = (Number(wethAmount) / currentPrice * 0.995).toString() // 0.5% slippage
+    // Increased slippage to 5% for better success rate
+    const expectedRetsba = (Number(wethAmountInEther) / currentPrice * 0.95).toString()
     const amountOutMin = parseEther(expectedRetsba)
+    
+    console.log('Expected RETSBA output (with 5% slippage):', expectedRetsba)
 
     executeSwap({
       address: V2_ROUTER_ADDRESS,
       abi: uniswapV2RouterAbi,
       functionName: 'swapExactTokensForTokens',
       args: [
-        wethAmountBigInt,
+        actualWethBalance, // Use actual balance
         amountOutMin,
         [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS],
         address,
         BigInt(deadline)
       ]
     } as any)
-  }, [address, executeSwap])
+  }, [address, executeSwap, refetchWethBalance, toast])
 
   // Complete the process
   const completeProcess = useCallback(() => {
@@ -262,6 +307,10 @@ export const useBridgeAndSwap = () => {
     // Swap status
     isSwapPending,
     isSwapConfirmed,
+    
+    // Balances
+    wethBalance,
+    refetchWethBalance,
     
     // Actions
     executeBridgeAndSwap,

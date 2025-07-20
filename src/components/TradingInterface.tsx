@@ -405,7 +405,7 @@ export const TradingInterface = () => {
         title: "Bridge Complete!",
         description: "Now approving WETH for swapping to RETSBA...",
       })
-      bridgeAndSwap.approveWethForSwap(swapAmount) // Use actual swap amount
+      bridgeAndSwap.approveWethForSwap() // Now uses actual WETH balance
     }
   }, [bridgeAndSwap.isBridgeConfirmed, bridgeAndSwap.currentStep, swapAmount, toast])
 
@@ -419,7 +419,7 @@ export const TradingInterface = () => {
           title: "Approval Complete!",
           description: "Now swapping WETH to RETSBA...",
         })
-        bridgeAndSwap.swapWethToRetsba(swapAmount, currentPrice)
+        bridgeAndSwap.swapWethToRetsba(currentPrice) // Now uses actual WETH balance
       }, 2000)
     }
   }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, swapAmount, currentPrice, toast])
