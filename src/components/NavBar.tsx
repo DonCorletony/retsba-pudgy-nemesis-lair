@@ -255,6 +255,16 @@ const NavBar = () => {
         animate={{ x: isDropdownOpen ? 0 : '100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
+        {/* Close Button */}
+        <button
+          onClick={() => setIsDropdownOpen(false)}
+          className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors p-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        
         <div className="p-6 pt-20">
           <div className="flex flex-col space-y-6">
             <a 
