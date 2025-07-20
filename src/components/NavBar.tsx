@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { WalletConnect } from './WalletConnect';
 import TokenBalanceCounter from './TokenBalanceCounter';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
-import { formatUnits } from 'viem';
+import { formatUnits, erc20Abi, formatEther } from 'viem';
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,29 +22,34 @@ const NavBar = () => {
     },
   });
   
-  // RETSBA token balance
+  // RETSBA token balance - using same approach as TradingInterface
   const { data: retsbaBalanceData, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
     address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
-    abi: [
-      {
-        constant: true,
-        inputs: [{ name: '_owner', type: 'address' }],
-        name: 'balanceOf',
-        outputs: [{ name: 'balance', type: 'uint256' }],
-        type: 'function',
-      },
-    ],
+    abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
     chainId: 11124,
     query: {
       enabled: !!address && isConnected,
-      refetchInterval: 5000, // Refetch every 5 seconds
+      refetchInterval: 5000,
     },
   });
+
+  // Get RETSBA decimals
+  const { data: retsbaDecimals } = useReadContract({
+    address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
+    abi: erc20Abi,
+    functionName: 'decimals',
+    chainId: 11124,
+  });
   
-  const retsbaBalance = retsbaBalanceData ? formatUnits(retsbaBalanceData as bigint, 18) : "0";
-  const ethBalance = abstractEthBalance ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) : "0";
+  // Format balances the same way as TradingInterface
+  const retsbaBalance = retsbaBalanceData && retsbaDecimals 
+    ? formatEther(retsbaBalanceData)
+    : "0";
+  const ethBalance = abstractEthBalance 
+    ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) 
+    : "0";
   
   // Debug logging
   console.log("=== NAVBAR DEBUG ===");
