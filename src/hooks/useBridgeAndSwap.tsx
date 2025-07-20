@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useWriteContract, useReadContract } from 'wagmi'
 import { parseEther, erc20Abi, formatEther } from 'viem'
 import { useToast } from '@/hooks/use-toast'
@@ -106,11 +106,61 @@ export const useBridgeAndSwap = () => {
     }
   })
 
-  // Wait for bridge confirmation on the source chain (not Abstract)
-  const { isSuccess: isBridgeConfirmed } = useWaitForTransactionReceipt({
-    hash: bridgeTxHash as `0x${string}`,
-    chainId: 1, // Monitor on Ethereum mainnet where bridge tx happens
+  // Get current WETH balance and poll for changes
+  const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
+    address: WETH_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
   })
+
+  // Poll WETH balance when bridging to detect completion
+  useEffect(() => {
+    if (currentStep === 'bridging' && bridgeTxHash) {
+      console.log('🔍 Starting WETH balance polling...')
+      const pollInterval = setInterval(async () => {
+        try {
+          const result = await refetchWethBalance()
+          const balance = result.data
+          console.log('Polling WETH balance:', balance ? formatEther(balance) : '0')
+          
+          if (balance && balance > 0n) {
+            console.log('✅ WETH detected! Bridge completed, proceeding to approval...')
+            clearInterval(pollInterval)
+            setCurrentStep('bridge-confirmed')
+            
+            // Small delay then proceed to approval
+            setTimeout(() => {
+              toast({
+                title: "Bridge Complete!",
+                description: "WETH received! Now approving for swap...",
+              })
+              approveWethForSwap()
+            }, 1000)
+          }
+        } catch (error) {
+          console.error('Error polling WETH balance:', error)
+        }
+      }, 3000) // Poll every 3 seconds
+
+      // Clear interval after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (currentStep === 'bridging') {
+          console.log('❌ Bridge polling timeout')
+          toast({
+            title: "Bridge Timeout",
+            description: "Bridge is taking longer than expected. Please check your wallet.",
+            variant: "destructive"
+          })
+          setIsProcessing(false)
+          setCurrentStep('idle')
+        }
+      }, 300000)
+
+      return () => clearInterval(pollInterval)
+    }
+  }, [currentStep, bridgeTxHash, refetchWethBalance, toast])
 
   // Wait for swap confirmation on Abstract
   const { isSuccess: isSwapConfirmed } = useWaitForTransactionReceipt({
@@ -199,7 +249,7 @@ export const useBridgeAndSwap = () => {
   }, [address, sendTransaction])
 
   // Get current WETH balance
-  const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
+  const { refetch: refetchWethBalance2 } = useReadContract({
     address: WETH_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
@@ -211,7 +261,7 @@ export const useBridgeAndSwap = () => {
     if (!address) return
 
     // Refetch WETH balance to get actual amount after bridge
-    const balanceResult = await refetchWethBalance()
+    const balanceResult = await refetchWethBalance2()
     const actualWethBalance = balanceResult.data
     
     if (!actualWethBalance || actualWethBalance === 0n) {
@@ -235,14 +285,14 @@ export const useBridgeAndSwap = () => {
       functionName: 'approve',
       args: [V2_ROUTER_ADDRESS, actualWethBalance] // Approve full balance
     } as any)
-  }, [address, approveWeth, refetchWethBalance, toast])
+  }, [address, approveWeth, refetchWethBalance2, toast])
 
   // Execute WETH to RETSBA swap with actual balance
   const swapWethToRetsba = useCallback(async (currentPrice: number) => {
     if (!address || !currentPrice) return
 
     // Get actual WETH balance
-    const balanceResult = await refetchWethBalance()
+    const balanceResult = await refetchWethBalance2()
     const actualWethBalance = balanceResult.data
     
     if (!actualWethBalance || actualWethBalance === 0n) {
@@ -296,7 +346,7 @@ export const useBridgeAndSwap = () => {
       console.error('❌ Error calling executeSwap:', error)
       throw error
     }
-  }, [address, executeSwap, refetchWethBalance, toast])
+  }, [address, executeSwap, refetchWethBalance2, toast])
 
   // Complete the process
   const completeProcess = useCallback(() => {
@@ -318,9 +368,8 @@ export const useBridgeAndSwap = () => {
     bridgeTxHash,
     swapTxHash,
     
-    // Bridge status
-    isBridgePending,
-    isBridgeConfirmed,
+    // Bridge status (using balance polling instead)
+    isBridgeConfirmed: currentStep === 'bridge-confirmed',
     
     // Approval status  
     isApprovePending,
@@ -331,7 +380,7 @@ export const useBridgeAndSwap = () => {
     
     // Balances
     wethBalance,
-    refetchWethBalance,
+    refetchWethBalance: refetchWethBalance2,
     
     // Actions
     executeBridgeAndSwap,

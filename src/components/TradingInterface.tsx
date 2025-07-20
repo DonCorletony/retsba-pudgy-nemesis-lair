@@ -397,54 +397,20 @@ export const TradingInterface = () => {
     }
   }, [address, isConnected, toast])
 
-  // Monitor bridge confirmation and automatically proceed to approval
-  useEffect(() => {
-    if (bridgeAndSwap.isBridgeConfirmed && bridgeAndSwap.currentStep === 'bridging') {
-      console.log('Bridge confirmed, proceeding to WETH approval...')
-      toast({
-        title: "Bridge Complete!",
-        description: "Now approving WETH for swapping to RETSBA...",
-      })
-      bridgeAndSwap.approveWethForSwap() // Now uses actual WETH balance
-    }
-  }, [bridgeAndSwap.isBridgeConfirmed, bridgeAndSwap.currentStep, swapAmount, toast])
-
-  // Monitor approval and proceed to swap
+  // Monitor approval completion and trigger swap automatically  
   useEffect(() => {
     if (bridgeAndSwap.currentStep === 'approving' && !bridgeAndSwap.isApprovePending) {
-      // Small delay to ensure approval is confirmed
+      // Approval completed, now execute the swap
       setTimeout(() => {
         console.log('WETH approved, proceeding to swap...')
         toast({
           title: "Approval Complete!",
           description: "Now swapping WETH to RETSBA...",
         })
-        bridgeAndSwap.swapWethToRetsba(currentPrice) // Now uses actual WETH balance
-      }, 2000)
+        bridgeAndSwap.swapWethToRetsba(currentPrice)
+      }, 2000) // Small delay to ensure approval is processed
     }
-  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, swapAmount, currentPrice, toast])
-
-  // Monitor swap completion
-  useEffect(() => {
-    if (bridgeAndSwap.isSwapConfirmed && bridgeAndSwap.currentStep === 'swapping') {
-      console.log('Swap confirmed, completing process...')
-      bridgeAndSwap.completeProcess()
-      // Refresh balances
-      refetchAbstractEthBalance()
-      if (address) {
-        const fetchBalances = async () => {
-          const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
-          setMainnetEthBalance(ethBalance)
-          const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
-          setAvaxBalance(avaxBal)
-        }
-        fetchBalances()
-      }
-      refetchWethBalance()
-      refetchRetsbaBalance()
-      setSwapAmount('') // Clear swap amount
-    }
-  }, [bridgeAndSwap.isSwapConfirmed, bridgeAndSwap.currentStep, address])
+  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, currentPrice, toast])
 
   const handleSwap = async () => {
     if (!swapAmount || !address || !currentPrice) {
