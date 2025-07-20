@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAccount, useBalance } from 'wagmi'
+import { useAccount, useBalance, useSwitchChain, useChainId } from 'wagmi'
 import { formatEther } from 'viem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,8 @@ const SOURCE_TOKENS = [
 export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanceRefresh?: () => void; refreshTrigger?: number }) => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
+  const { switchChain } = useSwitchChain()
+  const currentChainId = useChainId()
   
   // State for selected source token and bridge amount
   const [selectedToken, setSelectedToken] = useState(SOURCE_TOKENS[0])
@@ -122,17 +124,48 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
     fetchBalances()
   }, [address])
 
-  // Helper function to get the current balance for the selected token
-  const getCurrentTokenBalance = () => {
-    switch (selectedToken.chainId) {
-      case 1: // Ethereum mainnet
-        return mainnetEthBalance
-      case 43114: // Avalanche
-        return avaxBalance
-      default:
-        return null
-    }
-  }
+   // Helper function to get the current balance for the selected token
+   const getCurrentTokenBalance = () => {
+     switch (selectedToken.chainId) {
+       case 1: // Ethereum mainnet
+         return mainnetEthBalance
+       case 43114: // Avalanche
+         return avaxBalance
+       default:
+         return null
+     }
+   }
+
+   // Auto-switch network when token selection changes
+   useEffect(() => {
+     const switchToTokenChain = async () => {
+       if (!isConnected || !selectedToken) return
+       
+       console.log('🔄 Token changed to:', selectedToken.symbol, 'Chain ID:', selectedToken.chainId)
+       console.log('🔄 Current chain ID:', currentChainId)
+       
+       // Only switch if we're not already on the correct chain
+       if (currentChainId !== selectedToken.chainId) {
+         console.log('🔄 Switching to chain:', selectedToken.chainId)
+         try {
+           await switchChain({ chainId: selectedToken.chainId })
+           toast({
+             title: "Network Switched",
+             description: `Switched to ${selectedToken.name}`,
+           })
+         } catch (error: any) {
+           console.error('❌ Failed to switch chain:', error)
+           toast({
+             title: "Network Switch Failed",
+             description: error?.message || `Failed to switch to ${selectedToken.name}`,
+             variant: "destructive"
+           })
+         }
+       }
+     }
+
+     switchToTokenChain()
+   }, [selectedToken, currentChainId, isConnected, switchChain, toast])
 
   const handleBridge = async () => {
     console.log('🌉 handleBridge called!')
