@@ -8,30 +8,26 @@ export const UnifiedTradingInterface = () => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Header with toggle */}
-      <div className="flex items-center justify-end mb-4 px-2">
-        <span className="text-sm text-muted-foreground mr-2">
-          Need Abstract ETH?
-        </span>
-        <Switch
-          checked={showBridge}
-          onCheckedChange={setShowBridge}
-          className="data-[state=checked]:bg-primary"
-        />
-      </div>
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        {/* Header with toggle in top right */}
+        <div className="flex items-center justify-end mb-6">
+          <span className="text-sm text-gray-600 mr-2">
+            Need Abstract ETH?
+          </span>
+          <Switch
+            checked={showBridge}
+            onCheckedChange={setShowBridge}
+            className="data-[state=checked]:bg-primary"
+          />
+        </div>
 
-      {/* Dynamic content based on toggle */}
-      {showBridge ? (
-        <div>
-          <h2 className="text-xl font-bold text-center mb-4">Bridge to Abstract</h2>
+        {/* Dynamic content based on toggle */}
+        {showBridge ? (
           <BridgeInterface />
-        </div>
-      ) : (
-        <div>
-          <h2 className="text-xl font-bold text-center mb-4">Buy RETSBA</h2>
+        ) : (
           <TradingInterface />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
