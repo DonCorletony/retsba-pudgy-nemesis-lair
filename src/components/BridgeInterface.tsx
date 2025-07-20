@@ -136,36 +136,25 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
      }
    }
 
-   // Auto-switch network when token selection changes
-   useEffect(() => {
-     const switchToTokenChain = async () => {
-       if (!isConnected || !selectedToken) return
-       
-       console.log('🔄 Token changed to:', selectedToken.symbol, 'Chain ID:', selectedToken.chainId)
-       console.log('🔄 Current chain ID:', currentChainId)
-       
-       // Only switch if we're not already on the correct chain
-       if (currentChainId !== selectedToken.chainId) {
-         console.log('🔄 Switching to chain:', selectedToken.chainId)
-         try {
-           await switchChain({ chainId: selectedToken.chainId })
-           toast({
-             title: "Network Switched",
-             description: `Switched to ${selectedToken.name}`,
-           })
-         } catch (error: any) {
-           console.error('❌ Failed to switch chain:', error)
-           toast({
-             title: "Network Switch Failed",
-             description: error?.message || `Failed to switch to ${selectedToken.name}`,
-             variant: "destructive"
-           })
-         }
-       }
+   // Manual network switching only - no automatic switching
+   const handleNetworkSwitch = async () => {
+     if (!isConnected || !selectedToken) return
+     
+     try {
+       await switchChain({ chainId: selectedToken.chainId })
+       toast({
+         title: "Network Switched",
+         description: `Switched to ${selectedToken.name}`,
+       })
+     } catch (error: any) {
+       console.error('❌ Failed to switch chain:', error)
+       toast({
+         title: "Network Switch Failed",
+         description: error?.message || `Failed to switch to ${selectedToken.name}`,
+         variant: "destructive"
+       })
      }
-
-     switchToTokenChain()
-   }, [selectedToken, currentChainId, isConnected, switchChain, toast])
+   }
 
   const handleBridge = async () => {
     console.log('🌉 handleBridge called!')
@@ -192,17 +181,23 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       return
     }
 
-    // Verify we're on the correct chain before bridging
-    console.log('🔍 Chain verification:')
-    console.log('Current chain ID:', currentChainId)
-    console.log('Selected token chain ID:', selectedToken.chainId)
-    console.log('Selected token:', selectedToken.symbol)
-    
+    // Check if manual network switch is needed
     if (currentChainId !== selectedToken.chainId) {
-      console.log('❌ Chain mismatch detected!')
       toast({
-        title: "Wrong Network",
-        description: `Please switch to ${selectedToken.name} to bridge. Current: ${currentChainId}, Required: ${selectedToken.chainId}`,
+        title: "Switch Network Required",
+        description: (
+          <div className="space-y-2">
+            <p>Please manually switch to {selectedToken.name} in your wallet to bridge.</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleNetworkSwitch}
+              className="w-full"
+            >
+              Switch to {selectedToken.name}
+            </Button>
+          </div>
+        ),
         variant: "destructive"
       })
       return
