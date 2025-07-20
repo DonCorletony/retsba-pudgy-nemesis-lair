@@ -29,7 +29,7 @@ const SOURCE_TOKENS = [
   }
 ]
 
-export const BridgeInterface = () => {
+export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanceRefresh?: () => void; refreshTrigger?: number }) => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   
@@ -38,17 +38,36 @@ export const BridgeInterface = () => {
   const [bridgeAmount, setBridgeAmount] = useState('')
   
   // Bridge functionality
-  const bridgeAndSwap = useBridgeAndSwap()
+  const bridgeAndSwap = useBridgeAndSwap(onBalanceRefresh)
   
   // Cross-chain balances
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [avaxBalance, setAvaxBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   
-  // Get Abstract ETH balance to show destination
-  const { data: abstractEthBalance } = useBalance({
+  // Get Abstract ETH balance to show destination with refetch capability
+  const { data: abstractEthBalance, refetch: refetchAbstractBalance } = useBalance({
     address: address,
     chainId: 2741, // Abstract chain
   })
+
+  // Trigger balance refetch when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      console.log('🔄 Refreshing bridge interface balances...');
+      refetchAbstractBalance();
+      // Trigger re-fetch of cross-chain balances too
+      if (address) {
+        const fetchBalances = async () => {
+          const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
+          setMainnetEthBalance(ethBalance)
+          
+          const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
+          setAvaxBalance(avaxBal)
+        }
+        fetchBalances()
+      }
+    }
+  }, [refreshTrigger, refetchAbstractBalance, address])
   
   // Function to fetch cross-chain balances using RPC
   const fetchCrossChainBalance = async (chainId: number, rpcUrl: string) => {

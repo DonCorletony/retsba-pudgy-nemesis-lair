@@ -23,7 +23,7 @@ const uniswapV2RouterAbi = [
   }
 ] as const
 
-export const useBridgeAndSwap = () => {
+export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
   const { address } = useAccount()
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -162,11 +162,39 @@ export const useBridgeAndSwap = () => {
     }
   }, [currentStep, bridgeTxHash, refetchWethBalance, toast])
 
+  // Complete the process
+  const completeProcess = useCallback(() => {
+    setCurrentStep('complete')
+    setIsProcessing(false)
+    setBridgeTxHash(undefined)
+    setSwapTxHash(undefined)
+    
+    toast({
+      title: "Bridge + Swap Complete!",
+      description: "Successfully bridged and swapped to RETSBA",
+    })
+
+    // Trigger balance refresh callback if provided
+    if (onBalanceRefresh) {
+      setTimeout(() => {
+        onBalanceRefresh()
+      }, 2000) // Small delay to ensure transaction is indexed
+    }
+  }, [toast, onBalanceRefresh])
+
   // Wait for swap confirmation on Abstract
   const { isSuccess: isSwapConfirmed } = useWaitForTransactionReceipt({
     hash: swapTxHash as `0x${string}`,
     chainId: 2741, // Monitor on Abstract where swap happens
   })
+
+  // Auto-complete process when swap is confirmed
+  useEffect(() => {
+    if (isSwapConfirmed && currentStep === 'swapping') {
+      console.log('✅ Swap confirmed! Completing process...')
+      completeProcess()
+    }
+  }, [isSwapConfirmed, currentStep, completeProcess])
 
   // Get Relay Protocol quote
   const getRelayQuote = async (fromChainId: number, amount: string) => {
@@ -359,18 +387,6 @@ export const useBridgeAndSwap = () => {
     }
   }, [address, executeSwap, refetchWethBalance2, toast])
 
-  // Complete the process
-  const completeProcess = useCallback(() => {
-    setCurrentStep('complete')
-    setIsProcessing(false)
-    setBridgeTxHash(undefined)
-    setSwapTxHash(undefined)
-    
-    toast({
-      title: "Bridge + Swap Complete!",
-      description: "Successfully bridged and swapped to RETSBA",
-    })
-  }, [toast])
 
   return {
     // State

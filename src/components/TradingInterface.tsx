@@ -132,7 +132,7 @@ const uniswapV3RouterAbi = [
   }
 ] as const
 
-export const TradingInterface = () => {
+export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanceRefresh?: () => void; refreshTrigger?: number }) => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   
@@ -144,7 +144,7 @@ export const TradingInterface = () => {
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
   
   // Bridge and swap functionality
-  const bridgeAndSwap = useBridgeAndSwap()
+  const bridgeAndSwap = useBridgeAndSwap(onBalanceRefresh)
   
   // Contract interactions for Abstract native swaps only
   const { writeContract, data: writeData, isPending } = useWriteContract({
@@ -169,8 +169,9 @@ export const TradingInterface = () => {
   // Get native ETH balance on Abstract (current chain) with refetch capability
   const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address: address,
-    chainId: 2741, // Abstract chain
+    chainId: 2741, // Abstract chain,
   })
+
   
   // For cross-chain balances, we'll need to use RPC calls directly
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
@@ -244,6 +245,27 @@ export const TradingInterface = () => {
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
   })
+
+  // Trigger balance refetch when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      console.log('🔄 Refreshing trading interface balances...');
+      refetchAbstractEthBalance();
+      refetchWethBalance();
+      refetchRetsbaBalance();
+      // Also trigger cross-chain balance refresh
+      if (address) {
+        const fetchBalances = async () => {
+          const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
+          setMainnetEthBalance(ethBalance)
+          
+          const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
+          setAvaxBalance(avaxBal)
+        }
+        fetchBalances()
+      }
+    }
+  }, [refreshTrigger, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, address])
 
   // Get RETSBA token decimals
   const { data: retsbaDecimals, error: retsbaDecimalsError } = useReadContract({
