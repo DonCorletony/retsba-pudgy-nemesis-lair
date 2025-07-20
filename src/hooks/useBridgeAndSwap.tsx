@@ -101,14 +101,16 @@ export const useBridgeAndSwap = () => {
     }
   })
 
-  // Wait for bridge confirmation
+  // Wait for bridge confirmation on the source chain (not Abstract)
   const { isSuccess: isBridgeConfirmed } = useWaitForTransactionReceipt({
     hash: bridgeTxHash as `0x${string}`,
+    chainId: 1, // Monitor on Ethereum mainnet where bridge tx happens
   })
 
-  // Wait for swap confirmation
+  // Wait for swap confirmation on Abstract
   const { isSuccess: isSwapConfirmed } = useWaitForTransactionReceipt({
     hash: swapTxHash as `0x${string}`,
+    chainId: 2741, // Monitor on Abstract where swap happens
   })
 
   // Get Relay Bridge quote
