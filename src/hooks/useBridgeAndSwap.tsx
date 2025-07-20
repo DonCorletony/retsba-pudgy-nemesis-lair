@@ -214,20 +214,31 @@ export const useBridgeAndSwap = () => {
 
     try {
       // Step 1: Get bridge quote and execute
+      console.log('🌉 Getting bridge quote from Relay...')
       const bridgeQuote = await getRelayQuote(fromChainId, amount)
+      console.log('📋 Bridge quote received:', bridgeQuote)
       
       if (!bridgeQuote.steps || bridgeQuote.steps.length === 0) {
         throw new Error('Invalid bridge quote received')
       }
 
       const step = bridgeQuote.steps[0]
+      console.log('📋 Bridge step:', step)
+      
       if (!step.items || step.items.length === 0) {
         throw new Error('No bridge transaction data')
       }
 
       const txData = step.items[0].data
+      console.log('🔍 Bridge transaction data:', txData)
+      console.log('🏠 Contract address (to):', txData.to)
+      console.log('💰 Value:', txData.value)
+      console.log('📊 Gas:', txData.gas)
+      console.log('⛽ Max fee per gas:', txData.maxFeePerGas)
+      console.log('⚡ Max priority fee per gas:', txData.maxPriorityFeePerGas)
       
       // Execute bridge transaction
+      console.log('🚀 Sending bridge transaction...')
       sendTransaction({
         to: txData.to as `0x${string}`,
         value: BigInt(txData.value || '0'),
