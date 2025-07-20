@@ -7,20 +7,33 @@ import { erc20Abi, formatEther, formatUnits } from 'viem';
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
 
-// Format balance to 5-digit display
+// Format balance to 5-digit display without rounding
 const formatBalanceDisplay = (balance: string): string => {
   const num = parseFloat(balance);
   
   if (num === 0) return "0.0000";
   
   if (num < 1000) {
-    return num.toFixed(4);
+    // For small numbers, truncate to 4 decimal places without rounding
+    const str = num.toString();
+    const dotIndex = str.indexOf('.');
+    if (dotIndex === -1) return str + ".0000";
+    const truncated = str.substring(0, dotIndex + 5); // Keep 4 decimal places
+    return truncated.padEnd(dotIndex + 5, '0'); // Pad with zeros if needed
   } else if (num < 1000000) {
     const thousands = num / 1000;
-    return `${thousands.toFixed(3)}K`;
+    const str = thousands.toString();
+    const dotIndex = str.indexOf('.');
+    if (dotIndex === -1) return str + ".000K";
+    const truncated = str.substring(0, dotIndex + 4); // Keep 3 decimal places for K
+    return truncated + "K";
   } else {
     const millions = num / 1000000;
-    return `${millions.toFixed(3)}M`;
+    const str = millions.toString();
+    const dotIndex = str.indexOf('.');
+    if (dotIndex === -1) return str + ".000M";
+    const truncated = str.substring(0, dotIndex + 4); // Keep 3 decimal places for M
+    return truncated + "M";
   }
 };
 
