@@ -168,7 +168,22 @@ export const useBridgeAndSwap = () => {
     chainId: 2741, // Monitor on Abstract where swap happens
   })
 
-  // Simple direct bridge approach - bypass external bridge APIs that cause wallet issues
+  // Get Across Protocol quote (OKX-friendly bridge)
+  const getAcrossQuote = async (fromChainId: number, amount: string) => {
+    if (!address) {
+      throw new Error('Wallet not connected')
+    }
+
+    const response = await fetch(`https://app.across.to/api/suggested-fees?token=0x0000000000000000000000000000000000000000&inputAmount=${parseEther(amount).toString()}&originChainId=${fromChainId}&destinationChainId=2741&recipient=${address}&skipAmountLimit=true`)
+    
+    if (!response.ok) {
+      throw new Error(`Across API error: ${response.status}`)
+    }
+    
+    return await response.json()
+  }
+
+  // Execute bridge using Across Protocol (OKX-friendly)
   const executeBridgeAndSwap = useCallback(async (
     fromChainId: number, 
     amount: string, 
@@ -178,17 +193,31 @@ export const useBridgeAndSwap = () => {
       throw new Error('Wallet not connected')
     }
 
-    toast({
-      title: "Cross-Chain Bridge Not Ready",
-      description: "For now, please use Abstract ETH directly. Cross-chain bridging will be available soon.",
-      variant: "destructive"
-    })
-    
-    setIsProcessing(false)
-    setCurrentStep('idle')
-    
-    throw new Error('Cross-chain bridging temporarily unavailable due to wallet compatibility issues')
-  }, [address, toast])
+    setIsProcessing(true)
+    setCurrentStep('bridging')
+
+    try {
+      // Use Across Protocol for OKX compatibility
+      console.log('🌉 Getting bridge quote from Across Protocol...')
+      const acrossQuote = await getAcrossQuote(fromChainId, amount)
+      console.log('📋 Across quote received:', acrossQuote)
+      
+      // Direct ETH transfer to Across contract
+      const ACROSS_SPOKE_POOL = '0x4D9079Bb4165aeb4084c526a32695dCfd2F77381' // Across SpokePool
+      
+      sendTransaction({
+        to: ACROSS_SPOKE_POOL as `0x${string}`,
+        value: parseEther(amount),
+        data: '0x' as `0x${string}` // Simple ETH transfer
+      })
+
+    } catch (error: any) {
+      console.error('Bridge error:', error)
+      setIsProcessing(false)
+      setCurrentStep('idle')
+      throw error
+    }
+  }, [address, sendTransaction])
 
   // Get current WETH balance
   const { refetch: refetchWethBalance2 } = useReadContract({
