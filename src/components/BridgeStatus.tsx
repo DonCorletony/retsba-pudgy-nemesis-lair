@@ -10,10 +10,8 @@ interface BridgeStatusProps {
 }
 
 const steps = [
-  { id: 'bridging', label: 'Bridge to Abstract', description: 'Transferring ETH to WETH on Abstract' },
-  { id: 'approving', label: 'Approve WETH', description: 'Allowing router to spend WETH' },
-  { id: 'swapping', label: 'Swap to RETSBA', description: 'Converting WETH to RETSBA' },
-  { id: 'complete', label: 'Complete', description: 'RETSBA in your wallet' }
+  { id: 'bridging', label: 'Bridge to Abstract', description: 'Transferring ETH to Abstract network' },
+  { id: 'complete', label: 'Complete', description: 'ETH successfully bridged to Abstract' }
 ]
 
 export const BridgeStatus: React.FC<BridgeStatusProps> = ({
@@ -67,7 +65,7 @@ export const BridgeStatus: React.FC<BridgeStatusProps> = ({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <ArrowRight className="w-5 h-5" />
-          Bridge + Swap Progress
+          Bridge Progress
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -95,14 +93,6 @@ export const BridgeStatus: React.FC<BridgeStatusProps> = ({
           </div>
         )}
         
-        {swapTxHash && (
-          <div className="mt-2">
-            <p className="text-xs text-muted-foreground mb-1">Swap Transaction:</p>
-            <code className="text-xs bg-muted px-2 py-1 rounded break-all">
-              {swapTxHash.slice(0, 10)}...{swapTxHash.slice(-10)}
-            </code>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
