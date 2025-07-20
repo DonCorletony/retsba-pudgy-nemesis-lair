@@ -28,6 +28,20 @@ const SOURCE_TOKENS = [
     chainId: 8453, // Base
   },
   {
+    symbol: 'BNB',
+    name: 'BNB Smart Chain',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    chainId: 56, // BNB Smart Chain
+  },
+  {
+    symbol: 'MATIC',
+    name: 'Polygon',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    chainId: 137, // Polygon
+  },
+  {
     symbol: 'AVAX',
     name: 'Avalanche',
     address: '0x0000000000000000000000000000000000000000',
@@ -52,6 +66,8 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
   // Cross-chain balances
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [baseEthBalance, setBaseEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
+  const [bnbBalance, setBnbBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
+  const [maticBalance, setMaticBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [avaxBalance, setAvaxBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   
   // Get Abstract ETH balance to show destination with refetch capability
@@ -73,6 +89,12 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
           
           const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
           setBaseEthBalance(baseBalance)
+          
+          const bnbBal = await fetchCrossChainBalance(56, 'https://bsc-dataseed.binance.org/')
+          setBnbBalance(bnbBal)
+          
+          const maticBal = await fetchCrossChainBalance(137, 'https://polygon-rpc.com/')
+          setMaticBalance(maticBal)
           
           const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
           setAvaxBalance(avaxBal)
@@ -105,7 +127,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
           value: balanceWei,
           decimals: 18,
           formatted: formatEther(balanceWei),
-          symbol: chainId === 43114 ? 'AVAX' : 'ETH'
+          symbol: chainId === 43114 ? 'AVAX' : chainId === 56 ? 'BNB' : chainId === 137 ? 'MATIC' : 'ETH'
         }
       }
     } catch (error) {
@@ -120,6 +142,8 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       if (!address) {
         setMainnetEthBalance(null)
         setBaseEthBalance(null)
+        setBnbBalance(null)
+        setMaticBalance(null)
         setAvaxBalance(null)
         return
       }
@@ -131,6 +155,14 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       // Fetch Base balance
       const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
       setBaseEthBalance(baseBalance)
+      
+      // Fetch BNB balance
+      const bnbBal = await fetchCrossChainBalance(56, 'https://bsc-dataseed.binance.org/')
+      setBnbBalance(bnbBal)
+      
+      // Fetch Polygon balance
+      const maticBal = await fetchCrossChainBalance(137, 'https://polygon-rpc.com/')
+      setMaticBalance(maticBal)
       
       // Fetch Avalanche balance  
       const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
@@ -147,6 +179,10 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
          return mainnetEthBalance
        case 8453: // Base
          return baseEthBalance
+       case 56: // BNB Smart Chain
+         return bnbBalance
+       case 137: // Polygon
+         return maticBalance
        case 43114: // Avalanche
          return avaxBalance
        default:
