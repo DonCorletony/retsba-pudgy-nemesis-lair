@@ -136,25 +136,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
      }
    }
 
-   // Manual network switching only - no automatic switching
-   const handleNetworkSwitch = async () => {
-     if (!isConnected || !selectedToken) return
-     
-     try {
-       await switchChain({ chainId: selectedToken.chainId })
-       toast({
-         title: "Network Switched",
-         description: `Switched to ${selectedToken.name}`,
-       })
-     } catch (error: any) {
-       console.error('❌ Failed to switch chain:', error)
-       toast({
-         title: "Network Switch Failed",
-         description: error?.message || `Failed to switch to ${selectedToken.name}`,
-         variant: "destructive"
-       })
-     }
-   }
 
   const handleBridge = async () => {
     console.log('🌉 handleBridge called!')
@@ -181,27 +162,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       return
     }
 
-    // Check if manual network switch is needed
-    if (currentChainId !== selectedToken.chainId) {
-      toast({
-        title: "Switch Network Required",
-        description: (
-          <div className="space-y-2">
-            <p>Please manually switch to {selectedToken.name} in your wallet to bridge.</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleNetworkSwitch}
-              className="w-full"
-            >
-              Switch to {selectedToken.name}
-            </Button>
-          </div>
-        ),
-        variant: "destructive"
-      })
-      return
-    }
 
     try {
       console.log('🚀 Starting bridge process...')
