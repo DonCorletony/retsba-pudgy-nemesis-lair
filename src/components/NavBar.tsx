@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WalletConnect } from './WalletConnect';
@@ -40,6 +39,7 @@ const formatBalanceDisplay = (balance: string): string => {
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const { address, isConnected } = useAccount();
 
@@ -105,10 +105,7 @@ const NavBar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="#about" className="text-stroke text-white hover:text-black transition-colors text-xl">ABOUT</a>
-            <a href="#buy-now" className="text-stroke text-white hover:text-black transition-colors text-xl">BUY NOW</a>
-            
-            {/* RETSBA Balance Counter */}
+            {/* Token Balance Counters */}
             <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
               <div className="relative mr-2">
                 <img 
@@ -142,6 +139,42 @@ const NavBar = () => {
             </div>
             
             <WalletConnect />
+            
+            {/* Hamburger Dropdown Button */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="text-white focus:outline-none p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <div className="flex flex-col space-y-1">
+                  <div className="w-5 h-0.5 bg-white"></div>
+                  <div className="w-5 h-0.5 bg-white"></div>
+                  <div className="w-5 h-0.5 bg-white"></div>
+                </div>
+              </button>
+              
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="py-2">
+                    <a 
+                      href="#about" 
+                      className="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors font-medium"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      About
+                    </a>
+                    <a 
+                      href="#buy-now" 
+                      className="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition-colors font-medium"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      Buy Now
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Mobile Menu Button */}
@@ -190,7 +223,6 @@ const NavBar = () => {
             
             {/* Mobile Token Balance Counters */}
             <div className="flex flex-col space-y-2 pt-2">
-              {/* RETSBA Balance Counter */}
               <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
                 <div className="relative mr-2">
                   <img 
@@ -204,7 +236,6 @@ const NavBar = () => {
                 </span>
               </div>
               
-              {/* Abstract ETH Balance Counter */}
               <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
                 <div className="relative mr-2">
                   <img 
