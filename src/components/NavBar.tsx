@@ -2,68 +2,61 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WalletConnect } from './WalletConnect';
-import TokenBalanceCounter from './TokenBalanceCounter';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
-import { formatUnits, erc20Abi, formatEther } from 'viem';
+import { erc20Abi, formatEther, formatUnits } from 'viem';
+
+const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
+
+// Format balance to 5-digit display
+const formatBalanceDisplay = (balance: string): string => {
+  const num = parseFloat(balance);
+  
+  if (num === 0) return "0.0000";
+  
+  if (num < 1000) {
+    return num.toFixed(4);
+  } else if (num < 1000000) {
+    const thousands = num / 1000;
+    return `${thousands.toFixed(3)}K`;
+  } else {
+    const millions = num / 1000000;
+    return `${millions.toFixed(3)}M`;
+  }
+};
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const { address, isConnected } = useAccount();
-  
-  // Abstract ETH balance
-  const { data: abstractEthBalance, error: ethError, isLoading: ethLoading } = useBalance({
+
+  // Copy exact balance logic from TradingInterface
+  const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address,
-    chainId: 11124, // Abstract Testnet
-    query: {
-      enabled: !!address && isConnected,
-      refetchInterval: 5000, // Refetch every 5 seconds
-    },
+    chainId: 11124,
   });
-  
-  // RETSBA token balance - using same approach as TradingInterface
-  const { data: retsbaBalanceData, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
-    address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
+
+  const { data: retsbaBalance, refetch: refetchRetsbaBalance } = useReadContract({
+    address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
-    chainId: 11124,
-    query: {
-      enabled: !!address && isConnected,
-      refetchInterval: 5000,
-    },
   });
 
-  // Get RETSBA decimals
   const { data: retsbaDecimals } = useReadContract({
-    address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
+    address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'decimals',
-    chainId: 11124,
   });
-  
-  // Format balances the same way as TradingInterface
-  const retsbaBalance = retsbaBalanceData && retsbaDecimals 
-    ? formatEther(retsbaBalanceData)
-    : "0";
-  const ethBalance = abstractEthBalance 
-    ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) 
-    : "0";
-  
-  // Debug logging
-  console.log("=== NAVBAR DEBUG ===");
-  console.log("Address:", address);
-  console.log("IsConnected:", isConnected);
-  console.log("Abstract ETH Balance Data:", abstractEthBalance);
-  console.log("ETH Error:", ethError);
-  console.log("ETH Loading:", ethLoading);
-  console.log("RETSBA Balance Data:", retsbaBalanceData);
-  console.log("RETSBA Error:", retsbaError);
-  console.log("RETSBA Loading:", retsbaLoading);
-  console.log("Formatted ETH Balance:", ethBalance);
-  console.log("Formatted RETSBA Balance:", retsbaBalance);
-  console.log("====================");
+
+  // Format balances exactly like TradingInterface
+  const formattedRetsbaBalance = retsbaBalance && retsbaDecimals 
+    ? formatBalanceDisplay(parseFloat(formatEther(retsbaBalance)).toString())
+    : isConnected ? "0.0000" : "-";
+
+  const formattedEthBalance = abstractEthBalance 
+    ? formatBalanceDisplay(parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toString())
+    : isConnected ? "0.0000" : "-";
   
   useEffect(() => {
     const handleScroll = () => {
@@ -112,10 +105,7 @@ const NavBar = () => {
                 />
               </div>
               <span className="text-white font-medium text-sm min-w-[50px] text-right">
-                {!isConnected ? "-" : retsbaBalanceData && retsbaDecimals 
-                  ? `${parseFloat(formatEther(retsbaBalanceData)).toFixed(2)}`
-                  : '0.00'
-                }
+                {formattedRetsbaBalance}
               </span>
             </div>
             
@@ -134,10 +124,7 @@ const NavBar = () => {
                 />
               </div>
               <span className="text-white font-medium text-sm min-w-[50px] text-right">
-                {!isConnected ? "-" : abstractEthBalance 
-                  ? `${parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toFixed(4)}`
-                  : '0.0000'
-                }
+                {formattedEthBalance}
               </span>
             </div>
             
@@ -190,20 +177,38 @@ const NavBar = () => {
             
             {/* Mobile Token Balance Counters */}
             <div className="flex flex-col space-y-2 pt-2">
-              <TokenBalanceCounter
-                balance={retsbaBalance}
-                isConnected={isConnected}
-                tokenImage="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png"
-                alt="RETSBA Token"
-              />
+              {/* RETSBA Balance Counter */}
+              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                <div className="relative mr-2">
+                  <img 
+                    src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
+                    alt="RETSBA Token"
+                    className="w-6 h-6 rounded-full"
+                  />
+                </div>
+                <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                  {formattedRetsbaBalance}
+                </span>
+              </div>
               
-              <TokenBalanceCounter
-                balance={ethBalance}
-                isConnected={isConnected}
-                tokenImage="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png"
-                badgeImage="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
-                alt="Abstract ETH"
-              />
+              {/* Abstract ETH Balance Counter */}
+              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                <div className="relative mr-2">
+                  <img 
+                    src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
+                    alt="Abstract ETH"
+                    className="w-6 h-6 rounded-full"
+                  />
+                  <img 
+                    src="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
+                    alt="Abstract badge"
+                    className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                  />
+                </div>
+                <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                  {formattedEthBalance}
+                </span>
+              </div>
             </div>
             
             <div className="pt-2">
