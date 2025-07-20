@@ -78,9 +78,10 @@ export const useBridgeAndSwap = () => {
   })
 
   // Swap transaction
-  const { writeContract: executeSwap, isPending: isSwapPending } = useWriteContract({
+  const { writeContract: executeSwap, isPending: isSwapPending, error: swapError } = useWriteContract({
     mutation: {
       onSuccess: (hash) => {
+        console.log('✅ Swap transaction submitted successfully:', hash)
         setSwapTxHash(hash)
         setCurrentStep('swapping')
         toast({
@@ -89,12 +90,16 @@ export const useBridgeAndSwap = () => {
         })
       },
       onError: (error) => {
-        console.error('Swap transaction error:', error)
+        console.error('❌ Swap transaction error:', error)
+        console.error('Full error details:', {
+          message: error.message,
+          name: error.name
+        })
         setIsProcessing(false)
         setCurrentStep('idle')
         toast({
           title: "Swap Failed",
-          description: error.message || "Failed to swap WETH to RETSBA",
+          description: `Failed to swap WETH to RETSBA: ${error.message}`,
           variant: "destructive"
         })
       }
@@ -265,18 +270,32 @@ export const useBridgeAndSwap = () => {
     
     console.log('Expected RETSBA output (with 5% slippage):', expectedRetsba)
 
-    executeSwap({
-      address: V2_ROUTER_ADDRESS,
-      abi: uniswapV2RouterAbi,
-      functionName: 'swapExactTokensForTokens',
-      args: [
-        actualWethBalance, // Use actual balance
-        amountOutMin,
-        [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS],
-        address,
-        BigInt(deadline)
-      ]
-    } as any)
+    console.log('🔄 Starting swap with parameters:')
+    console.log('- Router address:', V2_ROUTER_ADDRESS)
+    console.log('- WETH amount:', wethAmountInEther)
+    console.log('- WETH balance (raw):', actualWethBalance.toString())
+    console.log('- Current RETSBA price:', currentPrice)
+    console.log('- Expected RETSBA output:', expectedRetsba)
+    console.log('- Min RETSBA output:', formatEther(amountOutMin))
+    console.log('- Path:', [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS])
+    
+    try {
+      executeSwap({
+        address: V2_ROUTER_ADDRESS,
+        abi: uniswapV2RouterAbi,
+        functionName: 'swapExactTokensForTokens',
+        args: [
+          actualWethBalance, // Use actual balance
+          amountOutMin,
+          [WETH_ADDRESS, RETSBA_TOKEN_ADDRESS],
+          address,
+          BigInt(deadline)
+        ]
+      } as any)
+    } catch (error) {
+      console.error('❌ Error calling executeSwap:', error)
+      throw error
+    }
   }, [address, executeSwap, refetchWethBalance, toast])
 
   // Complete the process
