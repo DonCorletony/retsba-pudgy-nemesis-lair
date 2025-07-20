@@ -2,10 +2,41 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WalletConnect } from './WalletConnect';
+import TokenBalanceCounter from './TokenBalanceCounter';
+import { useAccount, useBalance, useReadContract } from 'wagmi';
+import { formatUnits } from 'viem';
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  const { address, isConnected } = useAccount();
+  
+  // Abstract ETH balance
+  const { data: abstractEthBalance } = useBalance({
+    address,
+    chainId: 11124, // Abstract Testnet
+  });
+  
+  // RETSBA token balance
+  const { data: retsbaTotalSupply } = useReadContract({
+    address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
+    abi: [
+      {
+        constant: true,
+        inputs: [{ name: '_owner', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ name: 'balance', type: 'uint256' }],
+        type: 'function',
+      },
+    ],
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    chainId: 11124,
+  });
+  
+  const retsbaBalance = retsbaTotalSupply ? formatUnits(retsbaTotalSupply as bigint, 18) : "0";
+  const ethBalance = abstractEthBalance ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) : "0";
   
   useEffect(() => {
     const handleScroll = () => {
@@ -40,9 +71,26 @@ const NavBar = () => {
           </a>
           
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4">
             <a href="#about" className="text-stroke text-white hover:text-black transition-colors text-xl">ABOUT</a>
             <a href="#buy-now" className="text-stroke text-white hover:text-black transition-colors text-xl">BUY NOW</a>
+            
+            {/* Token Balance Counters */}
+            <TokenBalanceCounter
+              balance={retsbaBalance}
+              isConnected={isConnected}
+              tokenImage="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png"
+              alt="RETSBA Token"
+            />
+            
+            <TokenBalanceCounter
+              balance={ethBalance}
+              isConnected={isConnected}
+              tokenImage="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png"
+              badgeImage="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
+              alt="Abstract ETH"
+            />
+            
             <WalletConnect />
           </div>
           
@@ -89,6 +137,25 @@ const NavBar = () => {
             >
               BUY NOW
             </a>
+            
+            {/* Mobile Token Balance Counters */}
+            <div className="flex flex-col space-y-2 pt-2">
+              <TokenBalanceCounter
+                balance={retsbaBalance}
+                isConnected={isConnected}
+                tokenImage="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png"
+                alt="RETSBA Token"
+              />
+              
+              <TokenBalanceCounter
+                balance={ethBalance}
+                isConnected={isConnected}
+                tokenImage="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png"
+                badgeImage="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
+                alt="Abstract ETH"
+              />
+            </div>
+            
             <div className="pt-2">
               <WalletConnect />
             </div>
