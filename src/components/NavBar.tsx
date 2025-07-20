@@ -13,13 +13,17 @@ const NavBar = () => {
   const { address, isConnected } = useAccount();
   
   // Abstract ETH balance
-  const { data: abstractEthBalance } = useBalance({
+  const { data: abstractEthBalance, error: ethError, isLoading: ethLoading } = useBalance({
     address,
     chainId: 11124, // Abstract Testnet
+    query: {
+      enabled: !!address && isConnected,
+      refetchInterval: 5000, // Refetch every 5 seconds
+    },
   });
   
   // RETSBA token balance
-  const { data: retsbaBalanceData } = useReadContract({
+  const { data: retsbaBalanceData, error: retsbaError, isLoading: retsbaLoading } = useReadContract({
     address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
     abi: [
       {
@@ -35,6 +39,7 @@ const NavBar = () => {
     chainId: 11124,
     query: {
       enabled: !!address && isConnected,
+      refetchInterval: 5000, // Refetch every 5 seconds
     },
   });
   
@@ -46,7 +51,11 @@ const NavBar = () => {
   console.log("Address:", address);
   console.log("IsConnected:", isConnected);
   console.log("Abstract ETH Balance Data:", abstractEthBalance);
+  console.log("ETH Error:", ethError);
+  console.log("ETH Loading:", ethLoading);
   console.log("RETSBA Balance Data:", retsbaBalanceData);
+  console.log("RETSBA Error:", retsbaError);
+  console.log("RETSBA Loading:", retsbaLoading);
   console.log("Formatted ETH Balance:", ethBalance);
   console.log("Formatted RETSBA Balance:", retsbaBalance);
   console.log("====================");
