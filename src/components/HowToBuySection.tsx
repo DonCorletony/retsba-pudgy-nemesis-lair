@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TradingInterface } from './TradingInterface';
+import { UnifiedTradingInterface } from './UnifiedTradingInterface';
 
 const steps = [
   {
@@ -62,7 +62,7 @@ const HowToBuySection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <TradingInterface />
+          <UnifiedTradingInterface />
         </motion.div>
       </div>
     </section>

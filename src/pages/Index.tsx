@@ -12,9 +12,6 @@ const Index = () => {
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
       <HeroSection />
-      <div className="py-20 px-4">
-        <UnifiedTradingInterface />
-      </div>
       <AboutSection />
       <HowToBuySection />
       <FooterSection />
