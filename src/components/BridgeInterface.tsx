@@ -193,10 +193,16 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
     }
 
     // Verify we're on the correct chain before bridging
+    console.log('🔍 Chain verification:')
+    console.log('Current chain ID:', currentChainId)
+    console.log('Selected token chain ID:', selectedToken.chainId)
+    console.log('Selected token:', selectedToken.symbol)
+    
     if (currentChainId !== selectedToken.chainId) {
+      console.log('❌ Chain mismatch detected!')
       toast({
         title: "Wrong Network",
-        description: `Please switch to ${selectedToken.name} to bridge`,
+        description: `Please switch to ${selectedToken.name} to bridge. Current: ${currentChainId}, Required: ${selectedToken.chainId}`,
         variant: "destructive"
       })
       return
