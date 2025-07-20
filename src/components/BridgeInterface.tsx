@@ -294,7 +294,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
         <Button 
           onClick={handleBridge}
           disabled={!bridgeAmount || isProcessing}
-          className="w-full"
+          className="w-full bg-black hover:bg-opacity-80 text-white"
         >
           {isProcessing ? 'Bridging...' : `Bridge ${selectedToken.symbol} to Abstract`}
         </Button>

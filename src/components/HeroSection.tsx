@@ -30,7 +30,7 @@ const HeroSection = () => {
             <p className="text-stroke text-white md:text-2xl max-w-2xl mx-auto text-3xl">Crypto has a villain, and his name is Retsba.</p>
             
             <div className="mt-10">
-              <a href="https://abs.xyz" target="_blank" rel="noopener noreferrer" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block hover:translate-y-1">
+              <a href="#buy-now" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block hover:translate-y-1">
                 BE THE VILLAIN
               </a>
             </div>
