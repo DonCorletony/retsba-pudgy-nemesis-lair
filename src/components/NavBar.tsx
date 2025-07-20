@@ -41,6 +41,16 @@ const NavBar = () => {
   const retsbaBalance = retsbaBalanceData ? formatUnits(retsbaBalanceData as bigint, 18) : "0";
   const ethBalance = abstractEthBalance ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) : "0";
   
+  // Debug logging
+  console.log("=== NAVBAR DEBUG ===");
+  console.log("Address:", address);
+  console.log("IsConnected:", isConnected);
+  console.log("Abstract ETH Balance Data:", abstractEthBalance);
+  console.log("RETSBA Balance Data:", retsbaBalanceData);
+  console.log("Formatted ETH Balance:", ethBalance);
+  console.log("Formatted RETSBA Balance:", retsbaBalance);
+  console.log("====================");
+  
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
