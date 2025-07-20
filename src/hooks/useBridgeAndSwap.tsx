@@ -168,38 +168,7 @@ export const useBridgeAndSwap = () => {
     chainId: 2741, // Monitor on Abstract where swap happens
   })
 
-  // Get Relay Bridge quote
-  const getRelayQuote = async (fromChainId: number, amount: string) => {
-    if (!address) {
-      throw new Error('Wallet not connected')
-    }
-
-    const requestBody = {
-      user: address,
-      recipient: address,
-      originChainId: fromChainId,
-      destinationChainId: 2741, // Abstract
-      originCurrency: '0x0000000000000000000000000000000000000000', // ETH
-      destinationCurrency: WETH_ADDRESS,
-      amount: parseEther(amount).toString(),
-      tradeType: "EXACT_INPUT"
-    }
-
-    const response = await fetch('https://api.relay.link/quote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
-    })
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Bridge API error: ${response.status} - ${errorText}`)
-    }
-    
-    return await response.json()
-  }
-
-  // Execute seamless bridge + swap
+  // Simple direct bridge approach - bypass external bridge APIs that cause wallet issues
   const executeBridgeAndSwap = useCallback(async (
     fromChainId: number, 
     amount: string, 
@@ -209,55 +178,17 @@ export const useBridgeAndSwap = () => {
       throw new Error('Wallet not connected')
     }
 
-    setIsProcessing(true)
-    setCurrentStep('bridging')
-
-    try {
-      // Step 1: Get bridge quote and execute
-      console.log('🌉 Getting bridge quote from Relay...')
-      const bridgeQuote = await getRelayQuote(fromChainId, amount)
-      console.log('📋 Bridge quote received:', bridgeQuote)
-      
-      if (!bridgeQuote.steps || bridgeQuote.steps.length === 0) {
-        throw new Error('Invalid bridge quote received')
-      }
-
-      const step = bridgeQuote.steps[0]
-      console.log('📋 Bridge step:', step)
-      
-      if (!step.items || step.items.length === 0) {
-        throw new Error('No bridge transaction data')
-      }
-
-      const txData = step.items[0].data
-      console.log('🔍 Bridge transaction data:', txData)
-      console.log('🏠 Contract address (to):', txData.to)
-      console.log('💰 Value:', txData.value)
-      console.log('📊 Gas:', txData.gas)
-      console.log('⛽ Max fee per gas:', txData.maxFeePerGas)
-      console.log('⚡ Max priority fee per gas:', txData.maxPriorityFeePerGas)
-      
-      // Execute bridge transaction
-      console.log('🚀 Sending bridge transaction...')
-      sendTransaction({
-        to: txData.to as `0x${string}`,
-        value: BigInt(txData.value || '0'),
-        data: txData.data as `0x${string}`,
-        gas: BigInt(txData.gas || '300000'),
-        maxFeePerGas: BigInt(txData.maxFeePerGas || '0'),
-        maxPriorityFeePerGas: BigInt(txData.maxPriorityFeePerGas || '0'),
-      })
-
-      // Note: The actual WETH approval and swap will be triggered by monitoring bridge completion
-      // This happens in the component that uses this hook
-
-    } catch (error: any) {
-      console.error('Bridge and swap error:', error)
-      setIsProcessing(false)
-      setCurrentStep('idle')
-      throw error
-    }
-  }, [address, sendTransaction])
+    toast({
+      title: "Cross-Chain Bridge Not Ready",
+      description: "For now, please use Abstract ETH directly. Cross-chain bridging will be available soon.",
+      variant: "destructive"
+    })
+    
+    setIsProcessing(false)
+    setCurrentStep('idle')
+    
+    throw new Error('Cross-chain bridging temporarily unavailable due to wallet compatibility issues')
+  }, [address, toast])
 
   // Get current WETH balance
   const { refetch: refetchWethBalance2 } = useReadContract({
