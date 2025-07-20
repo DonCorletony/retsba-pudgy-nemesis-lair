@@ -174,10 +174,24 @@ export const useBridgeAndSwap = () => {
       throw new Error('Wallet not connected')
     }
 
-    const response = await fetch(`https://api.relay.link/quote?user=${address}&originChainId=${fromChainId}&destinationChainId=2741&originCurrency=0x0000000000000000000000000000000000000000&destinationCurrency=0x0000000000000000000000000000000000000000&amount=${parseEther(amount).toString()}&usePermit=false`)
+    const response = await fetch('https://api.relay.link/quote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user: address,
+        originChainId: fromChainId,
+        destinationChainId: 2741,
+        originCurrency: '0x0000000000000000000000000000000000000000', // ETH
+        destinationCurrency: '0x0000000000000000000000000000000000000000', // ETH on Abstract
+        amount: parseEther(amount).toString(),
+        tradeType: 'EXACT_INPUT'
+      })
+    })
     
     if (!response.ok) {
-      throw new Error(`Relay API error: ${response.status}`)
+      throw new Error(`Relay API error ${response.status}`)
     }
     
     return await response.json()
