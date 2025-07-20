@@ -29,6 +29,13 @@ const SOURCE_TOKENS = [
   },
   {
     symbol: 'ETH',
+    name: 'Optimism ETH',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    chainId: 10, // Optimism
+  },
+  {
+    symbol: 'ETH',
     name: 'Base ETH',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
@@ -73,6 +80,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
   // Cross-chain balances
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [arbitrumEthBalance, setArbitrumEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
+  const [optimismEthBalance, setOptimismEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [baseEthBalance, setBaseEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [bnbBalance, setBnbBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [maticBalance, setMaticBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
@@ -97,6 +105,9 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
           
           const arbitrumBalance = await fetchCrossChainBalance(42161, 'https://arb1.arbitrum.io/rpc')
           setArbitrumEthBalance(arbitrumBalance)
+          
+          const optimismBalance = await fetchCrossChainBalance(10, 'https://mainnet.optimism.io')
+          setOptimismEthBalance(optimismBalance)
           
           const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
           setBaseEthBalance(baseBalance)
@@ -153,6 +164,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       if (!address) {
         setMainnetEthBalance(null)
         setArbitrumEthBalance(null)
+        setOptimismEthBalance(null)
         setBaseEthBalance(null)
         setBnbBalance(null)
         setMaticBalance(null)
@@ -167,6 +179,10 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       // Fetch Arbitrum balance
       const arbitrumBalance = await fetchCrossChainBalance(42161, 'https://arb1.arbitrum.io/rpc')
       setArbitrumEthBalance(arbitrumBalance)
+      
+      // Fetch Optimism balance
+      const optimismBalance = await fetchCrossChainBalance(10, 'https://mainnet.optimism.io')
+      setOptimismEthBalance(optimismBalance)
       
       // Fetch Base balance
       const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
@@ -195,6 +211,8 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
          return mainnetEthBalance
        case 42161: // Arbitrum
          return arbitrumEthBalance
+       case 10: // Optimism
+         return optimismEthBalance
        case 8453: // Base
          return baseEthBalance
        case 56: // BNB Smart Chain
