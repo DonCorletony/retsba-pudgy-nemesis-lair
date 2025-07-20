@@ -641,7 +641,10 @@ export const TradingInterface = () => {
           )}
 
           <Button 
-            onClick={handleSwap}
+            onClick={() => {
+              console.log('🔴 BUTTON CLICKED!')
+              handleSwap()
+            }}
             disabled={isPending || bridgeAndSwap.isProcessing || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
