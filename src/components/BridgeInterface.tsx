@@ -22,6 +22,13 @@ const SOURCE_TOKENS = [
   },
   {
     symbol: 'ETH',
+    name: 'Arbitrum ETH',
+    address: '0x0000000000000000000000000000000000000000',
+    decimals: 18,
+    chainId: 42161, // Arbitrum
+  },
+  {
+    symbol: 'ETH',
     name: 'Base ETH',
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
@@ -65,6 +72,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
   
   // Cross-chain balances
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
+  const [arbitrumEthBalance, setArbitrumEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [baseEthBalance, setBaseEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [bnbBalance, setBnbBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [maticBalance, setMaticBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
@@ -86,6 +94,9 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
         const fetchBalances = async () => {
           const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
           setMainnetEthBalance(ethBalance)
+          
+          const arbitrumBalance = await fetchCrossChainBalance(42161, 'https://arb1.arbitrum.io/rpc')
+          setArbitrumEthBalance(arbitrumBalance)
           
           const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
           setBaseEthBalance(baseBalance)
@@ -141,6 +152,7 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
     const fetchBalances = async () => {
       if (!address) {
         setMainnetEthBalance(null)
+        setArbitrumEthBalance(null)
         setBaseEthBalance(null)
         setBnbBalance(null)
         setMaticBalance(null)
@@ -151,6 +163,10 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       // Fetch Ethereum mainnet balance
       const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
       setMainnetEthBalance(ethBalance)
+      
+      // Fetch Arbitrum balance
+      const arbitrumBalance = await fetchCrossChainBalance(42161, 'https://arb1.arbitrum.io/rpc')
+      setArbitrumEthBalance(arbitrumBalance)
       
       // Fetch Base balance
       const baseBalance = await fetchCrossChainBalance(8453, 'https://mainnet.base.org')
@@ -177,6 +193,8 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
      switch (selectedToken.chainId) {
        case 1: // Ethereum mainnet
          return mainnetEthBalance
+       case 42161: // Arbitrum
+         return arbitrumEthBalance
        case 8453: // Base
          return baseEthBalance
        case 56: // BNB Smart Chain
