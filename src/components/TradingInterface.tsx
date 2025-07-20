@@ -136,15 +136,15 @@ export const TradingInterface = () => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
   
-  // Bridge and swap functionality
-  const bridgeAndSwap = useBridgeAndSwap()
-  
   // State for selected token, swap amount and estimated RETSBA output
   const [selectedToken, setSelectedToken] = useState(TOKENS[0]) // Default to ETH
   const [swapAmount, setSwapAmount] = useState('')
   const [estimatedRetsba, setEstimatedRetsba] = useState('')
   const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
+  
+  // Bridge and swap functionality
+  const bridgeAndSwap = useBridgeAndSwap()
   
   // Contract interactions for Abstract native swaps only
   const { writeContract, data: writeData, isPending } = useWriteContract({
@@ -397,46 +397,38 @@ export const TradingInterface = () => {
     }
   }, [address, isConnected, toast])
 
-  // Handle bridge completion and trigger next steps
+  // Monitor bridge confirmation and automatically proceed to approval
   useEffect(() => {
     if (bridgeAndSwap.isBridgeConfirmed && bridgeAndSwap.currentStep === 'bridging') {
-      // Bridge completed successfully, now approve WETH and swap
-      const wethAmount = swapAmount // Amount we bridged
-      
+      console.log('Bridge confirmed, proceeding to WETH approval...')
       toast({
         title: "Bridge Complete!",
         description: "Now approving WETH for swapping to RETSBA...",
       })
-      
-      // Step 2: Approve WETH for swapping
-      bridgeAndSwap.approveWethForSwap(wethAmount)
+      bridgeAndSwap.approveWethForSwap(swapAmount) // Use actual swap amount
     }
-  }, [bridgeAndSwap.isBridgeConfirmed, bridgeAndSwap.currentStep, swapAmount, toast, bridgeAndSwap])
+  }, [bridgeAndSwap.isBridgeConfirmed, bridgeAndSwap.currentStep, swapAmount, toast])
 
-  // Handle approval completion and trigger swap
+  // Monitor approval and proceed to swap
   useEffect(() => {
     if (bridgeAndSwap.currentStep === 'approving' && !bridgeAndSwap.isApprovePending) {
-      // Approval completed, now execute the swap
-      const wethAmount = swapAmount
-      
+      // Small delay to ensure approval is confirmed
       setTimeout(() => {
+        console.log('WETH approved, proceeding to swap...')
         toast({
           title: "Approval Complete!",
           description: "Now swapping WETH to RETSBA...",
         })
-        
-        // Step 3: Swap WETH to RETSBA
-        bridgeAndSwap.swapWethToRetsba(wethAmount, currentPrice)
-      }, 2000) // Small delay to ensure approval is processed
+        bridgeAndSwap.swapWethToRetsba(swapAmount, currentPrice)
+      }, 2000)
     }
-  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, swapAmount, currentPrice, toast, bridgeAndSwap])
+  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, swapAmount, currentPrice, toast])
 
-  // Handle swap completion
+  // Monitor swap completion
   useEffect(() => {
     if (bridgeAndSwap.isSwapConfirmed && bridgeAndSwap.currentStep === 'swapping') {
-      // Complete the entire process
+      console.log('Swap confirmed, completing process...')
       bridgeAndSwap.completeProcess()
-      
       // Refresh balances
       refetchAbstractEthBalance()
       if (address) {
@@ -450,11 +442,9 @@ export const TradingInterface = () => {
       }
       refetchWethBalance()
       refetchRetsbaBalance()
-      
-      // Clear swap amount
-      setSwapAmount('')
+      setSwapAmount('') // Clear swap amount
     }
-  }, [bridgeAndSwap.isSwapConfirmed, bridgeAndSwap.currentStep, address, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, bridgeAndSwap])
+  }, [bridgeAndSwap.isSwapConfirmed, bridgeAndSwap.currentStep, address])
 
   const handleSwap = async () => {
     if (!swapAmount || !address || !currentPrice) {
