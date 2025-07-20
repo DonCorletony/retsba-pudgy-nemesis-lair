@@ -33,13 +33,6 @@ const SOURCE_TOKENS = [
     address: '0x0000000000000000000000000000000000000000',
     decimals: 18,
     chainId: 43114, // Avalanche C-Chain
-  },
-  {
-    symbol: 'SUI',
-    name: 'SUI',
-    address: '0x0000000000000000000000000000000000000000',
-    decimals: 9,
-    chainId: 101, // SUI Mainnet
   }
 ]
 
@@ -60,7 +53,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
   const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [baseEthBalance, setBaseEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   const [avaxBalance, setAvaxBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
-  const [suiBalance, setSuiBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
   
   // Get Abstract ETH balance to show destination with refetch capability
   const { data: abstractEthBalance, refetch: refetchAbstractBalance } = useBalance({
@@ -84,9 +76,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
           
           const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
           setAvaxBalance(avaxBal)
-          
-          const suiBal = await fetchCrossChainBalance(101, 'https://fullnode.mainnet.sui.io:443')
-          setSuiBalance(suiBal)
         }
         fetchBalances()
       }
@@ -98,13 +87,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
     if (!address) return null
     
     try {
-      // Special handling for SUI which has different RPC format
-      if (chainId === 101) {
-        // SUI balance fetching would need special handling
-        // For now, return null until SUI integration is properly implemented
-        return null
-      }
-      
       const response = await fetch(rpcUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,12 +101,11 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       const data = await response.json()
       if (data.result) {
         const balanceWei = BigInt(data.result)
-        const decimals = chainId === 101 ? 9 : 18 // SUI uses 9 decimals
         return {
           value: balanceWei,
-          decimals,
+          decimals: 18,
           formatted: formatEther(balanceWei),
-          symbol: chainId === 101 ? 'SUI' : chainId === 43114 ? 'AVAX' : 'ETH'
+          symbol: chainId === 43114 ? 'AVAX' : 'ETH'
         }
       }
     } catch (error) {
@@ -140,7 +121,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
         setMainnetEthBalance(null)
         setBaseEthBalance(null)
         setAvaxBalance(null)
-        setSuiBalance(null)
         return
       }
       
@@ -155,10 +135,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       // Fetch Avalanche balance  
       const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
       setAvaxBalance(avaxBal)
-      
-      // Fetch SUI balance
-      const suiBal = await fetchCrossChainBalance(101, 'https://fullnode.mainnet.sui.io:443')
-      setSuiBalance(suiBal)
     }
     
     fetchBalances()
@@ -173,8 +149,6 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
          return baseEthBalance
        case 43114: // Avalanche
          return avaxBalance
-       case 101: // SUI
-         return suiBalance
        default:
          return null
      }
