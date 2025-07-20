@@ -168,22 +168,22 @@ export const useBridgeAndSwap = () => {
     chainId: 2741, // Monitor on Abstract where swap happens
   })
 
-  // Get Across Protocol quote (OKX-friendly bridge)
-  const getAcrossQuote = async (fromChainId: number, amount: string) => {
+  // Get Relay Protocol quote
+  const getRelayQuote = async (fromChainId: number, amount: string) => {
     if (!address) {
       throw new Error('Wallet not connected')
     }
 
-    const response = await fetch(`https://app.across.to/api/suggested-fees?token=0x0000000000000000000000000000000000000000&inputAmount=${parseEther(amount).toString()}&originChainId=${fromChainId}&destinationChainId=2741&recipient=${address}&skipAmountLimit=true`)
+    const response = await fetch(`https://api.relay.link/quote?user=${address}&originChainId=${fromChainId}&destinationChainId=2741&originCurrency=0x0000000000000000000000000000000000000000&destinationCurrency=0x0000000000000000000000000000000000000000&amount=${parseEther(amount).toString()}&usePermit=false`)
     
     if (!response.ok) {
-      throw new Error(`Across API error: ${response.status}`)
+      throw new Error(`Relay API error: ${response.status}`)
     }
     
     return await response.json()
   }
 
-  // Execute bridge using Across Protocol (OKX-friendly)
+  // Execute bridge using Relay Protocol
   const executeBridgeAndSwap = useCallback(async (
     fromChainId: number, 
     amount: string, 
@@ -197,19 +197,23 @@ export const useBridgeAndSwap = () => {
     setCurrentStep('bridging')
 
     try {
-      // Use Across Protocol for OKX compatibility
-      console.log('🌉 Getting bridge quote from Across Protocol...')
-      const acrossQuote = await getAcrossQuote(fromChainId, amount)
-      console.log('📋 Across quote received:', acrossQuote)
+      // Use Relay Protocol for bridging
+      console.log('🌉 Getting bridge quote from Relay Protocol...')
+      const relayQuote = await getRelayQuote(fromChainId, amount)
+      console.log('📋 Relay quote received:', relayQuote)
       
-      // Direct ETH transfer to Across contract
-      const ACROSS_SPOKE_POOL = '0x4D9079Bb4165aeb4084c526a32695dCfd2F77381' // Across SpokePool
-      
-      sendTransaction({
-        to: ACROSS_SPOKE_POOL as `0x${string}`,
-        value: parseEther(amount),
-        data: '0x' as `0x${string}` // Simple ETH transfer
-      })
+      // Execute Relay bridge transaction
+      if (relayQuote?.steps?.[0]?.items?.[0]?.data) {
+        const bridgeData = relayQuote.steps[0].items[0].data
+        
+        sendTransaction({
+          to: bridgeData.to as `0x${string}`,
+          value: parseEther(amount),
+          data: bridgeData.data as `0x${string}`
+        })
+      } else {
+        throw new Error('Invalid Relay quote response')
+      }
 
     } catch (error: any) {
       console.error('Bridge error:', error)
