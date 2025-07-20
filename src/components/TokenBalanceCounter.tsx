@@ -14,13 +14,14 @@ const formatBalance = (balance: string): string => {
   if (num === 0) return "0.0000";
   
   if (num < 1000) {
-    return num.toFixed(2);
+    // For numbers less than 1000, show 2 decimal places but ensure 5 total characters
+    return num.toFixed(4);
   } else if (num < 1000000) {
     const thousands = num / 1000;
-    return `${thousands.toFixed(2)}K`;
+    return `${thousands.toFixed(4).slice(0, 6)}K`;
   } else {
     const millions = num / 1000000;
-    return `${millions.toFixed(2)}M`;
+    return `${millions.toFixed(4).slice(0, 6)}M`;
   }
 };
 

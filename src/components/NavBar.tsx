@@ -19,7 +19,7 @@ const NavBar = () => {
   });
   
   // RETSBA token balance
-  const { data: retsbaTotalSupply } = useReadContract({
+  const { data: retsbaBalanceData } = useReadContract({
     address: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A',
     abi: [
       {
@@ -33,9 +33,12 @@ const NavBar = () => {
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
     chainId: 11124,
+    query: {
+      enabled: !!address && isConnected,
+    },
   });
   
-  const retsbaBalance = retsbaTotalSupply ? formatUnits(retsbaTotalSupply as bigint, 18) : "0";
+  const retsbaBalance = retsbaBalanceData ? formatUnits(retsbaBalanceData as bigint, 18) : "0";
   const ethBalance = abstractEthBalance ? formatUnits(abstractEthBalance.value, abstractEthBalance.decimals) : "0";
   
   useEffect(() => {
