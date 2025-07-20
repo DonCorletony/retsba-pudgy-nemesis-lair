@@ -174,27 +174,39 @@ export const useBridgeAndSwap = () => {
       throw new Error('Wallet not connected')
     }
 
+    console.log('🔍 Requesting Relay quote:', { fromChainId, amount, address })
+
+    const requestBody = {
+      user: address,
+      originChainId: fromChainId,
+      destinationChainId: 2741,
+      originCurrency: '0x0000000000000000000000000000000000000000', // ETH
+      destinationCurrency: '0x0000000000000000000000000000000000000000', // ETH on Abstract
+      amount: parseEther(amount).toString(),
+      tradeType: 'EXACT_INPUT'
+    }
+
+    console.log('📋 Relay request body:', requestBody)
+
     const response = await fetch('https://api.relay.link/quote', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        user: address,
-        originChainId: fromChainId,
-        destinationChainId: 2741,
-        originCurrency: '0x0000000000000000000000000000000000000000', // ETH
-        destinationCurrency: '0x0000000000000000000000000000000000000000', // ETH on Abstract
-        amount: parseEther(amount).toString(),
-        tradeType: 'EXACT_INPUT'
-      })
+      body: JSON.stringify(requestBody)
     })
     
+    console.log('📡 Relay API response status:', response.status)
+    
     if (!response.ok) {
-      throw new Error(`Relay API error ${response.status}`)
+      const errorText = await response.text()
+      console.error('❌ Relay API error response:', errorText)
+      throw new Error(`Relay API error ${response.status}: ${errorText}`)
     }
     
-    return await response.json()
+    const result = await response.json()
+    console.log('✅ Relay quote received:', result)
+    return result
   }
 
   // Execute bridge using Relay Protocol
@@ -212,13 +224,16 @@ export const useBridgeAndSwap = () => {
 
     try {
       // Use Relay Protocol for bridging
-      console.log('🌉 Getting bridge quote from Relay Protocol...')
+      console.log('🌉 Starting bridge process with Relay Protocol...')
+      console.log('📊 Bridge parameters:', { fromChainId, amount, currentPrice })
+      
       const relayQuote = await getRelayQuote(fromChainId, amount)
-      console.log('📋 Relay quote received:', relayQuote)
+      console.log('📋 Relay quote structure:', JSON.stringify(relayQuote, null, 2))
       
       // Execute Relay bridge transaction
       if (relayQuote?.steps?.[0]?.items?.[0]?.data) {
         const bridgeData = relayQuote.steps[0].items[0].data
+        console.log('🔗 Bridge transaction data:', bridgeData)
         
         sendTransaction({
           to: bridgeData.to as `0x${string}`,
@@ -226,11 +241,18 @@ export const useBridgeAndSwap = () => {
           data: bridgeData.data as `0x${string}`
         })
       } else {
-        throw new Error('Invalid Relay quote response')
+        console.error('❌ Invalid Relay quote structure:', relayQuote)
+        throw new Error('Invalid Relay quote response - missing transaction data')
       }
 
     } catch (error: any) {
-      console.error('Bridge error:', error)
+      console.error('❌ Bridge error details:', {
+        message: error.message,
+        stack: error.stack,
+        fromChainId,
+        amount,
+        address
+      })
       setIsProcessing(false)
       setCurrentStep('idle')
       throw error
