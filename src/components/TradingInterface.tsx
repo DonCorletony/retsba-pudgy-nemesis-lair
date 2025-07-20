@@ -18,7 +18,7 @@ const V3_PAIR_ADDRESS = '0x1176Bf6483763c9fc74F80a575497e17cAe9ca18' as `0x${str
 const V2_ROUTER_ADDRESS = '0xad1eCa41E6F772bE3cb5A48A6141f9bcc1AF9F7c' as `0x${string}` // UniswapV2Router02 on Abstract
 const V3_ROUTER_ADDRESS = '0x7712FA47387542819d4E35A23f8116C90C18767C' as `0x${string}` // SwapRouter02 on Abstract
 
-// Define available tokens with network info
+// Define available tokens - only Abstract ETH for swapping
 const TOKENS = [
   {
     symbol: 'ETH',
@@ -27,22 +27,6 @@ const TOKENS = [
     decimals: 18,
     chainId: 2741, // Abstract
     isAbstractNative: true
-  },
-  {
-    symbol: 'ETH',
-    name: 'Ethereum ETH',
-    address: '0x0000000000000000000000000000000000000000', // Native ETH
-    decimals: 18,
-    chainId: 1, // Ethereum Mainnet
-    isAbstractNative: false
-  },
-  {
-    symbol: 'AVAX',
-    name: 'Avalanche',
-    address: '0x0000000000000000000000000000000000000000', // Native AVAX
-    decimals: 18,
-    chainId: 43114, // Avalanche C-Chain - CONFIRMED SUPPORTED
-    isAbstractNative: false
   }
 ]
 
@@ -172,63 +156,10 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     chainId: 2741, // Abstract chain,
   })
 
+  // Since we only show Abstract ETH, we don't need cross-chain balance tracking
+  // Remove these state variables as they're not needed for swap-only interface
   
-  // For cross-chain balances, we'll need to use RPC calls directly
-  const [mainnetEthBalance, setMainnetEthBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
-  const [avaxBalance, setAvaxBalance] = useState<{ value: bigint; decimals: number; formatted: string; symbol: string } | null>(null)
-  
-  // Function to fetch cross-chain balances using RPC
-  const fetchCrossChainBalance = async (chainId: number, rpcUrl: string) => {
-    if (!address) return null
-    
-    try {
-      const response = await fetch(rpcUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'eth_getBalance',
-          params: [address, 'latest'],
-          id: 1
-        })
-      })
-      
-      const data = await response.json()
-      if (data.result) {
-        const balanceWei = BigInt(data.result)
-        return {
-          value: balanceWei,
-          decimals: 18,
-          formatted: formatEther(balanceWei),
-          symbol: 'ETH'
-        }
-      }
-    } catch (error) {
-      console.error(`Error fetching balance for chain ${chainId}:`, error)
-    }
-    return null
-  }
-  
-  // Fetch cross-chain balances when address changes
-  useEffect(() => {
-    const fetchBalances = async () => {
-      if (!address) {
-        setMainnetEthBalance(null)
-        setAvaxBalance(null)
-        return
-      }
-      
-      // Fetch Ethereum mainnet balance
-      const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
-      setMainnetEthBalance(ethBalance)
-      
-      // Fetch Avalanche balance  
-      const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
-      setAvaxBalance(avaxBal)
-    }
-    
-    fetchBalances()
-  }, [address])
+  // Since we only support Abstract ETH for swapping, remove cross-chain balance fetching
   
   // Get WETH balance for swapping with refetch capability
   const { data: wethBalance, refetch: refetchWethBalance } = useReadContract({
@@ -253,19 +184,8 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
       refetchAbstractEthBalance();
       refetchWethBalance();
       refetchRetsbaBalance();
-      // Also trigger cross-chain balance refresh
-      if (address) {
-        const fetchBalances = async () => {
-          const ethBalance = await fetchCrossChainBalance(1, 'https://eth.llamarpc.com')
-          setMainnetEthBalance(ethBalance)
-          
-          const avaxBal = await fetchCrossChainBalance(43114, 'https://api.avax.network/ext/bc/C/rpc')
-          setAvaxBalance(avaxBal)
-        }
-        fetchBalances()
-      }
     }
-  }, [refreshTrigger, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance, address])
+  }, [refreshTrigger, refetchAbstractEthBalance, refetchWethBalance, refetchRetsbaBalance])
 
   // Get RETSBA token decimals
   const { data: retsbaDecimals, error: retsbaDecimalsError } = useReadContract({
@@ -345,27 +265,17 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     }
   }, [pairReserves, token0, token1])
 
-  // Helper function to get the current balance for the selected token
+  // Helper function to get the current balance for the selected token (only Abstract ETH now)
   const getCurrentTokenBalance = () => {
-    switch (selectedToken.chainId) {
-      case 2741: // Abstract
-        return abstractEthBalance
-      case 1: // Ethereum mainnet
-        return mainnetEthBalance
-      case 43114: // Avalanche
-        return avaxBalance
-      default:
-        return null
-    }
+    // Since we only support Abstract ETH, always return Abstract ETH balance
+    return abstractEthBalance
   }
 
-  // Debug logging
+  // Debug logging - simplified for Abstract ETH only
   useEffect(() => {
     console.log('=== BALANCE DEBUG INFO ===')
     console.log('Connected Address:', address)
     console.log('Abstract ETH Balance:', abstractEthBalance)
-    console.log('Mainnet ETH Balance:', mainnetEthBalance)
-    console.log('AVAX Balance:', avaxBalance)
     console.log('WETH Balance:', wethBalance)
     console.log('RETSBA Contract:', RETSBA_TOKEN_ADDRESS)
     console.log('RETSBA Balance:', retsbaBalance)
@@ -379,7 +289,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     console.log('RETSBA Name Error:', retsbaNameError)
     console.log('Current Price:', currentPrice)
     console.log('========================')
-  }, [address, abstractEthBalance, mainnetEthBalance, avaxBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
+  }, [address, abstractEthBalance, wethBalance, retsbaBalance, retsbaError, retsbaLoading, retsbaDecimals, retsbaDecimalsError, retsbaTotalSupply, retsbaTotalSupplyError, retsbaName, retsbaNameError, currentPrice])
 
   // Calculate estimated RETSBA output when swap amount changes
   useEffect(() => {
