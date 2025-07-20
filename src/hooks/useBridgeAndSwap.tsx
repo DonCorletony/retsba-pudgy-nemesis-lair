@@ -24,6 +24,7 @@ const uniswapV2RouterAbi = [
 ] as const
 
 export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
+  const [bridgeOnlyMode, setBridgeOnlyMode] = useState(false)
   const { address } = useAccount()
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -118,6 +119,25 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
   useEffect(() => {
     if (currentStep === 'bridging' && bridgeTxHash) {
       console.log('🔍 Starting WETH balance polling...')
+      
+      if (bridgeOnlyMode) {
+        console.log('🏁 Bridge-only mode: completing process without swap')
+        setCurrentStep('complete')
+        setIsProcessing(false)
+        
+        toast({
+          title: "Bridge Complete!",
+          description: "ETH successfully bridged to Abstract Network",
+        })
+        
+        if (onBalanceRefresh) {
+          setTimeout(() => {
+            onBalanceRefresh()
+          }, 2000)
+        }
+        return
+      }
+      
       const pollInterval = setInterval(async () => {
         try {
           const result = await refetchWethBalance()
@@ -160,7 +180,7 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
 
       return () => clearInterval(pollInterval)
     }
-  }, [currentStep, bridgeTxHash, refetchWethBalance, toast])
+  }, [currentStep, bridgeTxHash, refetchWethBalance, toast, bridgeOnlyMode, onBalanceRefresh])
 
   // Complete the process
   const completeProcess = useCallback(() => {
@@ -237,11 +257,10 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
     return result
   }
 
-  // Execute bridge using Relay Protocol
-  const executeBridgeAndSwap = useCallback(async (
+  // Internal bridge execution
+  const executeBridge = useCallback(async (
     fromChainId: number, 
-    amount: string, 
-    currentPrice: number
+    amount: string
   ) => {
     if (!address) {
       throw new Error('Wallet not connected')
@@ -253,7 +272,7 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
     try {
       // Use Relay Protocol for bridging
       console.log('🌉 Starting bridge process with Relay Protocol...')
-      console.log('📊 Bridge parameters:', { fromChainId, amount, currentPrice })
+      console.log('📊 Bridge parameters:', { fromChainId, amount })
       
       const relayQuote = await getRelayQuote(fromChainId, amount)
       console.log('📋 Relay quote structure:', JSON.stringify(relayQuote, null, 2))
@@ -285,7 +304,26 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
       setCurrentStep('idle')
       throw error
     }
-  }, [address, sendTransaction])
+  }, [address, sendTransaction, getRelayQuote])
+
+  // Execute bridge only (no swap)
+  const executeBridgeOnly = useCallback(async (
+    fromChainId: number, 
+    amount: string
+  ) => {
+    setBridgeOnlyMode(true)
+    return executeBridge(fromChainId, amount)
+  }, [executeBridge])
+
+  // Execute bridge using Relay Protocol
+  const executeBridgeAndSwap = useCallback(async (
+    fromChainId: number, 
+    amount: string, 
+    currentPrice: number
+  ) => {
+    setBridgeOnlyMode(false)
+    return executeBridge(fromChainId, amount)
+  }, [executeBridge])
 
   // Get current WETH balance
   const { refetch: refetchWethBalance2 } = useReadContract({
@@ -410,6 +448,7 @@ export const useBridgeAndSwap = (onBalanceRefresh?: () => void) => {
     refetchWethBalance: refetchWethBalance2,
     
     // Actions
+    executeBridgeOnly,
     executeBridgeAndSwap,
     approveWethForSwap,
     swapWethToRetsba,

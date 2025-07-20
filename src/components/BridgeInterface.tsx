@@ -164,8 +164,8 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
 
 
     try {
-      console.log('🚀 Starting bridge process...')
-      await bridgeAndSwap.executeBridgeAndSwap(selectedToken.chainId, bridgeAmount, 1) // Price not needed for bridge-only
+      console.log('🚀 Starting bridge-only process...')
+      await bridgeAndSwap.executeBridgeOnly(selectedToken.chainId, bridgeAmount)
       console.log('✅ Bridge process started')
     } catch (error: any) {
       console.error('❌ Bridge error:', error)
