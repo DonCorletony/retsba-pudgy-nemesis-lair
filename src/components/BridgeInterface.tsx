@@ -162,113 +162,129 @@ export const BridgeInterface = () => {
         <CardHeader>
           <CardTitle className="text-center">Bridge to Abstract</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-center text-muted-foreground">
-            Please connect your wallet to bridge tokens to Abstract Network
-          </p>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground">Please connect your wallet to bridge tokens to Abstract Network</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">Bridge to Abstract</CardTitle>
-          <p className="text-sm text-muted-foreground text-center">
-            Bridge your tokens to Abstract Network
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Source Token Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="token-select">From (Source Chain)</Label>
+    <Card className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-center text-black">Bridge to Abstract</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Source Token Balance */}
+        <div className="p-4 border rounded-lg bg-white">
+          <Label className="text-sm font-medium text-muted-foreground">Source Token Balance</Label>
+          <div className="mt-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between" id="token-select">
-                  <span>{selectedToken.name} ({selectedToken.symbol})</span>
-                  <ChevronDown className="h-4 w-4" />
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between p-0 h-auto text-left hover:bg-transparent"
+                >
+                  <div className="flex flex-col items-start">
+                    <div className="flex items-center gap-2">
+                       <span className="text-lg font-semibold text-black">
+                         {(() => {
+                           const balance = getCurrentTokenBalance()
+                           if (balance) {
+                             return `${parseFloat(formatEther(balance.value)).toFixed(4)} ${selectedToken.symbol}`
+                           }
+                           return `0 ${selectedToken.symbol}`
+                         })()}
+                       </span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">{selectedToken.name}</span>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-full">
+              <DropdownMenuContent className="w-full min-w-[200px] bg-white border shadow-lg z-50">
                 {SOURCE_TOKENS.map((token) => (
-                  <DropdownMenuItem
+                  <DropdownMenuItem 
                     key={`${token.chainId}-${token.symbol}`}
                     onClick={() => setSelectedToken(token)}
+                    className="cursor-pointer hover:bg-gray-100"
                   >
-                    {token.name} ({token.symbol})
+                    <div className="flex flex-col">
+                      <span className="font-medium">{token.symbol}</span>
+                      <span className="text-sm text-muted-foreground">{token.name}</span>
+                    </div>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </div>
 
-          {/* Bridge Amount Input */}
-          <div className="space-y-2">
-            <Label htmlFor="bridge-amount">Amount to Bridge</Label>
-            <Input
-              id="bridge-amount"
-              type="number"
-              placeholder="0.0"
-              value={bridgeAmount}
-              onChange={(e) => setBridgeAmount(e.target.value)}
-              step="0.001"
-              min="0"
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Available: {getCurrentTokenBalance()?.formatted || '0'} {selectedToken.symbol}</span>
-              <button
-                onClick={() => {
-                  const balance = getCurrentTokenBalance()
-                  if (balance) {
-                    setBridgeAmount(balance.formatted)
-                  }
-                }}
-                className="text-primary hover:underline"
-              >
-                Max
-              </button>
-            </div>
+        {/* Abstract ETH Balance */}
+        <div className="p-4 border rounded-lg bg-white">
+          <Label className="text-sm font-medium text-muted-foreground">Abstract ETH Balance</Label>
+          <p className="text-lg font-semibold text-black">
+            {abstractEthBalance?.formatted ? `${parseFloat(abstractEthBalance.formatted).toFixed(4)} ETH` : '0 ETH'}
+          </p>
+        </div>
+
+        {/* Bridge Amount Input */}
+        <div className="space-y-2">
+          <Label htmlFor="bridge-amount" className="text-black">Amount to Bridge</Label>
+          <Input
+            id="bridge-amount"
+            type="number"
+            placeholder="0.0"
+            value={bridgeAmount}
+            onChange={(e) => setBridgeAmount(e.target.value)}
+            step="0.001"
+            min="0"
+            className="bg-white border text-black"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Available: {getCurrentTokenBalance()?.formatted || '0'} {selectedToken.symbol}</span>
+            <button
+              onClick={() => {
+                const balance = getCurrentTokenBalance()
+                if (balance) {
+                  setBridgeAmount(balance.formatted)
+                }
+              }}
+              className="text-primary hover:underline"
+            >
+              Max
+            </button>
           </div>
+        </div>
 
-          {/* Destination Info */}
-          <div className="space-y-2">
-            <Label>To (Abstract Network)</Label>
-            <div className="p-3 bg-muted rounded-md">
-              <div className="flex justify-between items-center">
-                <span>Abstract ETH</span>
-                <span className="text-sm text-muted-foreground">
-                  Balance: {abstractEthBalance?.formatted || '0'} ETH
-                </span>
-              </div>
-              {bridgeAmount && (
-                <div className="text-sm text-muted-foreground mt-1">
-                  You will receive: ~{bridgeAmount} ETH
-                </div>
-              )}
-            </div>
+        {/* Estimated Output */}
+        {bridgeAmount && (
+          <div className="p-4 border rounded-lg bg-white">
+            <Label className="text-sm font-medium text-muted-foreground">You will receive</Label>
+            <p className="text-lg font-semibold text-black">
+              ~{bridgeAmount} ETH on Abstract
+            </p>
           </div>
+        )}
 
-          {/* Bridge Button */}
-          <Button 
-            onClick={handleBridge}
-            disabled={!bridgeAmount || isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? 'Bridging...' : `Bridge ${selectedToken.symbol} to Abstract`}
-          </Button>
+        {/* Bridge Button */}
+        <Button 
+          onClick={handleBridge}
+          disabled={!bridgeAmount || isProcessing}
+          className="w-full"
+        >
+          {isProcessing ? 'Bridging...' : `Bridge ${selectedToken.symbol} to Abstract`}
+        </Button>
 
-          {/* Bridge Status */}
-          {isProcessing && (
-            <BridgeStatus
-              currentStep={bridgeAndSwap.currentStep}
-              bridgeTxHash={bridgeAndSwap.bridgeTxHash}
-              swapTxHash={bridgeAndSwap.swapTxHash}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        {/* Bridge Status */}
+        {isProcessing && (
+          <BridgeStatus
+            currentStep={bridgeAndSwap.currentStep}
+            bridgeTxHash={bridgeAndSwap.bridgeTxHash}
+            swapTxHash={bridgeAndSwap.swapTxHash}
+          />
+        )}
+      </CardContent>
+    </Card>
   )
 }
