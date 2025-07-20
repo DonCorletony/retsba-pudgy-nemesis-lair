@@ -192,6 +192,16 @@ export const BridgeInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanc
       return
     }
 
+    // Verify we're on the correct chain before bridging
+    if (currentChainId !== selectedToken.chainId) {
+      toast({
+        title: "Wrong Network",
+        description: `Please switch to ${selectedToken.name} to bridge`,
+        variant: "destructive"
+      })
+      return
+    }
+
     try {
       console.log('🚀 Starting bridge process...')
       await bridgeAndSwap.executeBridgeAndSwap(selectedToken.chainId, bridgeAmount, 1) // Price not needed for bridge-only
