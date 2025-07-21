@@ -136,13 +136,16 @@ const NavBar = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            <a href="#" className="flex items-center">
+            <button 
+              onClick={() => navigate('/')}
+              className="flex items-center hover:opacity-80 transition-opacity"
+            >
               <img 
                 src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
                 alt="RETSBA" 
                 className="h-10"
               />
-            </a>
+            </button>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-4">
@@ -235,7 +238,7 @@ const NavBar = () => {
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => {
-                  navigateToSection('how-to-buy');
+                  navigateToSection('buy-now');
                   setIsMobileMenuOpen(false);
                 }}
               >
@@ -337,7 +340,7 @@ const NavBar = () => {
             <button 
               className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
               onClick={() => {
-                navigateToSection('how-to-buy');
+                navigateToSection('buy-now');
                 setIsDropdownOpen(false);
               }}
             >
