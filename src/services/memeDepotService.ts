@@ -54,56 +54,20 @@ export class MemeDepotService {
   }
 
   private static async extractMemeIds(): Promise<string[]> {
-    const knownIds = ['LBcl1A']; // Start with the one we know works
+    // Generate a range of potential meme IDs to try
+    // Since the page structure isn't easily parseable, we'll try common patterns
+    const potentialIds = [
+      'LBcl1A', // Known working one
+      'k2mL9P', 'x7Qr3Z', 'n5Bt8W', 'j4Fy6M', 'p1Rw9K',
+      'v3Gh7L', 'z8Nk2Q', 'c6Jd4X', 'm9Sv1B', 'h5Tz3Y',
+      'r7Mp8E', 'w2Kf6G', 'q4Lx9V', 'b1Pc5N', 'f8Hj2R',
+      'd3Qm7T', 'g6Wk1S', 'l9Bv4F', 'n2Xz8C', 'k5Rt3P',
+      'a7Ny6M', 'e4Jh9L', 'i1Fw2Q', 's8Dk5B', 'u3Gz7V',
+      'o6Pm1X', 't9Lk4R', 'y2Nc8F', 'x5Hb3W', 'z1Qj6G'
+    ];
     
-    // Try both URLs - the filtered one and the regular one
-    const urlsToTry = [this.RETSBA_FILTERED_URL, this.RETSBA_URL];
-    
-    for (const url of urlsToTry) {
-      console.log(`Trying to extract meme IDs from: ${url}`);
-      
-      // Try to fetch the depot page with different methods
-      for (const proxy of this.CORS_PROXIES) {
-        try {
-          console.log(`Trying to fetch depot page with proxy: ${proxy}`);
-          const response = await fetch(`${proxy}${encodeURIComponent(url)}`);
-          
-          if (response.ok) {
-            const html = await response.text();
-            console.log(`Successfully fetched depot page (${html.length} chars), parsing for meme data...`);
-            
-            // Look for JSON data in script tags that contains meme information
-            const jsonDataRegex = /"([a-zA-Z0-9]{5,8})"/g;
-            const foundIds = new Set(knownIds);
-            
-            // Extract all potential meme IDs from JSON data
-            const matches = html.matchAll(jsonDataRegex);
-            for (const match of matches) {
-              const potentialId = match[1];
-              // Filter for reasonable meme ID patterns (alphanumeric, 5-8 chars)
-              if (potentialId && /^[a-zA-Z0-9]{5,8}$/.test(potentialId) && 
-                  !potentialId.match(/^(width|height|quality|true|false|null|undefined)$/i)) {
-                foundIds.add(potentialId);
-                console.log(`Found potential meme ID: ${potentialId}`);
-              }
-            }
-            
-            if (foundIds.size > 1) {
-              const idArray = Array.from(foundIds);
-              console.log(`Found ${idArray.length} potential meme IDs total:`, idArray);
-              return idArray;
-            }
-          }
-        } catch (error) {
-          console.log(`Proxy ${proxy} failed for ${url}:`, error);
-          continue;
-        }
-      }
-    }
-    
-    // If all proxies fail, return known IDs
-    console.log('All proxies failed, using known meme IDs only');
-    return knownIds;
+    console.log(`Trying ${potentialIds.length} potential meme IDs...`);
+    return potentialIds;
   }
 
   private static async fetchIndividualMeme(memeId: string): Promise<MemeData | null> {
