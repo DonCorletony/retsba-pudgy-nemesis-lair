@@ -1,27 +1,50 @@
 import NavBar from "@/components/NavBar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X } from "lucide-react";
+import { X, RefreshCw } from "lucide-react";
+import { MemeDepotService } from "@/services/memeDepotService";
+
+interface MemeData {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  uploadDate?: string;
+}
 
 const Memes = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  
-  // Mock data for now - in real implementation, this would come from memedepot API
-  const mockMemes = [
-    "https://via.placeholder.com/400x300?text=Meme+1",
-    "https://via.placeholder.com/400x300?text=Meme+2", 
-    "https://via.placeholder.com/400x300?text=Meme+3",
-    "https://via.placeholder.com/400x300?text=Meme+4",
-    "https://via.placeholder.com/400x300?text=Meme+5",
-    "https://via.placeholder.com/400x300?text=Meme+6",
-    "https://via.placeholder.com/400x300?text=Meme+7",
-    "https://via.placeholder.com/400x300?text=Meme+8",
-    "https://via.placeholder.com/400x300?text=Meme+9",
-    "https://via.placeholder.com/400x300?text=Meme+10",
-    "https://via.placeholder.com/400x300?text=Meme+11",
-    "https://via.placeholder.com/400x300?text=Meme+12",
-  ];
+  const [memes, setMemes] = useState<MemeData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadMemes = async () => {
+    try {
+      setLoading(true);
+      const memesData = await MemeDepotService.fetchMemes();
+      setMemes(memesData);
+    } catch (error) {
+      console.error('Failed to load memes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshMemes = async () => {
+    try {
+      setRefreshing(true);
+      const memesData = await MemeDepotService.refreshMemes();
+      setMemes(memesData);
+    } catch (error) {
+      console.error('Failed to refresh memes:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMemes();
+  }, []);
 
   return (
     <div className="min-h-screen bg-retsba">
@@ -29,7 +52,17 @@ const Memes = () => {
       <div className="container mx-auto px-4 pt-24 pb-8">
         {/* Page Header */}
         <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold text-white mb-2">MEMES</h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <h1 className="text-6xl font-bold text-white">MEMES</h1>
+            <button
+              onClick={refreshMemes}
+              disabled={refreshing}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all duration-200 disabled:opacity-50"
+              title="Refresh memes"
+            >
+              <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
           <p className="text-sm text-white/70">powered by memedepot.com</p>
         </div>
 
@@ -37,21 +70,35 @@ const Memes = () => {
         <div className="w-full max-w-7xl mx-auto">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 h-[70vh] p-6">
             <ScrollArea className="h-full">
-              <div className="grid grid-cols-4 gap-4">
-                {mockMemes.map((meme, index) => (
-                  <div
-                    key={index}
-                    className="aspect-square bg-white/5 rounded-lg overflow-hidden cursor-pointer hover:bg-white/10 transition-all duration-200 border border-white/10"
-                    onClick={() => setSelectedImage(meme)}
-                  >
-                    <img
-                      src={meme}
-                      alt={`Meme ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                    />
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-white/70">Loading memes...</div>
+                </div>
+              ) : memes.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-white/70">No memes found. Check your connection or try refreshing.</div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-4">
+                  {memes.map((meme, index) => (
+                    <div
+                      key={meme.id}
+                      className="aspect-square bg-white/5 rounded-lg overflow-hidden cursor-pointer hover:bg-white/10 transition-all duration-200 border border-white/10"
+                      onClick={() => setSelectedImage(meme.imageUrl)}
+                    >
+                      <img
+                        src={meme.imageUrl}
+                        alt={meme.title || `Meme ${index + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          // Fallback to a placeholder if image fails to load
+                          e.currentTarget.src = `https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=400&h=300&fit=crop&text=RETSBA+${index + 1}`;
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </ScrollArea>
           </div>
         </div>
