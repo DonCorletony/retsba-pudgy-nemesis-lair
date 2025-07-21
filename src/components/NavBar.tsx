@@ -288,6 +288,18 @@ const NavBar = () => {
               <div className="pt-2">
                 <WalletConnect />
               </div>
+              
+              {/* Dark Mode Toggle for Mobile */}
+              <div className="flex items-center justify-between py-4 mt-4 border-t border-white/20">
+                <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
+                  Dark Mode
+                </Label>
+                <Switch
+                  id="mobile-dark-mode"
+                  checked={isDarkMode}
+                  onCheckedChange={setIsDarkMode}
+                />
+              </div>
             </div>
           </motion.div>
         )}
