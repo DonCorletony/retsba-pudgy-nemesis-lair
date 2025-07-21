@@ -117,10 +117,10 @@
 
 /* Dark Mode Styles */
 .dark-mode .bg-retsba {
-  background-color: #000000 !important;
+  background-color: #121416 !important;
 }
 
 .dark-mode {
-  --retsba-color: #000000;
-  --primary: 0 0% 0%; /* Black in dark mode */
+  --retsba-color: #121416;
+  --primary: 210 11% 8%; /* Very dark gray #121416 in HSL */
 }
