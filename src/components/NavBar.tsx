@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { WalletConnect } from './WalletConnect';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
 import { erc20Abi, formatEther, formatUnits } from 'viem';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
 
@@ -46,6 +47,29 @@ const NavBar = () => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Helper function to handle navigation to home sections
+  const navigateToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      // If not on home page, navigate to home first, then scroll to section
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // If already on home page, just scroll to section
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
   
   const { address, isConnected } = useAccount();
 
@@ -199,20 +223,24 @@ const NavBar = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-              <a 
-                href="#about" 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => {
+                  navigateToSection('about');
+                  setIsMobileMenuOpen(false);
+                }}
               >
                 ABOUT
-              </a>
-              <a 
-                href="#buy-now" 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => {
+                  navigateToSection('how-to-buy');
+                  setIsMobileMenuOpen(false);
+                }}
               >
                 BUY NOW
-              </a>
+              </button>
               
               {/* Mobile Token Balance Counters */}
               <div className="flex flex-col space-y-2 pt-2">
@@ -290,13 +318,15 @@ const NavBar = () => {
             >
               Home
             </a>
-            <a 
-              href="#about" 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
-              onClick={() => setIsDropdownOpen(false)}
+            <button 
+              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              onClick={() => {
+                navigateToSection('about');
+                setIsDropdownOpen(false);
+              }}
             >
               About
-            </a>
+            </button>
             <a 
               href="/memes" 
               className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
@@ -304,13 +334,15 @@ const NavBar = () => {
             >
               Memes
             </a>
-            <a 
-              href="#buy-now" 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
-              onClick={() => setIsDropdownOpen(false)}
+            <button 
+              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              onClick={() => {
+                navigateToSection('how-to-buy');
+                setIsDropdownOpen(false);
+              }}
             >
               Buy Now
-            </a>
+            </button>
             
             {/* Dark Mode Toggle */}
             <div className="flex items-center justify-between py-4 mt-8">
