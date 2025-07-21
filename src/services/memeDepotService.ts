@@ -12,6 +12,7 @@ export class MemeDepotService {
     'https://proxy.cors.sh/',
   ];
   private static readonly RETSBA_URL = 'https://memedepot.com/d/retsba';
+  private static readonly RETSBA_FILTERED_URL = 'https://memedepot.com/d/retsba?types=COPYPASTA&types=IMAGE';
 
   static async fetchMemes(): Promise<MemeData[]> {
     try {
@@ -55,33 +56,52 @@ export class MemeDepotService {
   private static async extractMemeIds(): Promise<string[]> {
     const knownIds = ['LBcl1A']; // Start with the one we know works
     
-    // Try to fetch the main depot page with different methods
-    for (const proxy of this.CORS_PROXIES) {
-      try {
-        console.log(`Trying to fetch depot page with proxy: ${proxy}`);
-        const response = await fetch(`${proxy}${encodeURIComponent(this.RETSBA_URL)}`);
-        
-        if (response.ok) {
-          const html = await response.text();
-          console.log('Successfully fetched depot page, parsing for meme links...');
+    // Try both URLs - the filtered one and the regular one
+    const urlsToTry = [this.RETSBA_FILTERED_URL, this.RETSBA_URL];
+    
+    for (const url of urlsToTry) {
+      console.log(`Trying to extract meme IDs from: ${url}`);
+      
+      // Try to fetch the depot page with different methods
+      for (const proxy of this.CORS_PROXIES) {
+        try {
+          console.log(`Trying to fetch depot page with proxy: ${proxy}`);
+          const response = await fetch(`${proxy}${encodeURIComponent(url)}`);
           
-          // Look for links to individual memes in format /d/retsba/XXXXXX
-          const memeIdRegex = /\/d\/retsba\/([a-zA-Z0-9]{6})/g;
-          const matches = html.matchAll(memeIdRegex);
-          
-          const foundIds = new Set(knownIds); // Start with known IDs
-          for (const match of matches) {
-            foundIds.add(match[1]);
+          if (response.ok) {
+            const html = await response.text();
+            console.log(`Successfully fetched depot page (${html.length} chars), parsing for meme links...`);
+            
+            // Look for multiple patterns of meme IDs
+            const patterns = [
+              /\/d\/retsba\/([a-zA-Z0-9]{6})/g,  // Standard pattern
+              /retsba\/([a-zA-Z0-9]{5,8})/g,    // Broader pattern
+              /href="[^"]*\/d\/retsba\/([^"\/]+)"/g, // Link patterns
+            ];
+            
+            const foundIds = new Set(knownIds); // Start with known IDs
+            
+            for (const pattern of patterns) {
+              const matches = html.matchAll(pattern);
+              for (const match of matches) {
+                const id = match[1];
+                if (id && id.length >= 5 && id.length <= 8) { // Reasonable ID length
+                  foundIds.add(id);
+                  console.log(`Found meme ID: ${id}`);
+                }
+              }
+            }
+            
+            if (foundIds.size > 1) {
+              const idArray = Array.from(foundIds);
+              console.log(`Found ${idArray.length} meme IDs total:`, idArray);
+              return idArray;
+            }
           }
-          
-          if (foundIds.size > 1) {
-            console.log(`Found ${foundIds.size} meme IDs from depot page`);
-            return Array.from(foundIds);
-          }
+        } catch (error) {
+          console.log(`Proxy ${proxy} failed for ${url}:`, error);
+          continue;
         }
-      } catch (error) {
-        console.log(`Proxy ${proxy} failed:`, error);
-        continue;
       }
     }
     
