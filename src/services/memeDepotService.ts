@@ -13,13 +13,52 @@ export class MemeDepotService {
     try {
       console.log('Fetching memes from memedepot...');
       
-      // Try direct fetch first
+      // Since we can't easily scrape the main page, let's try to construct URLs
+      // based on known patterns and test a few meme IDs
+      const knownMemeIds = ['LBcl1A']; // We know this one works from your example
+      
+      // Try to fetch additional meme IDs by checking common patterns
+      const potentialIds = [
+        'LBcl1A', // Known working one
+        // Add more as we discover them
+      ];
+      
+      const memes: MemeData[] = [];
+      
+      for (const memeId of potentialIds) {
+        try {
+          const memeData = await this.fetchIndividualMeme(memeId);
+          if (memeData) {
+            memes.push(memeData);
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch meme ${memeId}:`, error);
+        }
+      }
+      
+      // If we couldn't get any memes, return fallback
+      if (memes.length === 0) {
+        return this.getFallbackMemes();
+      }
+      
+      return memes;
+    } catch (error) {
+      console.error('Error fetching memes:', error);
+      return this.getFallbackMemes();
+    }
+  }
+
+  private static async fetchIndividualMeme(memeId: string): Promise<MemeData | null> {
+    try {
+      const memeUrl = `https://memedepot.com/d/retsba/${memeId}`;
+      console.log(`Fetching individual meme: ${memeUrl}`);
+      
       let response;
       try {
-        response = await fetch(this.RETSBA_URL);
+        response = await fetch(memeUrl);
       } catch (error) {
         console.log('Direct fetch failed, trying with CORS proxy...');
-        response = await fetch(`${this.CORS_PROXY}${encodeURIComponent(this.RETSBA_URL)}`);
+        response = await fetch(`${this.CORS_PROXY}${encodeURIComponent(memeUrl)}`);
       }
       
       if (!response.ok) {
@@ -27,66 +66,41 @@ export class MemeDepotService {
       }
       
       const html = await response.text();
-      console.log('HTML fetched, parsing for images...');
       
-      return this.parseMemesFromHTML(html);
-    } catch (error) {
-      console.error('Error fetching memes:', error);
-      return this.getFallbackMemes();
-    }
-  }
-
-  private static parseMemesFromHTML(html: string): MemeData[] {
-    const memes: MemeData[] = [];
-    
-    // Parse for memedepot image URLs
-    const imageRegex = /https:\/\/memedepot\.com\/cdn-cgi\/imagedelivery\/[^"'\s]+/g;
-    const matches = html.match(imageRegex);
-    
-    if (matches) {
-      matches.forEach((url, index) => {
-        // Clean up the URL and get higher quality version
-        let cleanUrl = url;
+      // Extract the CDN image URL from the HTML
+      const imageRegex = /https:\/\/memedepot\.com\/cdn-cgi\/imagedelivery\/[^"'\s]+\/width=\d+,quality=\d+/g;
+      const matches = html.match(imageRegex);
+      
+      if (matches && matches[0]) {
+        const imageUrl = matches[0];
         
-        // Replace small dimensions with larger ones
-        if (cleanUrl.includes('width=200') || cleanUrl.includes('height=90')) {
-          cleanUrl = cleanUrl.replace(/width=\d+,height=\d+/, 'width=800,height=600');
-        }
+        // Extract title from the HTML
+        const titleMatch = html.match(/<p class="font-medium[^>]*>([^<]+)<\/p>/);
+        const title = titleMatch ? titleMatch[1] : `RETSBA Meme ${memeId}`;
         
-        memes.push({
-          id: `meme-${index}`,
-          imageUrl: cleanUrl,
-          title: `RETSBA Meme ${index + 1}`,
+        return {
+          id: memeId,
+          imageUrl: imageUrl,
+          title: title,
           uploadDate: new Date().toISOString()
-        });
-      });
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Error fetching individual meme ${memeId}:`, error);
+      return null;
     }
-    
-    // Also look for other image patterns
-    const altImageRegex = /"(https:\/\/[^"]*\.(?:jpg|jpeg|png|gif|webp)[^"]*)"/gi;
-    const altMatches = html.match(altImageRegex);
-    
-    if (altMatches) {
-      altMatches.forEach((match, index) => {
-        const url = match.replace(/"/g, '');
-        if (url.includes('memedepot.com') && !memes.some(m => m.imageUrl === url)) {
-          memes.push({
-            id: `alt-meme-${index}`,
-            imageUrl: url,
-            title: `RETSBA Meme Alt ${index + 1}`,
-            uploadDate: new Date().toISOString()
-          });
-        }
-      });
-    }
-    
-    console.log(`Parsed ${memes.length} memes from HTML`);
-    return memes;
   }
 
   private static getFallbackMemes(): MemeData[] {
     console.log('Using fallback memes...');
     return [
+      {
+        id: 'example-1',
+        imageUrl: 'https://memedepot.com/cdn-cgi/imagedelivery/naCPMwxXX46-hrE49eZovw/f127b9b4-1040-4d4b-baaf-6c4f0d7f2b00/width=640,quality=100',
+        title: 'Summoning bad vibes (1).png'
+      },
       {
         id: 'fallback-1',
         imageUrl: 'https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?w=400&h=300&fit=crop',
@@ -102,7 +116,6 @@ export class MemeDepotService {
         imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
         title: 'RETSBA Community Meme 3'
       },
-      // Add more fallback memes as needed
     ];
   }
 
