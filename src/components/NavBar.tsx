@@ -137,7 +137,13 @@ const NavBar = () => {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => {
+                if (location.pathname === '/') {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  navigate('/');
+                }
+              }}
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img 
