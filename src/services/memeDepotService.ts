@@ -70,31 +70,27 @@ export class MemeDepotService {
           
           if (response.ok) {
             const html = await response.text();
-            console.log(`Successfully fetched depot page (${html.length} chars), parsing for meme links...`);
+            console.log(`Successfully fetched depot page (${html.length} chars), parsing for meme data...`);
             
-            // Look for multiple patterns of meme IDs
-            const patterns = [
-              /\/d\/retsba\/([a-zA-Z0-9]{6})/g,  // Standard pattern
-              /retsba\/([a-zA-Z0-9]{5,8})/g,    // Broader pattern
-              /href="[^"]*\/d\/retsba\/([^"\/]+)"/g, // Link patterns
-            ];
+            // Look for JSON data in script tags that contains meme information
+            const jsonDataRegex = /"([a-zA-Z0-9]{5,8})"/g;
+            const foundIds = new Set(knownIds);
             
-            const foundIds = new Set(knownIds); // Start with known IDs
-            
-            for (const pattern of patterns) {
-              const matches = html.matchAll(pattern);
-              for (const match of matches) {
-                const id = match[1];
-                if (id && id.length >= 5 && id.length <= 8) { // Reasonable ID length
-                  foundIds.add(id);
-                  console.log(`Found meme ID: ${id}`);
-                }
+            // Extract all potential meme IDs from JSON data
+            const matches = html.matchAll(jsonDataRegex);
+            for (const match of matches) {
+              const potentialId = match[1];
+              // Filter for reasonable meme ID patterns (alphanumeric, 5-8 chars)
+              if (potentialId && /^[a-zA-Z0-9]{5,8}$/.test(potentialId) && 
+                  !potentialId.match(/^(width|height|quality|true|false|null|undefined)$/i)) {
+                foundIds.add(potentialId);
+                console.log(`Found potential meme ID: ${potentialId}`);
               }
             }
             
             if (foundIds.size > 1) {
               const idArray = Array.from(foundIds);
-              console.log(`Found ${idArray.length} meme IDs total:`, idArray);
+              console.log(`Found ${idArray.length} potential meme IDs total:`, idArray);
               return idArray;
             }
           }
