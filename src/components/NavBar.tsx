@@ -268,6 +268,13 @@ const NavBar = () => {
         <div className="p-6 pt-20">
           <div className="flex flex-col space-y-6">
             <a 
+              href="/" 
+              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              Home
+            </a>
+            <a 
               href="#about" 
               className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
