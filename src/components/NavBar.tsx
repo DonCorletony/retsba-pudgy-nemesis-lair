@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { WalletConnect } from './WalletConnect';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
 import { erc20Abi, formatEther, formatUnits } from 'viem';
@@ -40,6 +42,7 @@ const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const { address, isConnected } = useAccount();
 
@@ -83,6 +86,15 @@ const NavBar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Dark mode effect
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
   
   return (
     <>
@@ -295,6 +307,18 @@ const NavBar = () => {
             >
               Buy Now
             </a>
+            
+            {/* Dark Mode Toggle */}
+            <div className="flex items-center justify-between py-4 mt-8">
+              <Label htmlFor="dark-mode" className="text-white text-lg">
+                Dark Mode
+              </Label>
+              <Switch
+                id="dark-mode"
+                checked={isDarkMode}
+                onCheckedChange={setIsDarkMode}
+              />
+            </div>
           </div>
         </div>
       </motion.div>

@@ -7,6 +7,7 @@
 
 @layer base {
   :root {
+    --retsba-color: #fcc5c3;
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
@@ -112,4 +113,13 @@
 
 .hover-float:hover {
   transform: translateY(-10px);
+}
+
+/* Dark Mode Styles */
+.dark-mode .bg-retsba {
+  background-color: #000000 !important;
+}
+
+.dark-mode {
+  --retsba-color: #000000;
 }
