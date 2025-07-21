@@ -281,6 +281,13 @@ const NavBar = () => {
             >
               Buy Now
             </a>
+            <a 
+              href="/memes" 
+              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              Memes
+            </a>
           </div>
         </div>
       </motion.div>

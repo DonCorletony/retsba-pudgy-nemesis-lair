@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
 import Test from "./pages/Test";
+import Memes from "./pages/Memes";
 import NotFound from "./pages/NotFound";
 
 // Abstract Mainnet configuration
@@ -68,6 +69,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/freemoney" element={<FreeMoney />} />
               <Route path="/test" element={<Test />} />
+              <Route path="/memes" element={<Memes />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
