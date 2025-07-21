@@ -122,4 +122,5 @@
 
 .dark-mode {
   --retsba-color: #000000;
+  --primary: 0 0% 0%; /* Black in dark mode */
 }
