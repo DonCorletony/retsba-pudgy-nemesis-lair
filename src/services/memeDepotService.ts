@@ -54,20 +54,70 @@ export class MemeDepotService {
   }
 
   private static async extractMemeIds(): Promise<string[]> {
-    // Generate a range of potential meme IDs to try
-    // Since the page structure isn't easily parseable, we'll try common patterns
-    const potentialIds = [
-      'LBcl1A', // Known working one
-      'k2mL9P', 'x7Qr3Z', 'n5Bt8W', 'j4Fy6M', 'p1Rw9K',
-      'v3Gh7L', 'z8Nk2Q', 'c6Jd4X', 'm9Sv1B', 'h5Tz3Y',
-      'r7Mp8E', 'w2Kf6G', 'q4Lx9V', 'b1Pc5N', 'f8Hj2R',
-      'd3Qm7T', 'g6Wk1S', 'l9Bv4F', 'n2Xz8C', 'k5Rt3P',
-      'a7Ny6M', 'e4Jh9L', 'i1Fw2Q', 's8Dk5B', 'u3Gz7V',
-      'o6Pm1X', 't9Lk4R', 'y2Nc8F', 'x5Hb3W', 'z1Qj6G'
-    ];
+    const knownIds = ['LBcl1A']; // Start with the one we know works
     
-    console.log(`Trying ${potentialIds.length} potential meme IDs...`);
-    return potentialIds;
+    // Try both URLs to extract real meme IDs
+    const urlsToTry = [this.RETSBA_FILTERED_URL, this.RETSBA_URL];
+    
+    for (const url of urlsToTry) {
+      console.log(`Trying to extract meme IDs from: ${url}`);
+      
+      for (const proxy of this.CORS_PROXIES) {
+        try {
+          console.log(`Trying to fetch depot page with proxy: ${proxy}`);
+          const response = await fetch(`${proxy}${encodeURIComponent(url)}`);
+          
+          if (response.ok) {
+            const html = await response.text();
+            console.log(`Successfully fetched depot page (${html.length} chars), analyzing structure...`);
+            
+            // Look for Next.js data or any JSON containing meme data
+            const foundIds = new Set(knownIds);
+            
+            // Try to extract from script tags containing __NEXT_DATA__ or similar
+            const scriptMatches = html.match(/<script[^>]*>(.*?)<\/script>/gs);
+            if (scriptMatches) {
+              console.log(`Found ${scriptMatches.length} script tags, searching for meme data...`);
+              
+              for (const scriptContent of scriptMatches) {
+                // Look for 6-character alphanumeric strings that could be meme IDs
+                const idMatches = scriptContent.match(/["']([A-Za-z0-9]{6})["']/g);
+                if (idMatches) {
+                  for (const match of idMatches) {
+                    const id = match.replace(/["']/g, '');
+                    // Filter out common non-meme strings
+                    if (!id.match(/(width|height|quality|border|margin|padding|center|ffffff|000000)/i)) {
+                      foundIds.add(id);
+                      console.log(`Extracted potential meme ID: ${id}`);
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Also try direct pattern matching for meme URLs
+            const urlPattern = /memedepot\.com\/d\/retsba\/([A-Za-z0-9]{6})/g;
+            const urlMatches = html.matchAll(urlPattern);
+            for (const match of urlMatches) {
+              foundIds.add(match[1]);
+              console.log(`Found meme ID from URL: ${match[1]}`);
+            }
+            
+            if (foundIds.size > 1) {
+              const idArray = Array.from(foundIds);
+              console.log(`Extracted ${idArray.length} meme IDs total:`, idArray);
+              return idArray;
+            }
+          }
+        } catch (error) {
+          console.log(`Proxy ${proxy} failed for ${url}:`, error);
+          continue;
+        }
+      }
+    }
+    
+    console.log('Could not extract meme IDs from page, using known working ID only');
+    return knownIds;
   }
 
   private static async fetchIndividualMeme(memeId: string): Promise<MemeData | null> {
