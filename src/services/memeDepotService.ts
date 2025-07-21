@@ -37,6 +37,13 @@ export class MemeDepotService {
       }
       
       console.log(`Final memes count: ${memes.length}`);
+      
+      // If we couldn't fetch any memes, return the known working ones
+      if (memes.length === 0) {
+        console.log('No memes fetched successfully, falling back to known memes');
+        return this.getKnownMemes();
+      }
+      
       return memes;
     } catch (error) {
       console.error('Error fetching memes:', error);
@@ -91,15 +98,18 @@ export class MemeDepotService {
       // Try multiple proxies for individual meme pages
       for (const proxy of this.CORS_PROXIES) {
         try {
+          console.log(`Trying proxy ${proxy} for meme ${memeId}`);
           const response = await fetch(`${proxy}${encodeURIComponent(memeUrl)}`);
           
           if (response.ok) {
             const html = await response.text();
-            console.log(`Successfully fetched meme ${memeId}`);
+            console.log(`Successfully fetched meme ${memeId}, HTML length: ${html.length}`);
             
             // Extract the CDN image URL from the HTML
             const imageRegex = /https:\/\/memedepot\.com\/cdn-cgi\/imagedelivery\/[^"'\s]+\/width=\d+,quality=\d+/g;
             const matches = html.match(imageRegex);
+            
+            console.log(`Image regex matches for ${memeId}:`, matches);
             
             if (matches && matches[0]) {
               const imageUrl = matches[0];
@@ -108,14 +118,20 @@ export class MemeDepotService {
               const titleMatch = html.match(/<p class="font-medium[^>]*>([^<]+)<\/p>/);
               const title = titleMatch ? titleMatch[1] : `RETSBA Meme ${memeId}`;
               
+              console.log(`Created meme data for ${memeId}:`, { id: memeId, imageUrl, title });
+              
               return {
                 id: memeId,
                 imageUrl: imageUrl,
                 title: title,
                 uploadDate: new Date().toISOString()
               };
+            } else {
+              console.warn(`No image URL found in HTML for meme ${memeId}`);
             }
             break; // If we got a response, don't try other proxies
+          } else {
+            console.warn(`Response not ok for meme ${memeId} with proxy ${proxy}: ${response.status}`);
           }
         } catch (error) {
           console.log(`Proxy ${proxy} failed for meme ${memeId}:`, error);
