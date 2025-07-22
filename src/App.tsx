@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { metaMask, injected, walletConnect } from 'wagmi/connectors'
+import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit'
+import { abstractWallet } from '@abstract-foundation/agw-react/connectors'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
@@ -13,6 +15,8 @@ import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+
+import '@rainbow-me/rainbowkit/styles.css';
 
 // Abstract Mainnet configuration
 const abstractMainnet = {
@@ -39,47 +43,41 @@ const abstractMainnet = {
 
 const queryClient = new QueryClient();
 
-// Single wagmi config with traditional connectors (step-by-step verification)
-const wagmiConfig = createConfig({
+// RainbowKit + AGW configuration
+const wagmiConfig = getDefaultConfig({
+  appName: 'RETSBA Trading',
+  projectId: 'demo',
   chains: [abstractMainnet],
-  connectors: [
-    metaMask(),
-    injected({ target: 'okxWallet' }),
-    walletConnect({
-      projectId: 'demo',
-      metadata: {
-        name: 'RETSBA Trading',
-        description: 'Trade RETSBA tokens',
-        url: 'https://retsba.com',
-        icons: ['https://retsba.com/icon.png']
-      }
-    })
+  wallets: [
+    {
+      groupName: 'Recommended',
+      wallets: [abstractWallet],
+    },
   ],
-  transports: {
-    [abstractMainnet.id]: http(),
-  },
 })
 
 const App = () => {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/freemoney" element={<FreeMoney />} />
-              <Route path="/test" element={<Test />} />
-              <Route path="/memes" element={<Memes />} />
-              <Route path="/createaccount" element={<CreateAccount />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <RainbowKitProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/freemoney" element={<FreeMoney />} />
+                <Route path="/test" element={<Test />} />
+                <Route path="/memes" element={<Memes />} />
+                <Route path="/createaccount" element={<CreateAccount />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
