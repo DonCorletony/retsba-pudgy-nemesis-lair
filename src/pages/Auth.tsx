@@ -137,12 +137,22 @@ const Auth = () => {
     }
   };
 
+  const ComingSoonOverlay = () => (
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-white mb-2">Coming Soon</h3>
+        <p className="text-sm text-white/80">Authentication will be available soon!</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md mx-auto">
-          <Card className="bg-retsba/80 border-white/20">
+          <Card className="bg-retsba/80 border-white/20 relative">
+            <ComingSoonOverlay />
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold text-white">Welcome to RETSBA</CardTitle>
               <CardDescription className="text-white/80">

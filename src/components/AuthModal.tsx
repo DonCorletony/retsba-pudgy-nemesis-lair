@@ -382,9 +382,19 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     resetForm();
   };
 
+  const ComingSoonOverlay = () => (
+    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 rounded-lg">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-foreground mb-2">Coming Soon</h3>
+        <p className="text-sm text-muted-foreground">Authentication will be available soon!</p>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${showConfirmation ? 'sm:max-w-[350px]' : 'sm:max-w-[425px]'} max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900`}>
+      <DialogContent className={`${showConfirmation ? 'sm:max-w-[350px]' : 'sm:max-w-[425px]'} max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900 relative`}>
+        {!showConfirmation && <ComingSoonOverlay />}
         {showConfirmation ? (
           <div className="flex flex-col items-center space-y-6 p-6">
             <div className="flex justify-center">
