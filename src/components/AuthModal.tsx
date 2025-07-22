@@ -204,10 +204,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('user_id')
-        .eq('wallet_address', address)
-        .single();
+        .eq('wallet_address', address);
 
-      if (profileError || !profiles) {
+      if (profileError || !profiles || profiles.length === 0) {
         toast({
           variant: "destructive",
           title: "Error",
@@ -433,21 +432,60 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               </p>
               
               {isConnected && address ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                     <p className="text-gray-500 text-xs mb-1">Connected Wallet</p>
                     <p className="text-gray-900 font-mono text-sm">
                       {address.slice(0, 6)}...{address.slice(-4)}
                     </p>
                   </div>
-                  <Button 
-                    onClick={isSignUp ? handleWalletSignUp : handleWalletSignIn}
-                    variant="outline"
-                    className="w-full bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
-                    disabled={loading}
-                  >
-                    {isSignUp ? 'Create Account with Wallet' : 'Sign In with Wallet'}
-                  </Button>
+                  
+                  {isSignUp && (
+                    <form onSubmit={handleWalletSignUp} className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="wallet-username" className="text-gray-700">Username</Label>
+                        <Input
+                          id="wallet-username"
+                          type="text"
+                          placeholder="Choose a username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          required
+                          className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="wallet-display-name" className="text-gray-700">Display Name</Label>
+                        <Input
+                          id="wallet-display-name"
+                          type="text"
+                          placeholder="Your display name"
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                        />
+                      </div>
+                      <Button 
+                        type="submit"
+                        variant="outline"
+                        className="w-full bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
+                        disabled={loading}
+                      >
+                        {loading ? 'Creating Account...' : 'Create Account with Wallet'}
+                      </Button>
+                    </form>
+                  )}
+                  
+                  {!isSignUp && (
+                    <Button 
+                      onClick={handleWalletSignIn}
+                      variant="outline"
+                      className="w-full bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
+                      disabled={loading}
+                    >
+                      {loading ? 'Signing In...' : 'Sign In with Wallet'}
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
