@@ -225,6 +225,13 @@ const NavBar = () => {
               >
                 ABOUT
               </button>
+              <a 
+                href="/memes" 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                MEMES
+              </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => {
