@@ -240,8 +240,15 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900" onPointerDownOutside={(e) => e.preventDefault()}>
+        <DialogHeader className="flex flex-col items-center space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+              alt="RETSBA" 
+              className="h-12"
+            />
+          </div>
           <DialogTitle className="text-center text-2xl font-bold text-gray-900">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </DialogTitle>
