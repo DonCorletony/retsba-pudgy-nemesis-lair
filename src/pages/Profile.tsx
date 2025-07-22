@@ -2,8 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
-import NavBar from '../components/NavBar';
-import FooterSection from '../components/FooterSection';
+// Temporary simple navbar component
+const SimpleNavBar = () => (
+  <nav className="fixed top-0 left-0 right-0 z-50 bg-retsba/90 backdrop-blur-md border-b border-white/10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center h-16">
+        <div className="flex items-center space-x-4">
+          <span className="text-2xl font-bold text-white">RETSBA</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <span className="text-white/70">Profile</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+);
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -246,14 +259,13 @@ const Profile: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-retsba text-white overflow-hidden">
-        <NavBar />
+        <SimpleNavBar />
         <div className="pt-20 flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin" />
             <p className="text-white/70">Loading profile...</p>
           </div>
         </div>
-        <FooterSection />
       </div>
     );
   }
@@ -267,7 +279,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <NavBar />
+      <SimpleNavBar />
       
       <div className="pt-20">
         {/* Banner Section */}
@@ -408,8 +420,6 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      <FooterSection />
     </div>
   );
 };
