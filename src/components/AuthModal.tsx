@@ -55,7 +55,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         onOpenChange(false);
-        navigate('/');
+        // Always redirect to profile after authentication
+        navigate('/profile');
       }
     });
 
