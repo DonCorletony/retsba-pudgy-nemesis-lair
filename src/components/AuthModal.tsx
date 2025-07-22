@@ -57,6 +57,25 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     setLoading(true);
 
     try {
+      // Check if username already exists (only if username is provided)
+      if (username) {
+        const { data: existingProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', username)
+          .single();
+
+        if (existingProfile) {
+          toast({
+            variant: "destructive",
+            title: "Username Taken",
+            description: "This username is already taken. Please choose a different one."
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
