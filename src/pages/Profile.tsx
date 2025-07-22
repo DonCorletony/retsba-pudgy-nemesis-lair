@@ -284,7 +284,7 @@ const Profile: React.FC = () => {
       </div>
 
       {/* Profile Content */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 -mt-8 md:-mt-16 relative z-10">
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-8">
           <div className="flex items-end space-x-4 mb-4 md:mb-0">
