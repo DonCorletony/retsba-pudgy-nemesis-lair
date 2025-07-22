@@ -56,8 +56,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         onOpenChange(false);
-        // Always redirect to profile after authentication
-        navigate('/profile');
+        // Don't force redirect - let users stay on current page
       }
     });
 
@@ -325,9 +324,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         return;
       }
 
-      // Redirect to profile page
+      // Close modal
       onOpenChange(false);
-      navigate('/profile');
       
       toast({
         title: "Success!",
