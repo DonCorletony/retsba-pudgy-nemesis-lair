@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Edit3, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { Camera, Edit3, MapPin, Calendar, Loader2, ArrowLeft } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -263,6 +263,20 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Simple Navigation Header */}
+      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center space-x-2 text-primary hover:text-primary/80">
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back to Home</span>
+            </Link>
+          </div>
+          <h1 className="text-xl font-semibold">Profile</h1>
+          <div className="w-24"></div> {/* Spacer for centering */}
+        </div>
+      </div>
+
       {/* Banner Section */}
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
         {profile?.banner_url ? (
