@@ -19,14 +19,23 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isWalletAuth, setIsWalletAuth] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
+
+  // Generate random display name
+  const generateRandomDisplayName = (): string => {
+    const adjectives = ['Cool', 'Swift', 'Bright', 'Noble', 'Sharp', 'Quick', 'Bold', 'Smart', 'Wise', 'Lucky'];
+    const nouns = ['Trader', 'Explorer', 'Pioneer', 'Voyager', 'Navigator', 'Builder', 'Creator', 'Innovator', 'Artist', 'Sage'];
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomNumber = Math.floor(Math.random() * 999) + 1;
+    return `${randomAdjective}${randomNoun}${randomNumber}`;
+  };
 
   useEffect(() => {
     // Check if user is already logged in
@@ -57,27 +66,37 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // Check if username already exists (only if username is provided)
-      if (username) {
-        const { data: existingProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('username', username)
-          .single();
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Passwords do not match."
+      });
+      setLoading(false);
+      return;
+    }
 
-        if (existingProfile) {
-          toast({
-            variant: "destructive",
-            title: "Username Taken",
-            description: "This username is already taken. Please choose a different one."
-          });
-          setLoading(false);
-          return;
-        }
+    try {
+      // Check if username already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingProfile) {
+        toast({
+          variant: "destructive",
+          title: "Username Taken",
+          description: "This username is already taken. Please choose a different one."
+        });
+        setLoading(false);
+        return;
       }
 
       const redirectUrl = `${window.location.origin}/`;
+      const randomDisplayName = generateRandomDisplayName();
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -86,7 +105,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           emailRedirectTo: redirectUrl,
           data: {
             username,
-            display_name: displayName
+            display_name: randomDisplayName
           }
         }
       });
@@ -311,8 +330,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const resetForm = () => {
     setEmailOrUsername('');
     setPassword('');
+    setConfirmPassword('');
     setUsername('');
-    setDisplayName('');
     setEmail('');
     setLoading(false);
   };
@@ -351,17 +370,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     placeholder="Choose a username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="display-name" className="text-gray-700">Display Name</Label>
-                  <Input
-                    id="display-name"
-                    type="text"
-                    placeholder="Your display name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    required
                     className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
@@ -407,6 +416,21 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
               />
             </div>
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password" className="text-gray-700">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                />
+              </div>
+            )}
             
             <Button 
               type="submit" 
@@ -451,17 +475,6 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
                           required
-                          className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="wallet-display-name" className="text-gray-700">Display Name</Label>
-                        <Input
-                          id="wallet-display-name"
-                          type="text"
-                          placeholder="Your display name"
-                          value={displayName}
-                          onChange={(e) => setDisplayName(e.target.value)}
                           className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                         />
                       </div>
