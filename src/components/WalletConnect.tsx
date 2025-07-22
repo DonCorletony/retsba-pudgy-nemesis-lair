@@ -132,7 +132,7 @@ export const WalletConnect = () => {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2">
+          <Button variant="wallet" className="gap-2">
             <Wallet className="h-4 w-4" />
             {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
             <ChevronDown className="h-4 w-4" />

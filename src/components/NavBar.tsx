@@ -216,6 +216,13 @@ const NavBar = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+              <a 
+                href="/" 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                HOME
+              </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => {
