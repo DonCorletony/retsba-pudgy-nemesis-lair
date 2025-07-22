@@ -261,16 +261,16 @@ const Profile: React.FC = () => {
           <div className="w-full h-full bg-gradient-to-r from-primary/10 to-secondary/10" />
         )}
         
-        {/* Banner Upload Button */}
-        <Button
-          onClick={() => bannerInputRef.current?.click()}
-          disabled={uploading}
-          className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-0"
-          size="sm"
-        >
-          <Camera className="h-4 w-4 mr-2" />
-          {uploading ? 'Uploading...' : 'Edit Banner'}
-        </Button>
+        {/* Banner Upload Button - Only in Edit Mode */}
+        {isEditing && (
+          <button
+            onClick={() => bannerInputRef.current?.click()}
+            disabled={uploading}
+            className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white border-0 rounded-full p-2 transition-colors"
+          >
+            <Camera className="h-4 w-4" />
+          </button>
+        )}
         
         <input
           ref={bannerInputRef}
