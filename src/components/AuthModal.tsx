@@ -148,14 +148,11 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         });
         signInError = error;
       } else {
-        // It's a username - find the user's email first (case insensitive)
-        const { data: profiles, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_id')
-          .ilike('username', emailOrUsername)
-          .maybeSingle();
+        // It's a username - get the email using our database function
+        const { data: emailData, error: emailError } = await supabase
+          .rpc('get_email_by_username', { input_username: emailOrUsername });
 
-        if (profileError || !profiles) {
+        if (emailError || !emailData) {
           toast({
             variant: "destructive",
             title: "Error",
@@ -165,15 +162,12 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           return;
         }
 
-        // Get the user's email from auth.users (this won't work directly, so we need another approach)
-        // For now, show error - username login needs additional backend setup
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Username login not yet implemented. Please use your email address."
+        // Now sign in with the found email
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailData,
+          password
         });
-        setLoading(false);
-        return;
+        signInError = error;
       }
 
       if (signInError) {
