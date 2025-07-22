@@ -40,7 +40,7 @@ const formatBalanceDisplay = (balance: string): string => {
 };
 
 const NavBar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -101,18 +101,6 @@ const NavBar = () => {
     ? formatBalanceDisplay(parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toString())
     : isConnected ? "0.0000" : "-";
   
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Dark mode effect
   useEffect(() => {
@@ -127,9 +115,7 @@ const NavBar = () => {
   return (
     <>
       <motion.nav 
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-retsba py-2' : 'bg-transparent py-4'
-        }`}
+        className="fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-retsba py-2"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
