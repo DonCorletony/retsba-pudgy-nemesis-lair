@@ -150,7 +150,7 @@ export const WalletConnect = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button disabled={isPending} className="gap-2">
+        <Button disabled={isPending} variant="wallet" className="gap-2">
           <Wallet className="h-4 w-4" />
           {isPending ? 'Connecting...' : 'Connect Wallet'}
           <ChevronDown className="h-4 w-4" />
