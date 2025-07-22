@@ -315,9 +315,18 @@ const Profile: React.FC = () => {
 
             {/* User Info */}
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
-                {profile?.display_name || profile?.username || 'Anonymous User'}
-              </h1>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+                  {profile?.display_name || profile?.username || 'Anonymous User'}
+                </h1>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-white/80 hover:text-white transition-colors p-1"
+                  disabled={isEditing}
+                >
+                  <Edit3 className="h-4 w-4" />
+                </button>
+              </div>
               <p className="text-white/80 drop-shadow">@{profile?.username || 'anonymous'}</p>
             </div>
           </div>
@@ -333,12 +342,7 @@ const Profile: React.FC = () => {
                   Cancel
                 </Button>
               </>
-            ) : (
-              <Button onClick={() => setIsEditing(true)} variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
-                <Edit3 className="h-4 w-4 mr-2" />
-                Edit profile
-              </Button>
-            )}
+            ) : null}
             <Button onClick={signOut} variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
               Sign Out
             </Button>
