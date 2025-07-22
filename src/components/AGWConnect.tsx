@@ -13,10 +13,6 @@ export const AGWConnect = () => {
   const handleConnect = async () => {
     try {
       await login();
-      toast({
-        title: "Success",
-        description: "Connected to Abstract Global Wallet!",
-      });
     } catch (error: any) {
       console.error('AGW connection error:', error);
       toast({
