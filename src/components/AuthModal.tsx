@@ -80,12 +80,12 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
 
     try {
-      // Check if username already exists
+      // Check if username already exists (case insensitive)
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('username')
-        .eq('username', username)
-        .single();
+        .ilike('username', username)
+        .maybeSingle();
 
       if (existingProfile) {
         toast({
@@ -148,12 +148,12 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         });
         signInError = error;
       } else {
-        // It's a username - find the user's email first
+        // It's a username - find the user's email first (case insensitive)
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
           .select('user_id')
-          .eq('username', emailOrUsername)
-          .single();
+          .ilike('username', emailOrUsername)
+          .maybeSingle();
 
         if (profileError || !profiles) {
           toast({
@@ -275,12 +275,12 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     setLoading(true);
 
     try {
-      // Check if username already exists
+      // Check if username already exists (case insensitive)
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('username')
-        .eq('username', username)
-        .single();
+        .ilike('username', username)
+        .maybeSingle();
 
       if (existingProfile) {
         toast({
