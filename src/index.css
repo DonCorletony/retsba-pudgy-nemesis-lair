@@ -7,8 +7,8 @@
 
 @layer base {
   :root {
-    --retsba-color: #121416;
-    --background: 18 11% 8%;
+    --retsba-color: #fcc5c3;
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
     --card: 0 0% 100%;
