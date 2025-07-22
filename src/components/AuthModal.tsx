@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAccount } from 'wagmi';
-import { WalletConnect } from './WalletConnect';
+import { AGWConnect } from './AGWConnect';
 import { Separator } from '@/components/ui/separator';
 
 interface AuthModalProps {
@@ -543,7 +543,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               ) : (
                 <div className="space-y-2">
                   <p className="text-gray-500 text-xs">Connect your wallet to continue</p>
-                  <WalletConnect />
+                  <AGWConnect />
                 </div>
               )}
             </div>

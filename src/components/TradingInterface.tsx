@@ -8,8 +8,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
-import { useBridgeAndSwap } from '@/hooks/useBridgeAndSwap'
-import { BridgeStatus } from '@/components/BridgeStatus'
+// Removed useBridgeAndSwap import - only local swaps now
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
 const WETH_ADDRESS = '0x3439153EB7AF838Ad19d56E1571FBD09333C2809' as `0x${string}` // WETH (AbsETH) on Abstract
@@ -127,8 +126,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
   const [currentPrice, setCurrentPrice] = useState<number>(0) // Price of RETSBA in WETH
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
   
-  // Bridge and swap functionality
-  const bridgeAndSwap = useBridgeAndSwap(onBalanceRefresh)
+  // Removed bridge functionality - only local swap now
   
   // Contract interactions for Abstract native swaps only
   const { writeContract, data: writeData, isPending } = useWriteContract({
@@ -307,42 +305,9 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
   
   // Transaction confirmation for Abstract native swaps is handled by the writeContract hook
 
-  // Listen for account changes and refresh interface
-  useEffect(() => {
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length > 0 && accounts[0] !== address) {
-        toast({
-          title: "Account Updated",
-          description: "Refreshing balances for new account...",
-        })
-        setSwapAmount('') // Clear any pending swap amount
-        // The useReadContract hooks will automatically refresh with the new address
-      }
-    }
+  // Removed legacy ethereum event listeners - using AGW now
 
-    if (typeof window !== 'undefined' && window.ethereum && isConnected) {
-      window.ethereum.on('accountsChanged', handleAccountsChanged)
-      
-      return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-      }
-    }
-  }, [address, isConnected, toast])
-
-  // Monitor approval completion and trigger swap automatically  
-  useEffect(() => {
-    if (bridgeAndSwap.currentStep === 'approving' && !bridgeAndSwap.isApprovePending) {
-      // Approval completed, now execute the swap
-      setTimeout(() => {
-        console.log('WETH approved, proceeding to swap...')
-        toast({
-          title: "Approval Complete!",
-          description: "Now swapping WETH to RETSBA...",
-        })
-        bridgeAndSwap.swapWethToRetsba(currentPrice)
-      }, 2000) // Small delay to ensure approval is processed
-    }
-  }, [bridgeAndSwap.currentStep, bridgeAndSwap.isApprovePending, currentPrice, toast])
+  // Removed bridge monitoring - only local swaps now
 
   const handleSwap = async () => {
     console.log('🔴 handleSwap called!')
@@ -362,28 +327,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
       return
     }
 
-    // Check if this is a cross-chain bridge + swap
-    if (!selectedToken.isAbstractNative) {
-      console.log('🌉 Starting cross-chain bridge + swap process...')
-      console.log('Chain ID:', selectedToken.chainId)
-      console.log('Amount:', swapAmount)
-      console.log('Current Price:', currentPrice)
-      
-      try {
-        console.log('🚀 Calling executeBridgeAndSwap...')
-        // Execute seamless bridge + swap
-        await bridgeAndSwap.executeBridgeAndSwap(selectedToken.chainId, swapAmount, currentPrice)
-        console.log('✅ executeBridgeAndSwap completed')
-      } catch (error: any) {
-        console.error('❌ Bridge + swap error:', error)
-        toast({
-          title: "Bridge + Swap Failed",
-          description: error.message || "There was an error with the bridge + swap process",
-          variant: "destructive"
-        })
-      }
-      return
-    }
+    // Only support Abstract native ETH swaps now - removed bridge functionality
 
     console.log('💙 Using Abstract native swap path...')
 
@@ -577,26 +521,16 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
               console.log('🔴 BUTTON CLICKED!')
               handleSwap()
             }}
-            disabled={isPending || bridgeAndSwap.isProcessing || !swapAmount || currentPrice === 0 || isLoadingPrice}
+            disabled={isPending || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
             {isPending ? 'Submitting...' : 
-             bridgeAndSwap.isProcessing ? 'Processing...' :
              currentPrice === 0 ? 'Loading Price...' : 
              'Become the Villain'}
           </Button>
         </div>
 
-        {/* Bridge Status - Show when bridge is processing */}
-        {bridgeAndSwap.isProcessing && (
-          <div className="mt-4">
-            <BridgeStatus 
-              currentStep={bridgeAndSwap.currentStep}
-              bridgeTxHash={bridgeAndSwap.bridgeTxHash}
-              swapTxHash={bridgeAndSwap.swapTxHash}
-            />
-          </div>
-        )}
+        {/* Removed bridge status - only local swaps now */}
 
       </CardContent>
     </Card>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { WalletConnect } from '@/components/WalletConnect';
+import { AGWConnect } from '@/components/AGWConnect';
 import { UnifiedTradingInterface } from '@/components/UnifiedTradingInterface';
 
 const Test = () => {
@@ -7,7 +7,7 @@ const Test = () => {
     <div className="min-h-screen bg-retsba text-foreground">
       {/* Header with wallet connection */}
       <div className="flex justify-end p-4">
-        <WalletConnect />
+        <AGWConnect />
       </div>
       
       {/* Main content - Unified interface */}
