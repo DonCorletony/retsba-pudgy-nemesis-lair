@@ -246,7 +246,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             <img 
               src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
               alt="RETSBA" 
-              className="h-12"
+              className="h-10"
             />
           </div>
           <DialogTitle className="text-center text-2xl font-bold text-gray-900">
