@@ -13,6 +13,7 @@ interface MemeData {
 }
 
 const Memes = () => {
+  console.log("MEMES COMPONENT IS RENDERING!");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [memes, setMemes] = useState<MemeData[]>([]);
   const [loading, setLoading] = useState(true);
