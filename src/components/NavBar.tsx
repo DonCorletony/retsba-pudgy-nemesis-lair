@@ -40,7 +40,6 @@ const formatBalanceDisplay = (balance: string): string => {
 };
 
 const NavBar = () => {
-  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -100,7 +99,6 @@ const NavBar = () => {
   const formattedEthBalance = abstractEthBalance 
     ? formatBalanceDisplay(parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toString())
     : isConnected ? "0.0000" : "-";
-  
 
   // Dark mode effect
   useEffect(() => {
