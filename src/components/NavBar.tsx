@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { WalletConnect } from './WalletConnect';
+import { AuthModal } from './AuthModal';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
 import { erc20Abi, formatEther, formatUnits } from 'viem';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -42,6 +43,7 @@ const formatBalanceDisplay = (balance: string): string => {
 const NavBar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -253,7 +255,7 @@ const NavBar = () => {
               <button 
                 className="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 text-left"
                 onClick={() => {
-                  navigate('/auth');
+                  setAuthModalOpen(true);
                   setIsMobileMenuOpen(false);
                 }}
               >
@@ -342,7 +344,7 @@ const NavBar = () => {
         {/* Auth Button */}
         <button
           onClick={() => {
-            navigate('/auth');
+            setAuthModalOpen(true);
             setIsDropdownOpen(false);
           }}
           className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20"
@@ -399,6 +401,9 @@ const NavBar = () => {
           </div>
         </div>
       </motion.div>
+      
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );
 };
