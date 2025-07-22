@@ -240,9 +240,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-retsba/95 backdrop-blur-sm border-white/20 text-white">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-white">
+          <DialogTitle className="text-center text-2xl font-bold text-gray-900">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </DialogTitle>
         </DialogHeader>
@@ -253,29 +253,29 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             {isSignUp && (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-white">Username</Label>
+                  <Label htmlFor="username" className="text-gray-700">Username</Label>
                   <Input
                     id="username"
                     type="text"
                     placeholder="Choose a username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
+                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="display-name" className="text-white">Display Name</Label>
+                  <Label htmlFor="display-name" className="text-gray-700">Display Name</Label>
                   <Input
                     id="display-name"
                     type="text"
                     placeholder="Your display name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
+                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">Email</Label>
+                  <Label htmlFor="email" className="text-gray-700">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -283,7 +283,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
+                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -291,7 +291,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             
             {!isSignUp && (
               <div className="space-y-2">
-                <Label htmlFor="email-username" className="text-white">Email or Username</Label>
+                <Label htmlFor="email-username" className="text-gray-700">Email or Username</Label>
                 <Input
                   id="email-username"
                   type="text"
@@ -299,13 +299,13 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   value={emailOrUsername}
                   onChange={(e) => setEmailOrUsername(e.target.value)}
                   required
-                  className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
+                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -313,7 +313,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
+                className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
               />
             </div>
             
@@ -327,31 +327,31 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           </form>
 
           <div className="relative">
-            <Separator className="bg-white/20" />
+            <Separator className="bg-gray-200" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="bg-retsba px-2 text-white/60 text-sm">OR</span>
+              <span className="bg-white px-2 text-gray-500 text-sm">OR</span>
             </div>
           </div>
 
           {/* Wallet Authentication */}
           <div className="space-y-3">
             <div className="text-center">
-              <p className="text-white/80 text-sm mb-3">
+              <p className="text-gray-600 text-sm mb-3">
                 {isSignUp ? 'Sign up with EVM Wallet' : 'Sign in with EVM Wallet'}
               </p>
               
               {isConnected && address ? (
                 <div className="space-y-2">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <p className="text-white/60 text-xs mb-1">Connected Wallet</p>
-                    <p className="text-white font-mono text-sm">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-gray-500 text-xs mb-1">Connected Wallet</p>
+                    <p className="text-gray-900 font-mono text-sm">
                       {address.slice(0, 6)}...{address.slice(-4)}
                     </p>
                   </div>
                   <Button 
                     onClick={isSignUp ? handleWalletSignUp : handleWalletSignIn}
                     variant="outline"
-                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    className="w-full bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200"
                     disabled={loading}
                   >
                     {isSignUp ? 'Create Account with Wallet' : 'Sign In with Wallet'}
@@ -359,7 +359,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-white/60 text-xs">Connect your wallet to continue</p>
+                  <p className="text-gray-500 text-xs">Connect your wallet to continue</p>
                   <WalletConnect />
                 </div>
               )}
@@ -370,7 +370,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             <button
               type="button"
               onClick={toggleMode}
-              className="text-white/80 hover:text-white text-sm underline"
+              className="text-gray-600 hover:text-gray-900 text-sm underline"
             >
               {isSignUp 
                 ? "Already have an account? Sign in" 
