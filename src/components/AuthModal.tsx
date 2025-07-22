@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAccount } from 'wagmi';
 import { AGWConnect } from './AGWConnect';
 import { Separator } from '@/components/ui/separator';
+import { useIsAGWConnected, validateAGWForAccountCreation } from '@/utils/agwValidation';
 
 interface AuthModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
+  const isAGWConnected = useIsAGWConnected();
 
   // Generate random display name
   const generateRandomDisplayName = (): string => {
@@ -252,6 +254,29 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         variant: "destructive",
         title: "Error",
         description: "Please connect your wallet first"
+      });
+      return;
+    }
+
+    // AGW-only validation for account creation
+    const agwValidation = validateAGWForAccountCreation(isAGWConnected);
+    if (!agwValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "AGW Required",
+        description: (
+          <div>
+            {agwValidation.errorMessage} If you do not have an AGW, you can create one at{" "}
+            <a 
+              href="https://www.abs.xyz" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              www.abs.xyz
+            </a>
+          </div>
+        )
       });
       return;
     }

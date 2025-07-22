@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import NavBar from '@/components/NavBar';
 import FooterSection from '@/components/FooterSection';
+import { useAccount } from 'wagmi';
+import { useIsAGWConnected, validateAGWForAccountCreation } from '@/utils/agwValidation';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -18,6 +20,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { address, isConnected } = useAccount();
+  const isAGWConnected = useIsAGWConnected();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -42,6 +46,30 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // AGW-only validation for account creation
+    const agwValidation = validateAGWForAccountCreation(isAGWConnected);
+    if (!agwValidation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "AGW Required",
+        description: (
+          <div>
+            {agwValidation.errorMessage} If you do not have an AGW, you can create one at{" "}
+            <a 
+              href="https://www.abs.xyz" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              www.abs.xyz
+            </a>
+          </div>
+        )
+      });
+      setLoading(false);
+      return;
+    }
 
     try {
       const redirectUrl = `${window.location.origin}/`;
