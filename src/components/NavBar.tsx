@@ -328,6 +328,17 @@ const NavBar = () => {
           </svg>
         </button>
         
+        {/* Create Account Button */}
+        <button
+          onClick={() => {
+            navigate('/createaccount');
+            setIsDropdownOpen(false);
+          }}
+          className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20"
+        >
+          Create account
+        </button>
+        
         <div className="p-6 pt-20">
           <div className="flex flex-col space-y-6">
             <a 
