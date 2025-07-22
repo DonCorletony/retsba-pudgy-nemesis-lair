@@ -113,7 +113,7 @@ const NavBar = () => {
   return (
     <>
       <motion.nav 
-        className="fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-retsba py-2"
+        className="fixed top-0 left-0 w-full z-50 bg-retsba py-2"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
