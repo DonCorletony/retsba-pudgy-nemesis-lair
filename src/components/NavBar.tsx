@@ -221,22 +221,14 @@ const NavBar = () => {
     );
   };
 
-  // Auth Button Component with Coming Soon overlay
+  // Auth Button Component  
   const AuthButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => (
-    <div className="relative">
-      <button
-        onClick={onClick}
-        className={`bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 ${className}`}
-        disabled
-      >
-        Sign In / Sign Up
-      </button>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
-        <div className="text-center">
-          <p className="text-xs text-white/90 font-medium">Coming Soon</p>
-        </div>
-      </div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 ${className}`}
+    >
+      Sign In / Sign Up
+    </button>
   );
 
   // Dark mode effect
