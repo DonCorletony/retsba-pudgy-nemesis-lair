@@ -249,6 +249,17 @@ const NavBar = () => {
                 BUY NOW
               </button>
               
+              {/* Create Account Button for Mobile */}
+              <button 
+                className="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 text-left"
+                onClick={() => {
+                  navigate('/createaccount');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Create account
+              </button>
+              
               {/* Mobile Token Balance Counters */}
               <div className="flex flex-col space-y-2 pt-2">
                 <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
