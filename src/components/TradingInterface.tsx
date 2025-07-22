@@ -314,14 +314,25 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     console.log('Selected Token:', selectedToken)
     console.log('SwapAmount:', swapAmount)
     console.log('Address:', address)
+    console.log('IsConnected:', isConnected)
     console.log('Current Price:', currentPrice)
     console.log('Is Abstract Native?:', selectedToken.isAbstractNative)
     
-    if (!swapAmount || !address || !currentPrice) {
+    if (!isConnected || !address) {
+      console.log('❌ Wallet not properly connected')
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet first",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (!swapAmount || !currentPrice) {
       console.log('❌ Missing required data - stopping')
       toast({
         title: "Error",
-        description: "Please enter an amount, connect your wallet, and wait for price data",
+        description: "Please enter an amount and wait for price data",
         variant: "destructive"
       })
       return
@@ -333,10 +344,27 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
 
     // For Abstract native tokens (ETH), continue with existing swap logic
     const currentBalance = getCurrentTokenBalance()
-    if (!currentBalance || Number(formatEther(currentBalance.value)) < parseFloat(swapAmount)) {
+    console.log('Current Balance Object:', currentBalance)
+    
+    if (!currentBalance) {
+      toast({
+        title: "Balance Loading",
+        description: "Please wait for your balance to load",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    const balanceAmount = Number(formatEther(currentBalance.value))
+    const swapAmountNumber = parseFloat(swapAmount)
+    
+    console.log('Balance Amount:', balanceAmount)
+    console.log('Swap Amount:', swapAmountNumber)
+    
+    if (balanceAmount < swapAmountNumber) {
       toast({
         title: "Insufficient Balance",
-        description: `You don't have enough ${selectedToken.symbol} for this swap.`,
+        description: `You need ${swapAmountNumber} ${selectedToken.symbol} but only have ${balanceAmount.toFixed(4)} ${selectedToken.symbol}`,
         variant: "destructive"
       })
       return
