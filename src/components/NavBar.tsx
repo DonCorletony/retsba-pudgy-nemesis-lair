@@ -325,13 +325,13 @@ const NavBar = () => {
           <div className="flex flex-col space-y-6">
             <a 
               href="/" 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               Home
             </a>
             <button 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
               onClick={() => {
                 navigateToSection('about');
                 setIsDropdownOpen(false);
@@ -341,13 +341,13 @@ const NavBar = () => {
             </button>
             <a 
               href="/memes" 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               Memes
             </a>
             <button 
-              className="text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
               onClick={() => {
                 navigateToSection('buy-now');
                 setIsDropdownOpen(false);
