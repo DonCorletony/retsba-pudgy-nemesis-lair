@@ -36,7 +36,6 @@ export const AGWConnect = () => {
       <Button
         onClick={handleDisconnect}
         variant="outline"
-        className="text-white border-white hover:bg-white hover:text-primary"
       >
         {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
       </Button>
