@@ -249,6 +249,8 @@ const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <NavBar />
+      {/* Navbar Spacer */}
+      <div className="h-16 md:h-20"></div>
       {/* Banner Section */}
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
         {profile?.banner_url ? (
