@@ -10,6 +10,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
 
@@ -55,6 +58,12 @@ const NavBar = () => {
   // Supabase authentication state
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any>(null);
+  
+  // Search state
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -152,6 +161,45 @@ const NavBar = () => {
     }
   };
 
+  // Search function
+  const searchProfiles = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+        .limit(10);
+
+      if (error) {
+        console.error('Error searching profiles:', error);
+        return;
+      }
+
+      setSearchResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        searchProfiles(searchQuery);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   // Profile Button Component
   const ProfileButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => {
     const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'User';
@@ -203,22 +251,32 @@ const NavBar = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            <button 
-              onClick={() => {
-                if (location.pathname === '/') {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                  navigate('/');
-                }
-              }}
-              className="flex items-center hover:opacity-80 transition-opacity"
-            >
-              <img 
-                src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
-                alt="RETSBA" 
-                className="h-10"
-              />
-            </button>
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => {
+                  if (location.pathname === '/') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  } else {
+                    navigate('/');
+                  }
+                }}
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
+                <img 
+                  src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+                  alt="RETSBA" 
+                  className="h-10"
+                />
+              </button>
+              
+              {/* Search Icon */}
+              <button
+                onClick={() => setSearchModalOpen(true)}
+                className="text-white hover:text-gray-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </div>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-4">
@@ -516,6 +574,75 @@ const NavBar = () => {
       
       {/* Auth Modal */}
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      
+      {/* Search Modal */}
+      <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
+        <DialogContent className="max-w-md bg-retsba border border-white/20">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white">Search Profiles</h2>
+              <button
+                onClick={() => setSearchModalOpen(false)}
+                className="text-white/70 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <Input
+              placeholder="Search by username or display name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
+              autoFocus
+            />
+            
+            {/* Search Results */}
+            <div className="max-h-80 overflow-y-auto space-y-2">
+              {searching && (
+                <div className="text-center py-4 text-white/70">
+                  Searching...
+                </div>
+              )}
+              
+              {!searching && searchQuery && searchResults.length === 0 && (
+                <div className="text-center py-4 text-white/70">
+                  No profiles found
+                </div>
+              )}
+              
+              {searchResults.map((profile) => (
+                <button
+                  key={profile.id}
+                  onClick={() => {
+                    navigate(`/profile/${profile.username || profile.id}`);
+                    setSearchModalOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 hover:bg-white/10 rounded-lg transition-colors text-left"
+                >
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={profile.avatar_url} alt={profile.display_name || profile.username} />
+                    <AvatarFallback className="bg-white/20 text-white">
+                      {(profile.display_name || profile.username || 'U').charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-medium truncate">
+                      {profile.display_name || profile.username || 'Anonymous User'}
+                    </p>
+                    {profile.username && (
+                      <p className="text-white/70 text-sm truncate">
+                        @{profile.username}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
