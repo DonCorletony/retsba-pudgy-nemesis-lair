@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
 import Test from "./pages/Test";
 import Memes from "./pages/Memes";
+import CreateAccount from "./pages/CreateAccount";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 // Abstract Mainnet configuration
@@ -70,6 +72,8 @@ const App = () => {
               <Route path="/freemoney" element={<FreeMoney />} />
               <Route path="/test" element={<Test />} />
               <Route path="/memes" element={<Memes />} />
+              <Route path="/createaccount" element={<CreateAccount />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
