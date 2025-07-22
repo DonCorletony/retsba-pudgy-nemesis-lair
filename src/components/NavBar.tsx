@@ -7,6 +7,9 @@ import { AuthModal } from './AuthModal';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
 import { erc20Abi, formatEther, formatUnits } from 'viem';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
 
@@ -48,6 +51,10 @@ const NavBar = () => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+  
+  // Supabase authentication state
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,6 +108,80 @@ const NavBar = () => {
   const formattedEthBalance = abstractEthBalance 
     ? formatBalanceDisplay(parseFloat(formatUnits(abstractEthBalance.value, abstractEthBalance.decimals)).toString())
     : isConnected ? "0.0000" : "-";
+
+  // Supabase authentication effect
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch user profile data
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  // Profile Button Component
+  const ProfileButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => {
+    const displayName = profile?.display_name || profile?.username || user?.email?.split('@')[0] || 'User';
+    const avatarUrl = profile?.avatar_url;
+
+    return (
+      <button
+        onClick={onClick}
+        className={`flex items-center space-x-2 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-3 py-2 rounded-lg border border-white/20 ${className}`}
+      >
+        <Avatar className="w-6 h-6">
+          <AvatarImage src={avatarUrl} alt={displayName} />
+          <AvatarFallback className="text-xs bg-white/20 text-white">
+            {displayName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-sm font-medium truncate max-w-24">{displayName}</span>
+      </button>
+    );
+  };
+
+  // Auth Button Component  
+  const AuthButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => (
+    <button
+      onClick={onClick}
+      className={`bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 ${className}`}
+    >
+      Sign In / Sign Up
+    </button>
+  );
 
   // Dark mode effect
   useEffect(() => {
@@ -251,16 +332,24 @@ const NavBar = () => {
                 BUY NOW
               </button>
               
-              {/* Auth Button for Mobile */}
-              <button 
-                className="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 text-left"
-                onClick={() => {
-                  setAuthModalOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                Sign In / Sign Up
-              </button>
+              {/* Auth/Profile Button for Mobile */}
+              {user ? (
+                <ProfileButton 
+                  className="text-left"
+                  onClick={() => {
+                    navigate('/profile');
+                    setIsMobileMenuOpen(false);
+                  }}
+                />
+              ) : (
+                <AuthButton 
+                  className="text-left"
+                  onClick={() => {
+                    setAuthModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                />
+              )}
               
               {/* Mobile Token Balance Counters */}
               <div className="flex flex-col space-y-2 pt-2">
@@ -341,16 +430,24 @@ const NavBar = () => {
           </svg>
         </button>
         
-        {/* Auth Button */}
-        <button
-          onClick={() => {
-            setAuthModalOpen(true);
-            setIsDropdownOpen(false);
-          }}
-          className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20"
-        >
-          Sign In / Sign Up
-        </button>
+        {/* Auth/Profile Button */}
+        {user ? (
+          <ProfileButton 
+            className="absolute top-4 right-4"
+            onClick={() => {
+              navigate('/profile');
+              setIsDropdownOpen(false);
+            }}
+          />
+        ) : (
+          <AuthButton 
+            className="absolute top-4 right-4"
+            onClick={() => {
+              setAuthModalOpen(true);
+              setIsDropdownOpen(false);
+            }}
+          />
+        )}
         
         <div className="p-6 pt-20">
           <div className="flex flex-col space-y-6">
