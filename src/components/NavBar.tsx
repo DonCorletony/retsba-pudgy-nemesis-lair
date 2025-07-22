@@ -579,15 +579,7 @@ const NavBar = () => {
       <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
         <DialogContent className="max-w-md bg-retsba border border-white/20">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Search Profiles</h2>
-              <button
-                onClick={() => setSearchModalOpen(false)}
-                className="text-white/70 hover:text-white transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <h2 className="text-lg font-semibold text-white">Search Profiles</h2>
             
             <Input
               placeholder="Search by username or display name..."
