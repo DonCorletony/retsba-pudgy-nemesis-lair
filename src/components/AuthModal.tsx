@@ -23,6 +23,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isWalletAuth, setIsWalletAuth] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
@@ -158,10 +159,21 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       }
 
       if (signInError) {
+        // Provide specific error messages
+        let errorMessage = signInError.message;
+        
+        if (signInError.message.includes('Invalid login credentials')) {
+          errorMessage = "The password you've entered is incorrect.";
+        } else if (signInError.message.includes('Email not confirmed')) {
+          errorMessage = "Please check your email and click the confirmation link.";
+        } else if (signInError.message.includes('User not found')) {
+          errorMessage = "An account with this email does not exist.";
+        }
+        
         toast({
           variant: "destructive",
           title: "Error",
-          description: signInError.message
+          description: errorMessage
         });
       }
     } catch (error: any) {
@@ -188,7 +200,24 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     setLoading(true);
 
     try {
-      // For now, wallet auth is not fully implemented
+      // Check if wallet address exists in profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('wallet_address', address)
+        .single();
+
+      if (profileError || !profiles) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "This wallet address is not associated with an existing account."
+        });
+        setLoading(false);
+        return;
+      }
+
+      // For now, wallet auth needs message signing implementation
       toast({
         variant: "destructive",
         title: "Not Implemented",
@@ -205,7 +234,9 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     }
   };
 
-  const handleWalletSignUp = async () => {
+  const handleWalletSignUp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
     if (!isConnected || !address) {
       toast({
         variant: "destructive",
@@ -215,13 +246,67 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
       return;
     }
 
-    // For wallet-only signup, we'd need to create a custom flow
-    // This requires backend implementation with message signing
-    toast({
-      variant: "destructive",
-      title: "Not Implemented",
-      description: "Wallet-only signup requires additional backend setup. Please use email signup for now."
-    });
+    if (!username.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Username is required for wallet signup"
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Check if username already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingProfile) {
+        toast({
+          variant: "destructive",
+          title: "Username Taken",
+          description: "This username is already taken. Please choose a different one."
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Check if wallet address already exists
+      const { data: existingWallet } = await supabase
+        .from('profiles')
+        .select('wallet_address')
+        .eq('wallet_address', address)
+        .single();
+
+      if (existingWallet) {
+        toast({
+          variant: "destructive",
+          title: "Wallet Already Registered",
+          description: "This wallet address is already associated with an account."
+        });
+        setLoading(false);
+        return;
+      }
+
+      // For now, wallet signup needs backend implementation
+      toast({
+        variant: "destructive",
+        title: "Not Implemented",
+        description: "Wallet signup requires additional backend setup for message signing and authentication."
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "An error occurred"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
