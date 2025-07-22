@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { WalletConnect } from './WalletConnect';
 import { AuthModal } from './AuthModal';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
 import { erc20Abi, formatEther, formatUnits } from 'viem';
@@ -313,7 +313,7 @@ const NavBar = () => {
                 </span>
               </div>
               
-              <ConnectButton />
+              <WalletConnect />
               
               {/* Hamburger Menu Button */}
               <button 
@@ -444,7 +444,7 @@ const NavBar = () => {
               </div>
               
               <div className="pt-2">
-                <ConnectButton />
+                <WalletConnect />
               </div>
               
               {/* Dark Mode Toggle for Mobile */}

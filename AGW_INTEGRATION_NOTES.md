@@ -1,10 +1,19 @@
 # Abstract Global Wallet (AGW) Integration with RainbowKit
 
-## Integration Summary ✅
+## Current Status: Investigation Required ⚠️
 
-Successfully integrated Abstract Global Wallet (AGW) into the RETSBA trading platform using RainbowKit as recommended by the Abstract team.
+The integration attempt revealed that the Abstract team's documentation may have some issues or missing configuration details. 
 
-## Changes Made
+### Issue Encountered
+- **Error**: `connectorFn is not a function`
+- **Root Cause**: The `abstractWallet` import from `@abstract-foundation/agw-react/connectors` returns a `Wallet` type instead of the expected `CreateConnectorFn` type that wagmi requires
+- **Location**: Occurs when RainbowKit's `getDefaultConfig` tries to process the wallet configuration
+
+## Temporary Solution ✅
+Reverted to working configuration without AGW:
+- Removed AGW connector from wagmi config
+- Restored custom WalletConnect component  
+- App now works with MetaMask, OKX, and WalletConnect
 
 ### Dependencies Added
 - `@rainbow-me/rainbowkit@latest` - Wallet connection UI library

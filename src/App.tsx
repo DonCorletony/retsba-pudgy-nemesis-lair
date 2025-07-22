@@ -5,7 +5,7 @@ import { WagmiProvider, createConfig, http } from 'wagmi'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { metaMask, injected, walletConnect } from 'wagmi/connectors'
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { abstractWallet } from '@abstract-foundation/agw-react/connectors'
+// import { abstractWallet } from '@abstract-foundation/agw-react/connectors' // TODO: Fix import
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
@@ -43,26 +43,35 @@ const abstractMainnet = {
 
 const queryClient = new QueryClient();
 
-// RainbowKit + AGW configuration
-const wagmiConfig = getDefaultConfig({
-  appName: 'RETSBA Trading',
-  projectId: 'demo',
+// Temporary config without AGW until we get the correct connector import
+const wagmiConfig = createConfig({
   chains: [abstractMainnet],
-  wallets: [
-    {
-      groupName: 'Recommended',
-      wallets: [abstractWallet],
-    },
+  connectors: [
+    metaMask(),
+    injected({ target: 'okxWallet' }),
+    walletConnect({
+      projectId: 'demo',
+      metadata: {
+        name: 'RETSBA Trading',
+        description: 'Trade RETSBA tokens',
+        url: 'https://retsba.com',
+        icons: ['https://retsba.com/icon.png']
+      }
+    })
   ],
+  transports: {
+    [abstractMainnet.id]: http(),
+  },
 })
+
+// TODO: Add AGW through RainbowKit when we get the correct connector setup
 
 const App = () => {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
-          <TooltipProvider>
-            <Toaster />
+        <TooltipProvider>
+          <Toaster />
             <Sonner />
             <BrowserRouter>
               <Routes>
@@ -75,9 +84,8 @@ const App = () => {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </RainbowKitProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
