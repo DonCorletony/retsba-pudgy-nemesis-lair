@@ -346,53 +346,48 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Profile Details Section */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6 mb-6">
-          {/* Bio Section */}
-          {isEditing ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-white">Display Name</label>
-                <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your display name"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                />
+        {/* Bio Section */}
+        {isEditing ? (
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">Display Name</label>
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your display name"
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">Bio</label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell the world about yourself..."
+                rows={3}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
+              />
+            </div>
+          </div>
+        ) : (
+          <>
+            {profile?.bio && (
+              <p className="text-white whitespace-pre-wrap mb-4">{profile.bio}</p>
+            )}
+            
+            {/* Profile Info */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
+              <div className="flex items-center space-x-1">
+                <MapPin className="h-4 w-4" />
+                <span>Abstract Network</span>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-white">Bio</label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell the world about yourself..."
-                  rows={3}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                />
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-4 w-4" />
+                <span>Joined {profile?.created_at ? formatDate(profile.created_at) : 'Recently'}</span>
               </div>
             </div>
-          ) : (
-            <>
-              {profile?.bio && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-white/80 mb-2">About</h3>
-                  <p className="text-white whitespace-pre-wrap">{profile.bio}</p>
-                </div>
-              )}
-              
-              {/* Profile Info */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
-                <div className="flex items-center space-x-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>Abstract Network</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>Joined {profile?.created_at ? formatDate(profile.created_at) : 'Recently'}</span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
