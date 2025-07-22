@@ -12,6 +12,7 @@ import Memes from "./pages/Memes";
 import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 // Abstract Mainnet configuration
 const abstractMainnet = {
@@ -74,6 +75,7 @@ const App = () => {
               <Route path="/memes" element={<Memes />} />
               <Route path="/createaccount" element={<CreateAccount />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

@@ -249,15 +249,15 @@ const NavBar = () => {
                 BUY NOW
               </button>
               
-              {/* Create Account Button for Mobile */}
+              {/* Auth Button for Mobile */}
               <button 
                 className="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 text-left"
                 onClick={() => {
-                  navigate('/createaccount');
+                  navigate('/auth');
                   setIsMobileMenuOpen(false);
                 }}
               >
-                Create account
+                Sign In / Sign Up
               </button>
               
               {/* Mobile Token Balance Counters */}
@@ -339,15 +339,15 @@ const NavBar = () => {
           </svg>
         </button>
         
-        {/* Create Account Button */}
+        {/* Auth Button */}
         <button
           onClick={() => {
-            navigate('/createaccount');
+            navigate('/auth');
             setIsDropdownOpen(false);
           }}
           className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20"
         >
-          Create account
+          Sign In / Sign Up
         </button>
         
         <div className="p-6 pt-20">
