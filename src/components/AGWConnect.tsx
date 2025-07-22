@@ -35,7 +35,7 @@ export const AGWConnect = () => {
     return (
       <Button
         onClick={handleDisconnect}
-        variant="secondary"
+        className="bg-retsba hover:bg-retsba/90 text-white"
       >
         {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
       </Button>
