@@ -62,8 +62,8 @@ const wagmiConfig = createConfig({
 
 const App = () => {
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiConfig}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -80,8 +80,8 @@ const App = () => {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
   );
 }
 

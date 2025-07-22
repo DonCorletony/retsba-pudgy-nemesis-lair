@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import NavBar from '../components/NavBar';
+import FooterSection from '../components/FooterSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Edit3, MapPin, Calendar, Loader2, ArrowLeft } from 'lucide-react';
+import { Camera, Edit3, MapPin, Calendar, Loader2 } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -37,7 +39,6 @@ const Profile: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -57,7 +58,6 @@ const Profile: React.FC = () => {
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
@@ -245,11 +245,15 @@ const Profile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Loading profile...</p>
+      <div className="min-h-screen bg-retsba text-white overflow-hidden">
+        <NavBar />
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-white/70">Loading profile...</p>
+          </div>
         </div>
+        <FooterSection />
       </div>
     );
   }
@@ -262,160 +266,150 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Simple Navigation Header */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-2 text-primary hover:text-primary/80">
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
-            </Link>
-          </div>
-          <h1 className="text-xl font-semibold">Profile</h1>
-          <div className="w-24"></div> {/* Spacer for centering */}
-        </div>
-      </div>
-
-      {/* Banner Section */}
-      <div className="relative w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
-        {profile?.banner_url ? (
-          <img 
-            src={profile.banner_url} 
-            alt="Profile banner" 
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-primary/10 to-secondary/10" />
-        )}
-        
-        {/* Banner Upload Button */}
-        <Button
-          onClick={() => handleImageUpload('banner')}
-          disabled={uploading}
-          className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-0"
-          size="sm"
-        >
-          <Camera className="h-4 w-4 mr-2" />
-          {uploading ? 'Uploading...' : 'Edit Banner'}
-        </Button>
-      </div>
-
-      {/* Profile Content */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10">
-        <div className="bg-background rounded-lg border shadow-lg p-6">
-          {/* Profile Header */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6">
-            <div className="flex items-end space-x-4 mb-4 md:mb-0">
-              {/* Avatar */}
-              <div className="relative">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-lg">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-2xl">
-                    {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <Button
-                  onClick={() => handleImageUpload('avatar')}
-                  disabled={uploading}
-                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                  size="sm"
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* User Info */}
-              <div className="flex-1">
-                <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile?.display_name || profile?.username || 'Anonymous User'}
-                </h1>
-                <p className="text-muted-foreground">@{profile?.username || 'anonymous'}</p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-2">
-              {isEditing ? (
-                <>
-                  <Button onClick={updateProfile} disabled={loading}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => setIsEditing(true)} variant="outline">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Edit profile
-                </Button>
-              )}
-              <Button onClick={signOut} variant="outline">
-                Sign Out
-              </Button>
-            </div>
-          </div>
-
-          {/* Bio Section */}
-          {isEditing ? (
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Display Name</label>
-                <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your display name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Bio</label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell the world about yourself..."
-                  rows={3}
-                />
-              </div>
-            </div>
+    <div className="min-h-screen bg-retsba text-white overflow-hidden">
+      <NavBar />
+      
+      <div className="pt-20">
+        {/* Banner Section */}
+        <div className="relative w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
+          {profile?.banner_url ? (
+            <img 
+              src={profile.banner_url} 
+              alt="Profile banner" 
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <>
-              {profile?.bio && (
-                <p className="text-foreground mb-4 whitespace-pre-wrap">{profile.bio}</p>
-              )}
-            </>
+            <div className="w-full h-full bg-gradient-to-r from-red-500/20 to-orange-500/20" />
           )}
+          
+          <Button
+            onClick={() => handleImageUpload('banner')}
+            disabled={uploading}
+            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-0"
+            size="sm"
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            {uploading ? 'Uploading...' : 'Edit Banner'}
+          </Button>
+        </div>
 
-          {/* Profile Stats */}
-          <div className="flex items-center space-x-6 text-sm text-muted-foreground mb-6">
-            <div className="flex items-center space-x-1">
-              <MapPin className="h-4 w-4" />
-              <span>Abstract Network</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Calendar className="h-4 w-4" />
-              <span>Joined {profile?.created_at ? formatDate(profile.created_at) : 'Recently'}</span>
-            </div>
-          </div>
+        {/* Profile Content */}
+        <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10">
+          <div className="bg-black/40 backdrop-blur-sm rounded-lg border border-white/10 shadow-lg p-6">
+            {/* Profile Header */}
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-6">
+              <div className="flex items-end space-x-4 mb-4 md:mb-0">
+                <div className="relative">
+                  <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-black/40 shadow-lg">
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="text-2xl bg-red-500 text-white">
+                      {profile?.display_name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <Button
+                    onClick={() => handleImageUpload('avatar')}
+                    disabled={uploading}
+                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                    size="sm"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                </div>
 
-          {/* Stats Row */}
-          <div className="flex space-x-6 border-t pt-4">
-            <div className="text-center">
-              <div className="font-bold text-lg">0</div>
-              <div className="text-sm text-muted-foreground">Posts</div>
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-3xl font-bold text-white">
+                    {profile?.display_name || profile?.username || 'Anonymous User'}
+                  </h1>
+                  <p className="text-white/70">@{profile?.username || 'anonymous'}</p>
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                {isEditing ? (
+                  <>
+                    <Button onClick={updateProfile} disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsEditing(false)} className="text-white border-white/20">
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={() => setIsEditing(true)} variant="outline" className="text-white border-white/20">
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Edit profile
+                  </Button>
+                )}
+                <Button onClick={signOut} variant="outline" className="text-white border-white/20">
+                  Sign Out
+                </Button>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="font-bold text-lg">0</div>
-              <div className="text-sm text-muted-foreground">Following</div>
+
+            {/* Bio Section */}
+            {isEditing ? (
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Display Name</label>
+                  <Input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Your display name"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Bio</label>
+                  <Textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell the world about yourself..."
+                    rows={3}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                {profile?.bio && (
+                  <p className="text-white mb-4 whitespace-pre-wrap">{profile.bio}</p>
+                )}
+              </>
+            )}
+
+            {/* Profile Stats */}
+            <div className="flex items-center space-x-6 text-sm text-white/70 mb-6">
+              <div className="flex items-center space-x-1">
+                <MapPin className="h-4 w-4" />
+                <span>Abstract Network</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-4 w-4" />
+                <span>Joined {profile?.created_at ? formatDate(profile.created_at) : 'Recently'}</span>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="font-bold text-lg">0</div>
-              <div className="text-sm text-muted-foreground">Followers</div>
+
+            {/* Stats Row */}
+            <div className="flex space-x-6 border-t border-white/10 pt-4">
+              <div className="text-center">
+                <div className="font-bold text-lg text-white">0</div>
+                <div className="text-sm text-white/70">Posts</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-lg text-white">0</div>
+                <div className="text-sm text-white/70">Following</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-lg text-white">0</div>
+                <div className="text-sm text-white/70">Followers</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      
+      <FooterSection />
     </div>
   );
 };
