@@ -23,6 +23,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
@@ -118,10 +119,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           description: error.message
         });
       } else {
-        toast({
-          title: "Success!",
-          description: "Please check your email to confirm your account."
-        });
+        setShowConfirmation(true);
       }
     } catch (error: any) {
       toast({
@@ -335,6 +333,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
     setUsername('');
     setEmail('');
     setLoading(false);
+    setShowConfirmation(false);
   };
 
   const toggleMode = () => {
@@ -344,19 +343,43 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900">
-        <DialogHeader className="flex flex-col items-center space-y-4">
-          <div className="flex justify-center">
-            <img 
-              src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
-              alt="RETSBA" 
-              className="h-10"
-            />
+      <DialogContent className={`${showConfirmation ? 'sm:max-w-[350px]' : 'sm:max-w-[425px]'} max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900`}>
+        {showConfirmation ? (
+          <div className="flex flex-col items-center space-y-6 p-6">
+            <div className="flex justify-center">
+              <img 
+                src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+                alt="RETSBA" 
+                className="h-10"
+              />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-gray-900 font-medium">
+                A confirmation email has been sent to your email.
+              </p>
+            </div>
+            <Button 
+              onClick={() => onOpenChange(false)}
+              variant="outline"
+              className="w-full"
+            >
+              Close
+            </Button>
           </div>
-          <DialogTitle className="text-center text-2xl font-bold text-gray-900">
-            {isSignUp ? 'Create Account' : 'Sign In'}
-          </DialogTitle>
-        </DialogHeader>
+        ) : (
+          <>
+            <DialogHeader className="flex flex-col items-center space-y-4">
+              <div className="flex justify-center">
+                <img 
+                  src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+                  alt="RETSBA" 
+                  className="h-10"
+                />
+              </div>
+              <DialogTitle className="text-center text-2xl font-bold text-gray-900">
+                {isSignUp ? 'Create Account' : 'Sign In'}
+              </DialogTitle>
+            </DialogHeader>
         
         <div className="space-y-6 p-1">
           {/* Email/Password Form */}
@@ -523,6 +546,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             </button>
           </div>
         </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
