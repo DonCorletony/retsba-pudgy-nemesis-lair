@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -31,15 +31,17 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
-  const bannerInputRef = useRef<HTMLInputElement>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    let mounted = true;
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -47,7 +49,9 @@ const Profile: React.FC = () => {
           navigate('/');
         } else {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            if (mounted) {
+              fetchProfile(session.user.id);
+            }
           }, 0);
         }
       }
@@ -55,6 +59,8 @@ const Profile: React.FC = () => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -65,7 +71,10 @@ const Profile: React.FC = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const fetchProfile = async (userId: string): Promise<void> => {
@@ -100,11 +109,10 @@ const Profile: React.FC = () => {
 
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file);
+      .upload(fileName, file);
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
@@ -113,53 +121,61 @@ const Profile: React.FC = () => {
 
     const { data } = supabase.storage
       .from(bucket)
-      .getPublicUrl(filePath);
+      .getPublicUrl(fileName);
 
     return data.publicUrl;
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
+  const handleImageUpload = async (type: 'avatar' | 'banner') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file || !user) return;
 
-    setUploading(true);
-    try {
-      const bucket = type === 'avatar' ? 'avatars' : 'banners';
-      const imageUrl = await uploadImage(file, bucket);
-      
-      if (imageUrl) {
-        const updateField = type === 'avatar' ? 'avatar_url' : 'banner_url';
+      setUploading(true);
+      try {
+        const bucket = type === 'avatar' ? 'avatars' : 'banners';
+        const imageUrl = await uploadImage(file, bucket);
         
-        const { error } = await supabase
-          .from('profiles')
-          .update({ [updateField]: imageUrl })
-          .eq('user_id', user.id);
+        if (imageUrl) {
+          const updateField = type === 'avatar' ? 'avatar_url' : 'banner_url';
+          
+          const { error } = await supabase
+            .from('profiles')
+            .update({ [updateField]: imageUrl })
+            .eq('user_id', user.id);
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to update profile image."
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: `${type === 'avatar' ? 'Profile' : 'Banner'} image updated successfully!`
-          });
-          if (profile) {
-            setProfile({
-              ...profile,
-              [updateField]: imageUrl
+          if (error) {
+            console.error('Error updating profile:', error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to update profile image."
             });
+          } else {
+            toast({
+              title: "Success",
+              description: `${type === 'avatar' ? 'Profile' : 'Banner'} image updated successfully!`
+            });
+            if (profile) {
+              setProfile({
+                ...profile,
+                [updateField]: imageUrl
+              });
+            }
           }
         }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setUploading(false);
       }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setUploading(false);
-    }
+    };
+    
+    input.click();
   };
 
   const updateProfile = async (): Promise<void> => {
@@ -261,7 +277,7 @@ const Profile: React.FC = () => {
         
         {/* Banner Upload Button */}
         <Button
-          onClick={() => bannerInputRef.current?.click()}
+          onClick={() => handleImageUpload('banner')}
           disabled={uploading}
           className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white border-0"
           size="sm"
@@ -269,14 +285,6 @@ const Profile: React.FC = () => {
           <Camera className="h-4 w-4 mr-2" />
           {uploading ? 'Uploading...' : 'Edit Banner'}
         </Button>
-        
-        <input
-          ref={bannerInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, 'banner')}
-          className="hidden"
-        />
       </div>
 
       {/* Profile Content */}
@@ -295,21 +303,13 @@ const Profile: React.FC = () => {
                 </Avatar>
                 
                 <Button
-                  onClick={() => avatarInputRef.current?.click()}
+                  onClick={() => handleImageUpload('avatar')}
                   disabled={uploading}
                   className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
                   size="sm"
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
-                
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, 'avatar')}
-                  className="hidden"
-                />
               </div>
 
               {/* User Info */}
