@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Edit3, MapPin, Calendar, Loader2 } from 'lucide-react';
+import NavBar from '@/components/NavBar';
 
 interface Profile {
   id: string;
@@ -247,6 +248,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <NavBar />
       {/* Banner Section */}
       <div className="relative w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-secondary/20 overflow-hidden">
         {profile?.banner_url ? (
