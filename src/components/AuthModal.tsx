@@ -309,11 +309,35 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         return;
       }
 
-      // For now, wallet signup needs backend implementation
+      const randomDisplayName = generateRandomDisplayName();
+
+      // Create profile with wallet address
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: crypto.randomUUID(), // Generate a UUID for wallet users
+          username,
+          display_name: randomDisplayName,
+          wallet_address: address
+        });
+
+      if (insertError) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: insertError.message
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Redirect to profile page
+      onOpenChange(false);
+      navigate('/profile');
+      
       toast({
-        variant: "destructive",
-        title: "Not Implemented",
-        description: "Wallet signup requires additional backend setup for message signing and authentication."
+        title: "Success!",
+        description: "Account created successfully!"
       });
     } catch (error: any) {
       toast({
