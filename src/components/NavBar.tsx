@@ -495,6 +495,21 @@ const NavBar = () => {
                 onCheckedChange={setIsDarkMode}
               />
             </div>
+            
+            {/* Sign Out Button - Bottom Right */}
+            {user && (
+              <div className="flex justify-end mt-auto pt-8">
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setIsDropdownOpen(false);
+                  }}
+                  className="text-white/70 hover:text-white text-sm transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

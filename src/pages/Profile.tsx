@@ -332,21 +332,16 @@ const Profile: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-2">
-            {isEditing ? (
-              <>
-                <Button onClick={updateProfile} disabled={loading} className="bg-white/10 backdrop-blur-sm border-white/20">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditing(false)} className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
-                  Cancel
-                </Button>
-              </>
-            ) : null}
-            <Button onClick={signOut} variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
-              Sign Out
-            </Button>
-          </div>
+          {isEditing && (
+            <div className="flex space-x-2">
+              <Button onClick={updateProfile} disabled={loading} className="bg-white/10 backdrop-blur-sm border-white/20">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditing(false)} className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Profile Details Section */}
