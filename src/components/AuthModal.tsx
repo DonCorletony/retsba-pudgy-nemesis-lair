@@ -343,7 +343,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900">
         <DialogHeader className="flex flex-col items-center space-y-4">
           <div className="flex justify-center">
             <img 
