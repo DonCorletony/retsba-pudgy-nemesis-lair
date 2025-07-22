@@ -221,18 +221,18 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-retsba/95 backdrop-blur-sm border-white/20 text-white">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto bg-retsba/95 backdrop-blur-sm border-white/20 text-white">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold text-white">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-6 p-1">
           {/* Email/Password Form */}
           <form onSubmit={isSignUp ? handleEmailSignUp : handleEmailSignIn} className="space-y-4">
             {isSignUp && (
-              <>
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-white">Username</Label>
                   <Input
@@ -267,7 +267,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     className="bg-black/20 border-white/20 text-white placeholder:text-white/60"
                   />
                 </div>
-              </>
+              </div>
             )}
             
             {!isSignUp && (
@@ -315,14 +315,14 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
           </div>
 
           {/* Wallet Authentication */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="text-center">
               <p className="text-white/80 text-sm mb-3">
                 {isSignUp ? 'Sign up with EVM Wallet' : 'Sign in with EVM Wallet'}
               </p>
               
               {isConnected && address ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
                     <p className="text-white/60 text-xs mb-1">Connected Wallet</p>
                     <p className="text-white font-mono text-sm">
@@ -339,7 +339,7 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <p className="text-white/60 text-xs">Connect your wallet to continue</p>
                   <WalletConnect />
                 </div>
