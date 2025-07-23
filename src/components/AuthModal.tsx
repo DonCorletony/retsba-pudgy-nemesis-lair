@@ -394,7 +394,6 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`${showConfirmation ? 'sm:max-w-[350px]' : 'sm:max-w-[425px]'} max-h-[90vh] overflow-y-auto bg-white border-gray-200 text-gray-900 relative`}>
-        {!showConfirmation && <ComingSoonOverlay />}
         {showConfirmation ? (
           <div className="flex flex-col items-center space-y-6 p-6">
             <div className="flex justify-center">
