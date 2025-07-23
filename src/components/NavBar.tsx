@@ -224,7 +224,10 @@ const NavBar = () => {
   // Auth Button Component  
   const AuthButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => (
     <button
-      onClick={onClick}
+      onClick={(e) => {
+        console.log('Auth button clicked!', { authModalOpen });
+        if (onClick) onClick();
+      }}
       className={`bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 ${className}`}
     >
       Sign In / Sign Up
