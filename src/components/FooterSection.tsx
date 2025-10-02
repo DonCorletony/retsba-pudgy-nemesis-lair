@@ -45,7 +45,7 @@ const FooterSection = () => {
               rel="noopener noreferrer" 
               className="text-stroke text-white text-xl hover:text-black transition-colors"
             >
-              Memedepot
+              Memes
             </a>
             <a 
               href="https://dexscreener.com/abstract/0x26e7f241fc81bb168f9f81401184cde74dcc8f31" 
