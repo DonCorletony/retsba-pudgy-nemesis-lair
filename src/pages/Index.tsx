@@ -3,6 +3,7 @@ import React from 'react';
 import NavBar from '../components/NavBar';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
+import GallerySection from '../components/GallerySection';
 import HowToBuySection from '../components/HowToBuySection';
 import { UnifiedTradingInterface } from '../components/UnifiedTradingInterface';
 import FooterSection from '../components/FooterSection';
@@ -13,6 +14,7 @@ const Index = () => {
       <NavBar />
       <HeroSection />
       <AboutSection />
+      <GallerySection />
       <HowToBuySection />
       <FooterSection />
     </div>
