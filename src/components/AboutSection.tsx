@@ -48,9 +48,6 @@ const AboutSection = () => {
         }}>
             <h3 className="text-stroke text-white mb-6 text-4xl">The memecoin with a darkside</h3>
             <p className="text-stroke text-white mb-6 text-2xl">Every great legend in history has one commonality: there is a hero, and there is a villain.  In a world of heroic Pudgy Penguins, Retsba is the villain.  Hailing from the depths of Anti-Abstract, his relentless conquest of evil will not end until he gains total dominion over the Abstract blockchain.</p>
-            <p className="text-stroke text-white mb-6 text-2xl">Retsba is the first purely villainous memecoin in the history of crypto, and his legacy will be cemented on the blockchain in ash.</p>
-            <p className="text-stroke text-white text-xl">
-          </p>
           </motion.div>
         </div>
       </div>
