@@ -32,6 +32,14 @@ const FooterSection = () => {
               Telegram
             </a>
             <a 
+              href="https://giphy.com/channel/Retsba" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-stroke text-white text-xl hover:text-black transition-colors"
+            >
+              Giphy
+            </a>
+            <a 
               href="https://memedepot.com/d/retsba" 
               target="_blank" 
               rel="noopener noreferrer" 

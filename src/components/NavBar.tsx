@@ -377,6 +377,15 @@ const NavBar = () => {
                 ABOUT
               </button>
               <a 
+                href="https://giphy.com/channel/Retsba" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                GIPHY
+              </a>
+              <a 
                 href="/memes" 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -543,6 +552,15 @@ const NavBar = () => {
             >
               About
             </button>
+            <a 
+              href="https://giphy.com/channel/Retsba" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              Giphy
+            </a>
             <a 
               href="/memes" 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
