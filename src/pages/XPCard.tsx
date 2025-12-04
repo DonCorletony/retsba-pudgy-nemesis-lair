@@ -123,21 +123,27 @@ const XPCard = () => {
                   {/* Overlay Content */}
                   <div className="absolute inset-0">
                     {/* Profile Photo & Username Row */}
-                    <div className="absolute left-[4%] bottom-[32%] flex items-center gap-2">
-                      {profilePhoto ? (
-                        <div className="w-[8%] aspect-square rounded-full overflow-hidden border-2 border-white/20" style={{ minWidth: '32px' }}>
+                    <div 
+                      className="absolute flex items-center gap-3"
+                      style={{ left: '24px', bottom: '120px' }}
+                    >
+                      {profilePhoto && (
+                        <div 
+                          className="rounded-full overflow-hidden"
+                          style={{ width: '48px', height: '48px' }}
+                        >
                           <img 
                             src={profilePhoto} 
                             alt="Profile" 
                             className="w-full h-full object-cover"
                           />
                         </div>
-                      ) : null}
+                      )}
                       {username && (
                         <span 
                           className="text-white font-medium"
                           style={{ 
-                            fontSize: 'clamp(12px, 2.5vw, 18px)',
+                            fontSize: '20px',
                             textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                           }}
                         >
@@ -149,14 +155,17 @@ const XPCard = () => {
                     {/* XP Amount */}
                     {xpAmount && (
                       <div 
-                        className="absolute left-[4%] bottom-[18%]"
+                        className="absolute"
                         style={{
-                          fontSize: 'clamp(24px, 6vw, 48px)',
+                          left: '24px',
+                          bottom: '58px',
+                          fontSize: '48px',
                           fontFamily: 'Calibri, Carlito, sans-serif',
                           fontWeight: '400',
                           color: 'white',
                           textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                          letterSpacing: '-0.02em'
+                          letterSpacing: '-0.02em',
+                          lineHeight: '1'
                         }}
                       >
                         {xpAmount} XP
