@@ -95,7 +95,8 @@ const XPCard = () => {
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
                 <div 
                   ref={cardRef}
-                  className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
+                  className="relative rounded-lg overflow-hidden shadow-2xl"
+                  style={{ width: '560px', height: '350px' }}
                 >
                   {/* Template Background */}
                   <img 
