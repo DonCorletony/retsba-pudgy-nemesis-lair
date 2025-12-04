@@ -99,8 +99,8 @@ const XPCard = () => {
                 >
                   {/* Template Background */}
                   <img 
-                    src="/images/xp-template.png" 
-                    alt="XP Card Template" 
+                    src="/images/xp-template-v2.png" 
+                    alt="XP Card Template"
                     className="w-full h-full object-cover"
                   />
                   
