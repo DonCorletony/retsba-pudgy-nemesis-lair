@@ -133,14 +133,15 @@ const XPCard = () => {
                     {/* XP Amount */}
                     {xpAmount && (
                       <div 
-                        className="absolute left-[4%] bottom-[12%]"
+                        className="absolute left-[4%] bottom-[18%]"
                         style={{
-                          fontSize: 'clamp(24px, 6vw, 48px)',
+                          fontSize: '42px',
                           fontFamily: 'Calibri, Carlito, sans-serif',
                           fontWeight: '400',
                           color: 'white',
                           textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                          letterSpacing: '-0.02em'
+                          letterSpacing: '-0.02em',
+                          lineHeight: '1'
                         }}
                       >
                         {xpAmount} XP
