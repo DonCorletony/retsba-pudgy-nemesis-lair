@@ -173,11 +173,10 @@ const XPCard = () => {
               {/* Card Preview - Left Side */}
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
-                <div className="w-full flex justify-center">
-                  <div 
-                    className="relative rounded-lg overflow-hidden shadow-2xl origin-top scale-[0.55] sm:scale-[0.7] md:scale-[0.85] lg:scale-100"
-                    style={{ width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }}
-                  >
+                <div 
+                  className="relative rounded-lg overflow-hidden shadow-2xl"
+                  style={{ width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }}
+                >
                   {/* Template Background */}
                   <img 
                     src="/images/xp-template-v2.png" 
@@ -238,7 +237,6 @@ const XPCard = () => {
                       {xpAmount} XP
                     </div>
                   )}
-                  </div>
                 </div>
               </div>
 
