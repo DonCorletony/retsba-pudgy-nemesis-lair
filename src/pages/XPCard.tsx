@@ -232,8 +232,7 @@ const XPCard = () => {
                     <span 
                       className="absolute text-white font-medium"
                       style={{ 
-                        fontSize: `${(USERNAME_FONT / CARD_WIDTH) * 100}vw`,
-                        maxFontSize: `${USERNAME_FONT}px`,
+                        fontSize: `clamp(16px, ${(USERNAME_FONT / CARD_WIDTH) * 100}vw, ${USERNAME_FONT}px)`,
                         left: profilePhoto ? `${((PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP) / CARD_WIDTH) * 100}%` : `${(PHOTO_LEFT / CARD_WIDTH) * 100}%`,
                         bottom: `${((PHOTO_BOTTOM - PHOTO_SIZE / 2 - USERNAME_FONT / 2) / CARD_HEIGHT) * 100}%`,
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
