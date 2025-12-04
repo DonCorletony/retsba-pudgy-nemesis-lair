@@ -30,7 +30,7 @@ const HeroSection = () => {
             
             
             <div className="mt-10">
-              <a href="#buy-now" className="bg-black hover:bg-opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block hover:translate-y-1">
+              <a href="#buy-now" className="bg-retsba border-2 border-white hover:opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block hover:translate-y-1">
                 BE THE VILLAIN
               </a>
             </div>
