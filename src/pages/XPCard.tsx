@@ -172,7 +172,7 @@ const XPCard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
               {/* Card Preview - Left Side */}
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
