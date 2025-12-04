@@ -392,6 +392,13 @@ const NavBar = () => {
               >
                 MEMES
               </a>
+              <a 
+                href="/xp-card" 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                XP CARD
+              </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => {
@@ -567,6 +574,13 @@ const NavBar = () => {
               onClick={() => setIsDropdownOpen(false)}
             >
               Memes
+            </a>
+            <a 
+              href="/xp-card" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              XP Card
             </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
