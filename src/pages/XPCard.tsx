@@ -161,9 +161,6 @@ const XPCard = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">XP Card</h1>
-            <p className="text-stroke text-white text-xl md:text-2xl max-w-2xl mx-auto">
-              Create your custom XP card to share your weekly achievements
-            </p>
           </motion.div>
 
           <motion.div
