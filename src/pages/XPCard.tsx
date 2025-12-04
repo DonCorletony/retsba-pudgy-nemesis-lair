@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
 
 const XPCard = () => {
   const [username, setUsername] = useState('');
@@ -32,16 +31,86 @@ const XPCard = () => {
   };
 
   const handleDownload = async () => {
-    if (!cardRef.current) return;
-    
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Card dimensions (2x for quality)
+      const width = 1120;
+      const height = 700;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Load and draw template
+      const templateImg = new Image();
+      templateImg.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve, reject) => {
+        templateImg.onload = () => resolve();
+        templateImg.onerror = reject;
+        templateImg.src = '/images/xp-template-v2.png';
       });
       
+      ctx.drawImage(templateImg, 0, 0, width, height);
+
+      // Draw profile photo (circular) - position: left 4%, bottom 34%
+      if (profilePhoto) {
+        const profileImg = new Image();
+        profileImg.crossOrigin = 'anonymous';
+        
+        await new Promise<void>((resolve, reject) => {
+          profileImg.onload = () => resolve();
+          profileImg.onerror = reject;
+          profileImg.src = profilePhoto;
+        });
+
+        const photoSize = width * 0.085; // 8.5% of width
+        const photoX = width * 0.04; // 4% from left
+        const photoY = height * 0.66 - photoSize / 2; // 34% from bottom = 66% from top
+
+        // Draw circular photo
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(profileImg, photoX, photoY, photoSize, photoSize);
+        ctx.restore();
+      }
+
+      // Draw username - next to profile photo
+      if (username) {
+        const photoSize = width * 0.085;
+        const textX = width * 0.04 + (profilePhoto ? photoSize + width * 0.02 : 0);
+        const textY = height * 0.66;
+
+        ctx.font = '500 40px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillStyle = 'white';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(username, textX, textY);
+        ctx.shadowColor = 'transparent';
+      }
+
+      // Draw XP amount - position: left 4%, bottom 16%
+      if (xpAmount) {
+        const textX = width * 0.04;
+        const textY = height * 0.84; // 16% from bottom = 84% from top
+
+        ctx.font = '400 96px Calibri, Carlito, sans-serif';
+        ctx.fillStyle = 'white';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetY = 4;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${xpAmount} XP`, textX, textY);
+        ctx.shadowColor = 'transparent';
+      }
+
+      // Download
       const link = document.createElement('a');
       link.download = `xp-card-${username || 'custom'}.png`;
       link.href = canvas.toDataURL('image/png');
