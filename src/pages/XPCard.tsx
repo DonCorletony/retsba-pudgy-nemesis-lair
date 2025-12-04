@@ -35,12 +35,25 @@ const XPCard = () => {
     if (!cardRef.current) return;
     
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      // Temporarily set fixed dimensions for consistent capture
+      const card = cardRef.current;
+      const originalStyle = card.style.cssText;
+      card.style.width = '896px';
+      card.style.height = '560px';
+      card.style.maxWidth = 'none';
+      
+      // Wait for reflow
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(card, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
+      
+      // Restore original styles
+      card.style.cssText = originalStyle;
       
       const link = document.createElement('a');
       link.download = `xp-card-${username || 'custom'}.png`;
@@ -95,8 +108,7 @@ const XPCard = () => {
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
                 <div 
                   ref={cardRef}
-                  className="relative rounded-lg overflow-hidden shadow-2xl"
-                  style={{ width: '560px', height: '350px' }}
+                  className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
                 >
                   {/* Template Background */}
                   <img 
