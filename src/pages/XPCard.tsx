@@ -193,11 +193,13 @@ const XPCard = () => {
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Preview</h2>
                 <div 
-                  className="relative rounded-lg overflow-hidden shadow-2xl [zoom:0.5] sm:[zoom:0.65] md:[zoom:0.8] lg:[zoom:1]"
+                  className="relative rounded-lg overflow-hidden shadow-2xl"
                   style={{ 
-                    width: `${CARD_WIDTH}px`, 
-                    height: `${CARD_HEIGHT}px`
-                  }}
+                    width: `min(${CARD_WIDTH}px, 90vw)`,
+                    aspectRatio: `${CARD_WIDTH}/${CARD_HEIGHT}`,
+                    WebkitTextSizeAdjust: 'none',
+                    textSizeAdjust: 'none'
+                  } as React.CSSProperties}
                 >
                   {/* Template Background */}
                   <img 
@@ -211,10 +213,10 @@ const XPCard = () => {
                     <div 
                       className="absolute rounded-full overflow-hidden"
                       style={{ 
-                        width: `${PHOTO_SIZE}px`, 
-                        height: `${PHOTO_SIZE}px`,
-                        left: `${PHOTO_LEFT}px`,
-                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE}px`
+                        width: `${(PHOTO_SIZE / CARD_WIDTH) * 100}%`,
+                        aspectRatio: '1',
+                        left: `${(PHOTO_LEFT / CARD_WIDTH) * 100}%`,
+                        bottom: `${((PHOTO_BOTTOM - PHOTO_SIZE) / CARD_HEIGHT) * 100}%`
                       }}
                     >
                       <img 
@@ -230,11 +232,12 @@ const XPCard = () => {
                     <span 
                       className="absolute text-white font-medium"
                       style={{ 
-                        fontSize: `${USERNAME_FONT}px`,
-                        left: profilePhoto ? `${PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP}px` : `${PHOTO_LEFT}px`,
-                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE / 2 - USERNAME_FONT / 2}px`,
+                        fontSize: `${(USERNAME_FONT / CARD_WIDTH) * 100}vw`,
+                        maxFontSize: `${USERNAME_FONT}px`,
+                        left: profilePhoto ? `${((PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP) / CARD_WIDTH) * 100}%` : `${(PHOTO_LEFT / CARD_WIDTH) * 100}%`,
+                        bottom: `${((PHOTO_BOTTOM - PHOTO_SIZE / 2 - USERNAME_FONT / 2) / CARD_HEIGHT) * 100}%`,
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                      }}
+                      } as React.CSSProperties}
                     >
                       {username}
                     </span>
@@ -245,9 +248,9 @@ const XPCard = () => {
                     <div 
                       className="absolute"
                       style={{
-                        left: `${XP_LEFT}px`,
-                        bottom: `${XP_BOTTOM - XP_FONT / 2}px`,
-                        fontSize: `${XP_FONT}px`,
+                        left: `${(XP_LEFT / CARD_WIDTH) * 100}%`,
+                        bottom: `${((XP_BOTTOM - XP_FONT / 2) / CARD_HEIGHT) * 100}%`,
+                        fontSize: `clamp(24px, ${(XP_FONT / CARD_WIDTH) * 100}vw, ${XP_FONT}px)`,
                         fontFamily: 'Calibri, Carlito, sans-serif',
                         fontWeight: '400',
                         color: 'white',
