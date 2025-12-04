@@ -262,7 +262,7 @@ const XPCard = () => {
                 <div className="flex items-center justify-center gap-4 mt-4">
                   <button
                     onClick={prevTemplate}
-                    className="p-2 rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+                    className="p-1 hover:opacity-70 transition-opacity"
                   >
                     <ChevronLeft className="w-5 h-5 text-black" />
                   </button>
@@ -272,8 +272,8 @@ const XPCard = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentTemplate(index)}
-                        className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          index === currentTemplate ? 'bg-black' : 'bg-black/30'
+                        className={`w-2.5 h-2.5 rounded-full transition-colors border border-black ${
+                          index === currentTemplate ? 'bg-black' : 'bg-white'
                         }`}
                       />
                     ))}
@@ -281,7 +281,7 @@ const XPCard = () => {
                   
                   <button
                     onClick={nextTemplate}
-                    className="p-2 rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+                    className="p-1 hover:opacity-70 transition-opacity"
                   >
                     <ChevronRight className="w-5 h-5 text-black" />
                   </button>
