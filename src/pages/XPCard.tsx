@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Upload, Download } from 'lucide-react';
+import { Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Fixed dimensions - same for UI and canvas
@@ -13,20 +13,36 @@ const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
 
 // Positions in pixels (based on 560x350 card)
-const PHOTO_SIZE = 42; // reduced by 20%
+const PHOTO_SIZE = 42;
 const PHOTO_LEFT = 24;
 const PHOTO_BOTTOM = 142;
 const USERNAME_FONT = 22;
 const USERNAME_GAP = 12;
 const XP_FONT = 54;
 const XP_LEFT = 24;
-const XP_BOTTOM = 72; // from bottom of card, just above "Earned this week"
+const XP_BOTTOM = 72;
+
+// Template images
+const TEMPLATES = [
+  '/images/xp-template-v2.png',
+  '/images/xp-template-2.png',
+  '/images/xp-template-3.png',
+];
 
 const XPCard = () => {
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [currentTemplate, setCurrentTemplate] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const nextTemplate = () => {
+    setCurrentTemplate((prev) => (prev + 1) % TEMPLATES.length);
+  };
+
+  const prevTemplate = () => {
+    setCurrentTemplate((prev) => (prev - 1 + TEMPLATES.length) % TEMPLATES.length);
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +77,7 @@ const XPCard = () => {
       await new Promise<void>((resolve, reject) => {
         templateImg.onload = () => resolve();
         templateImg.onerror = reject;
-        templateImg.src = '/images/xp-template-v2.png';
+        templateImg.src = TEMPLATES[currentTemplate];
       });
       
       ctx.drawImage(templateImg, 0, 0, CARD_WIDTH, CARD_HEIGHT);
@@ -182,7 +198,7 @@ const XPCard = () => {
                 >
                   {/* Template Background */}
                   <img 
-                    src="/images/xp-template-v2.png" 
+                    src={TEMPLATES[currentTemplate]} 
                     alt="XP Card Template"
                     className="w-full h-full object-cover"
                   />
@@ -240,6 +256,35 @@ const XPCard = () => {
                       {xpAmount} XP
                     </div>
                   )}
+                </div>
+                
+                {/* Template Navigation */}
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <button
+                    onClick={prevTemplate}
+                    className="p-2 rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-black" />
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    {TEMPLATES.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentTemplate(index)}
+                        className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                          index === currentTemplate ? 'bg-black' : 'bg-black/30'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={nextTemplate}
+                    className="p-2 rounded-full bg-black/10 hover:bg-black/20 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5 text-black" />
+                  </button>
                 </div>
               </div>
 
