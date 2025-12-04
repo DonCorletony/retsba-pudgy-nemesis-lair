@@ -66,7 +66,7 @@ const XPCard = () => {
       
       ctx.drawImage(templateImg, 0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-      // Draw profile photo (circular)
+      // Draw profile photo (circular) with object-cover behavior
       if (profilePhoto) {
         const profileImg = new Image();
         profileImg.crossOrigin = 'anonymous';
@@ -80,12 +80,19 @@ const XPCard = () => {
         const photoX = PHOTO_LEFT;
         const photoY = CARD_HEIGHT - PHOTO_BOTTOM;
 
+        // Calculate object-cover crop (center crop to square)
+        const imgW = profileImg.naturalWidth;
+        const imgH = profileImg.naturalHeight;
+        const minDim = Math.min(imgW, imgH);
+        const srcX = (imgW - minDim) / 2;
+        const srcY = (imgH - minDim) / 2;
+
         ctx.save();
         ctx.beginPath();
         ctx.arc(photoX + PHOTO_SIZE / 2, photoY + PHOTO_SIZE / 2, PHOTO_SIZE / 2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(profileImg, photoX, photoY, PHOTO_SIZE, PHOTO_SIZE);
+        ctx.drawImage(profileImg, srcX, srcY, minDim, minDim, photoX, photoY, PHOTO_SIZE, PHOTO_SIZE);
         ctx.restore();
       }
 
