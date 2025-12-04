@@ -168,10 +168,10 @@ const XPCard = () => {
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
       
-      <section className="pt-24 pb-20">
+      <section className="pt-12 pb-20">
         <div className="container mx-auto px-4">
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
