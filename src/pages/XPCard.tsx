@@ -13,14 +13,14 @@ const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
 
 // Positions in pixels (based on 560x350 card)
-const PHOTO_SIZE = 48;
-const PHOTO_LEFT = 22;
-const PHOTO_BOTTOM = 119; // from bottom of card
-const USERNAME_FONT = 20;
-const USERNAME_GAP = 10;
-const XP_FONT = 48;
-const XP_LEFT = 22;
-const XP_BOTTOM = 56; // from bottom of card
+const PHOTO_SIZE = 52;
+const PHOTO_LEFT = 24;
+const PHOTO_BOTTOM = 142; // from bottom of card
+const USERNAME_FONT = 22;
+const USERNAME_GAP = 12;
+const XP_FONT = 54;
+const XP_LEFT = 24;
+const XP_BOTTOM = 72; // from bottom of card, just above "Earned this week"
 
 const XPCard = () => {
   const [username, setUsername] = useState('');
