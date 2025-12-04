@@ -27,6 +27,8 @@ const TEMPLATES = [
   '/images/xp-template-v2.png',
   '/images/xp-template-2.png',
   '/images/xp-template-3.png',
+  '/images/xp-template-4.png',
+  '/images/xp-template-6.png',
 ];
 
 const XPCard = () => {
