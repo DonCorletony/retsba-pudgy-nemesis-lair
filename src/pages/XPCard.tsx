@@ -35,12 +35,28 @@ const XPCard = () => {
     if (!cardRef.current) return;
     
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      // Clone the card and render at fixed size off-screen for consistent capture
+      const clone = cardRef.current.cloneNode(true) as HTMLElement;
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '560px';
+      clone.style.height = '350px';
+      clone.style.maxWidth = 'none';
+      document.body.appendChild(clone);
+      
+      // Wait for images to load in clone
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
+      
+      // Remove clone
+      document.body.removeChild(clone);
       
       const link = document.createElement('a');
       link.download = `xp-card-${username || 'custom'}.png`;
@@ -107,15 +123,9 @@ const XPCard = () => {
                   {/* Overlay Content */}
                   <div className="absolute inset-0">
                     {/* Profile Photo & Username Row */}
-                    <div 
-                      className="absolute flex items-center gap-2"
-                      style={{ left: '22px', bottom: '112px' }}
-                    >
+                    <div className="absolute left-[4%] bottom-[32%] flex items-center gap-2">
                       {profilePhoto ? (
-                        <div 
-                          className="rounded-full overflow-hidden border-2 border-white/20"
-                          style={{ width: '44px', height: '44px' }}
-                        >
+                        <div className="w-[8%] aspect-square rounded-full overflow-hidden border-2 border-white/20" style={{ minWidth: '32px' }}>
                           <img 
                             src={profilePhoto} 
                             alt="Profile" 
@@ -127,7 +137,7 @@ const XPCard = () => {
                         <span 
                           className="text-white font-medium"
                           style={{ 
-                            fontSize: '18px',
+                            fontSize: 'clamp(12px, 2.5vw, 18px)',
                             textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                           }}
                         >
@@ -139,17 +149,14 @@ const XPCard = () => {
                     {/* XP Amount */}
                     {xpAmount && (
                       <div 
-                        className="absolute"
+                        className="absolute left-[4%] bottom-[18%]"
                         style={{
-                          left: '22px',
-                          bottom: '63px',
-                          fontSize: '42px',
+                          fontSize: 'clamp(24px, 6vw, 48px)',
                           fontFamily: 'Calibri, Carlito, sans-serif',
                           fontWeight: '400',
                           color: 'white',
                           textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                          letterSpacing: '-0.02em',
-                          lineHeight: '1'
+                          letterSpacing: '-0.02em'
                         }}
                       >
                         {xpAmount} XP
