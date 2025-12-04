@@ -26,7 +26,7 @@ const App = () => {
             <Route path="/freemoney" element={<FreeMoney />} />
             <Route path="/test" element={<Test />} />
             <Route path="/memes" element={<Memes />} />
-            <Route path="/xp-card" element={<XPCard />} />
+            <Route path="/xp" element={<XPCard />} />
             <Route path="/createaccount" element={<CreateAccount />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/auth" element={<Auth />} />
