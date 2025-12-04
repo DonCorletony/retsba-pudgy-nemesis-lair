@@ -6,7 +6,7 @@ const HeroSection = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center">
-          <motion.img src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" alt="RETSBA" className="w-full max-w-3xl mx-auto pulse-animation villain-shadow" initial={{
+          <motion.img src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" alt="RETSBA" className="w-full max-w-3xl mx-auto pulse-animation" initial={{
           y: -50,
           opacity: 0
         }} animate={{
