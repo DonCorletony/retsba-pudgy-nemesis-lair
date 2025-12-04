@@ -13,9 +13,9 @@ const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
 
 // Positions in pixels (based on 560x350 card)
-const PHOTO_SIZE = 52;
+const PHOTO_SIZE = 42; // reduced by 20%
 const PHOTO_LEFT = 24;
-const PHOTO_BOTTOM = 142; // from bottom of card
+const PHOTO_BOTTOM = 142;
 const USERNAME_FONT = 22;
 const USERNAME_GAP = 12;
 const XP_FONT = 54;
@@ -92,7 +92,7 @@ const XPCard = () => {
       // Draw username
       if (username) {
         const textX = profilePhoto ? PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP : PHOTO_LEFT;
-        const textY = CARD_HEIGHT - PHOTO_BOTTOM;
+        const textY = CARD_HEIGHT - PHOTO_BOTTOM + PHOTO_SIZE / 2; // center with photo
 
         ctx.font = `500 ${USERNAME_FONT}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = 'white';
@@ -206,7 +206,7 @@ const XPCard = () => {
                       style={{ 
                         fontSize: `${USERNAME_FONT}px`,
                         left: profilePhoto ? `${PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP}px` : `${PHOTO_LEFT}px`,
-                        bottom: `${PHOTO_BOTTOM - USERNAME_FONT / 2}px`,
+                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE / 2 - USERNAME_FONT / 2}px`,
                         textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                       }}
                     >
