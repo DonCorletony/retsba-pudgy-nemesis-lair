@@ -8,11 +8,24 @@ import { Button } from '@/components/ui/button';
 import { Upload, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Fixed dimensions - same for UI and canvas
+const CARD_WIDTH = 560;
+const CARD_HEIGHT = 350;
+
+// Positions in pixels (based on 560x350 card)
+const PHOTO_SIZE = 48;
+const PHOTO_LEFT = 22;
+const PHOTO_BOTTOM = 119; // from bottom of card
+const USERNAME_FONT = 20;
+const USERNAME_GAP = 10;
+const XP_FONT = 48;
+const XP_LEFT = 22;
+const XP_BOTTOM = 56; // from bottom of card
+
 const XPCard = () => {
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,15 +45,14 @@ const XPCard = () => {
 
   const handleDownload = async () => {
     try {
+      const scale = 2;
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Card dimensions (2x for quality)
-      const width = 1120;
-      const height = 700;
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = CARD_WIDTH * scale;
+      canvas.height = CARD_HEIGHT * scale;
+      ctx.scale(scale, scale);
 
       // Load and draw template
       const templateImg = new Image();
@@ -52,9 +64,9 @@ const XPCard = () => {
         templateImg.src = '/images/xp-template-v2.png';
       });
       
-      ctx.drawImage(templateImg, 0, 0, width, height);
+      ctx.drawImage(templateImg, 0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-      // Draw profile photo (circular) - position: left 4%, bottom 34%
+      // Draw profile photo (circular)
       if (profilePhoto) {
         const profileImg = new Image();
         profileImg.crossOrigin = 'anonymous';
@@ -65,49 +77,46 @@ const XPCard = () => {
           profileImg.src = profilePhoto;
         });
 
-        const photoSize = width * 0.085; // 8.5% of width
-        const photoX = width * 0.04; // 4% from left
-        const photoY = height * 0.66 - photoSize / 2; // 34% from bottom = 66% from top
+        const photoX = PHOTO_LEFT;
+        const photoY = CARD_HEIGHT - PHOTO_BOTTOM - PHOTO_SIZE / 2;
 
-        // Draw circular photo
         ctx.save();
         ctx.beginPath();
-        ctx.arc(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2, 0, Math.PI * 2);
+        ctx.arc(photoX + PHOTO_SIZE / 2, photoY + PHOTO_SIZE / 2, PHOTO_SIZE / 2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(profileImg, photoX, photoY, photoSize, photoSize);
+        ctx.drawImage(profileImg, photoX, photoY, PHOTO_SIZE, PHOTO_SIZE);
         ctx.restore();
       }
 
-      // Draw username - next to profile photo
+      // Draw username
       if (username) {
-        const photoSize = width * 0.085;
-        const textX = width * 0.04 + (profilePhoto ? photoSize + width * 0.02 : 0);
-        const textY = height * 0.66;
+        const textX = profilePhoto ? PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP : PHOTO_LEFT;
+        const textY = CARD_HEIGHT - PHOTO_BOTTOM;
 
-        ctx.font = '500 40px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.font = `500 ${USERNAME_FONT}px -apple-system, BlinkMacSystemFont, sans-serif`;
         ctx.fillStyle = 'white';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 4;
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
         ctx.textBaseline = 'middle';
         ctx.fillText(username, textX, textY);
         ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
       }
 
-      // Draw XP amount - position: left 4%, bottom 16%
+      // Draw XP amount
       if (xpAmount) {
-        const textX = width * 0.04;
-        const textY = height * 0.84; // 16% from bottom = 84% from top
+        const textX = XP_LEFT;
+        const textY = CARD_HEIGHT - XP_BOTTOM;
 
-        ctx.font = '400 96px Calibri, Carlito, sans-serif';
+        ctx.font = `400 ${XP_FONT}px Calibri, Carlito, sans-serif`;
         ctx.fillStyle = 'white';
         ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 16;
-        ctx.shadowOffsetY = 4;
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
         ctx.textBaseline = 'middle';
         ctx.fillText(`${xpAmount} XP`, textX, textY);
-        ctx.shadowColor = 'transparent';
       }
 
       // Download
@@ -123,9 +132,7 @@ const XPCard = () => {
   };
 
   const formatXP = (value: string) => {
-    // Remove non-numeric characters except commas
     const numericValue = value.replace(/[^0-9]/g, '');
-    // Add commas for thousands
     return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
@@ -163,8 +170,8 @@ const XPCard = () => {
               <div className="flex flex-col items-center">
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
                 <div 
-                  ref={cardRef}
-                  className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
+                  className="relative rounded-lg overflow-hidden shadow-2xl"
+                  style={{ width: `${CARD_WIDTH}px`, height: `${CARD_HEIGHT}px` }}
                 >
                   {/* Template Background */}
                   <img 
@@ -173,57 +180,59 @@ const XPCard = () => {
                     className="w-full h-full object-cover"
                   />
                   
-                  {/* Overlay Content */}
-                  <div className="absolute inset-0">
-                    {/* Profile Photo & Username Row */}
-                    {(profilePhoto || username) && (
-                      <div 
-                        className="absolute flex items-center gap-[2%]"
-                        style={{ left: '4%', bottom: '34%' }}
-                      >
-                        {profilePhoto && (
-                          <div 
-                            className="rounded-full overflow-hidden w-[8.5%] aspect-square"
-                          >
-                            <img 
-                              src={profilePhoto} 
-                              alt="Profile" 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        {username && (
-                          <span 
-                            className="text-white font-medium text-[20px]"
-                            style={{ 
-                              textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                            }}
-                          >
-                            {username}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* XP Amount */}
-                    {xpAmount && (
-                      <div 
-                        className="absolute text-[48px]"
-                        style={{
-                          left: '4%',
-                          bottom: '16%',
-                          fontFamily: 'Calibri, Carlito, sans-serif',
-                          fontWeight: '400',
-                          color: 'white',
-                          textShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                          letterSpacing: '-0.02em',
-                          lineHeight: '1'
-                        }}
-                      >
-                        {xpAmount} XP
-                      </div>
-                    )}
-                  </div>
+                  {/* Profile Photo */}
+                  {profilePhoto && (
+                    <div 
+                      className="absolute rounded-full overflow-hidden"
+                      style={{ 
+                        width: `${PHOTO_SIZE}px`, 
+                        height: `${PHOTO_SIZE}px`,
+                        left: `${PHOTO_LEFT}px`,
+                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE / 2}px`
+                      }}
+                    >
+                      <img 
+                        src={profilePhoto} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Username */}
+                  {username && (
+                    <span 
+                      className="absolute text-white font-medium"
+                      style={{ 
+                        fontSize: `${USERNAME_FONT}px`,
+                        left: profilePhoto ? `${PHOTO_LEFT + PHOTO_SIZE + USERNAME_GAP}px` : `${PHOTO_LEFT}px`,
+                        bottom: `${PHOTO_BOTTOM - USERNAME_FONT / 2}px`,
+                        textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {username}
+                    </span>
+                  )}
+
+                  {/* XP Amount */}
+                  {xpAmount && (
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: `${XP_LEFT}px`,
+                        bottom: `${XP_BOTTOM - XP_FONT / 2}px`,
+                        fontSize: `${XP_FONT}px`,
+                        fontFamily: 'Calibri, Carlito, sans-serif',
+                        fontWeight: '400',
+                        color: 'white',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                        letterSpacing: '-0.02em',
+                        lineHeight: '1'
+                      }}
+                    >
+                      {xpAmount} XP
+                    </div>
+                  )}
                 </div>
               </div>
 
