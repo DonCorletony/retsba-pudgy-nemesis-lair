@@ -64,7 +64,7 @@ const XPCard = () => {
 
   const handleDownload = async () => {
     try {
-      const scale = 2;
+      const scale = 4; // 4x resolution for high quality output (2240x1400px)
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
