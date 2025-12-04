@@ -183,7 +183,7 @@ const XPCard = () => {
           </motion.div>
 
           <motion.div
-            className="bg-white dark:bg-black rounded-2xl p-6 md:p-8 max-w-6xl mx-auto"
+            className="bg-white dark:bg-retsba rounded-2xl p-6 md:p-8 max-w-6xl mx-auto border border-transparent dark:border-white/20"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -304,7 +304,7 @@ const XPCard = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     maxLength={30}
-                    className="bg-white dark:bg-black border-black dark:border-white text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 focus:border-black dark:focus:border-white"
+                    className="bg-white dark:bg-retsba border-black dark:border-white text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 focus:border-black dark:focus:border-white"
                   />
                 </div>
 
@@ -316,7 +316,7 @@ const XPCard = () => {
                     placeholder="e.g. 60,000"
                     value={xpAmount}
                     onChange={handleXPChange}
-                    className="bg-white dark:bg-black border-black dark:border-white text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 focus:border-black dark:focus:border-white"
+                    className="bg-white dark:bg-retsba border-black dark:border-white text-black dark:text-white placeholder:text-black/40 dark:placeholder:text-white/40 focus:border-black dark:focus:border-white"
                   />
                 </div>
 
@@ -332,7 +332,7 @@ const XPCard = () => {
                   <Button
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full bg-white dark:bg-black border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 hover:text-black dark:hover:text-white"
+                    className="w-full bg-white dark:bg-retsba border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     {profilePhoto ? 'Change Photo' : 'Upload Profile Photo'}
