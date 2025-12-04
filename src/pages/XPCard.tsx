@@ -35,28 +35,12 @@ const XPCard = () => {
     if (!cardRef.current) return;
     
     try {
-      // Clone the card and render at fixed size off-screen for consistent capture
-      const clone = cardRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.width = '560px';
-      clone.style.height = '350px';
-      clone.style.maxWidth = 'none';
-      document.body.appendChild(clone);
-      
-      // Wait for images to load in clone
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const canvas = await html2canvas(clone, {
+      const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
-      
-      // Remove clone
-      document.body.removeChild(clone);
       
       const link = document.createElement('a');
       link.download = `xp-card-${username || 'custom'}.png`;
@@ -107,11 +91,12 @@ const XPCard = () => {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Card Preview - Left Side */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center overflow-x-auto">
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
                 <div 
                   ref={cardRef}
-                  className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
+                  className="relative rounded-lg overflow-hidden shadow-2xl"
+                  style={{ width: '560px', height: '350px', flexShrink: 0 }}
                 >
                   {/* Template Background */}
                   <img 
