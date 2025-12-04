@@ -91,12 +91,11 @@ const XPCard = () => {
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Card Preview - Left Side */}
-              <div className="flex flex-col items-center overflow-x-auto">
+              <div className="flex flex-col items-center">
                 <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
                 <div 
                   ref={cardRef}
-                  className="relative rounded-lg overflow-hidden shadow-2xl"
-                  style={{ width: '560px', height: '350px', flexShrink: 0 }}
+                  className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
                 >
                   {/* Template Background */}
                   <img 
@@ -108,43 +107,42 @@ const XPCard = () => {
                   {/* Overlay Content */}
                   <div className="absolute inset-0">
                     {/* Profile Photo & Username Row */}
-                    <div 
-                      className="absolute flex items-center gap-3"
-                      style={{ left: '24px', bottom: '120px' }}
-                    >
-                      {profilePhoto && (
-                        <div 
-                          className="rounded-full overflow-hidden"
-                          style={{ width: '48px', height: '48px' }}
-                        >
-                          <img 
-                            src={profilePhoto} 
-                            alt="Profile" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      {username && (
-                        <span 
-                          className="text-white font-medium"
-                          style={{ 
-                            fontSize: '20px',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                          }}
-                        >
-                          {username}
-                        </span>
-                      )}
-                    </div>
+                    {(profilePhoto || username) && (
+                      <div 
+                        className="absolute flex items-center gap-[2%]"
+                        style={{ left: '4%', bottom: '34%' }}
+                      >
+                        {profilePhoto && (
+                          <div 
+                            className="rounded-full overflow-hidden w-[8.5%] aspect-square"
+                          >
+                            <img 
+                              src={profilePhoto} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        {username && (
+                          <span 
+                            className="text-white font-medium text-[20px]"
+                            style={{ 
+                              textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                            }}
+                          >
+                            {username}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     
                     {/* XP Amount */}
                     {xpAmount && (
                       <div 
-                        className="absolute"
+                        className="absolute text-[48px]"
                         style={{
-                          left: '24px',
-                          bottom: '58px',
-                          fontSize: '48px',
+                          left: '4%',
+                          bottom: '16%',
                           fontFamily: 'Calibri, Carlito, sans-serif',
                           fontWeight: '400',
                           color: 'white',
