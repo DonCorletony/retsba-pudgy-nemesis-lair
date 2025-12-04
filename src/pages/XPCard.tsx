@@ -288,6 +288,12 @@ const XPCard = () => {
                         <img src={profilePhoto} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                       <span className="text-white/60 text-sm">Photo uploaded</span>
+                      <button
+                        onClick={() => setProfilePhoto(null)}
+                        className="text-red-400 hover:text-red-300 text-sm underline"
+                      >
+                        Remove
+                      </button>
                     </div>
                   )}
                 </div>
