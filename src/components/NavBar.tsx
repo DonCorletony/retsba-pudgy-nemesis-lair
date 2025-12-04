@@ -238,8 +238,10 @@ const NavBar = () => {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark-mode');
+      document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark-mode');
+      document.documentElement.classList.remove('dark');
     }
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
