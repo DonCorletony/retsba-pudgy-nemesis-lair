@@ -35,25 +35,12 @@ const XPCard = () => {
     if (!cardRef.current) return;
     
     try {
-      // Temporarily set fixed dimensions for consistent capture
-      const card = cardRef.current;
-      const originalStyle = card.style.cssText;
-      card.style.width = '896px';
-      card.style.height = '560px';
-      card.style.maxWidth = 'none';
-      
-      // Wait for reflow
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const canvas = await html2canvas(card, {
+      const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
-      
-      // Restore original styles
-      card.style.cssText = originalStyle;
       
       const link = document.createElement('a');
       link.download = `xp-card-${username || 'custom'}.png`;
@@ -120,9 +107,15 @@ const XPCard = () => {
                   {/* Overlay Content */}
                   <div className="absolute inset-0">
                     {/* Profile Photo & Username Row */}
-                    <div className="absolute left-[4%] bottom-[32%] flex items-center gap-2">
+                    <div 
+                      className="absolute flex items-center gap-2"
+                      style={{ left: '22px', bottom: '112px' }}
+                    >
                       {profilePhoto ? (
-                        <div className="w-[8%] aspect-square rounded-full overflow-hidden border-2 border-white/20" style={{ width: '8%', minWidth: '32px' }}>
+                        <div 
+                          className="rounded-full overflow-hidden border-2 border-white/20"
+                          style={{ width: '44px', height: '44px' }}
+                        >
                           <img 
                             src={profilePhoto} 
                             alt="Profile" 
@@ -134,7 +127,7 @@ const XPCard = () => {
                         <span 
                           className="text-white font-medium"
                           style={{ 
-                            fontSize: 'clamp(12px, 2.5vw, 18px)',
+                            fontSize: '18px',
                             textShadow: '0 2px 4px rgba(0,0,0,0.5)'
                           }}
                         >
@@ -146,8 +139,10 @@ const XPCard = () => {
                     {/* XP Amount */}
                     {xpAmount && (
                       <div 
-                        className="absolute left-[4%] bottom-[18%]"
+                        className="absolute"
                         style={{
+                          left: '22px',
+                          bottom: '63px',
                           fontSize: '42px',
                           fontFamily: 'Calibri, Carlito, sans-serif',
                           fontWeight: '400',
