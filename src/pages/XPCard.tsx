@@ -168,7 +168,7 @@ const XPCard = () => {
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
       
-      <section className="pt-12 pb-20">
+      <section className="pt-16 pb-20">
         <div className="container mx-auto px-4">
           <motion.div
             className="text-center mb-6"
