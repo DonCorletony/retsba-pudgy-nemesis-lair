@@ -97,12 +97,8 @@ const XPCard = () => {
                   ref={cardRef}
                   className="relative w-full max-w-[560px] aspect-[1.6/1] rounded-lg overflow-hidden shadow-2xl"
                 >
-                  {/* Template Background */}
-                  <img 
-                    src="/images/xp-template.png" 
-                    alt="XP Card Template" 
-                    className="w-full h-full object-cover"
-                  />
+                  {/* Template Background - placeholder */}
+                  <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900" />
                   
                   {/* Overlay Content */}
                   <div className="absolute inset-0">
