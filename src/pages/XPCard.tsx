@@ -164,7 +164,7 @@ const XPCard = () => {
           </motion.div>
 
           <motion.div
-            className="bg-black/40 backdrop-blur-sm rounded-2xl p-6 md:p-8 max-w-6xl mx-auto"
+            className="bg-white rounded-2xl p-6 md:p-8 max-w-6xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -172,7 +172,7 @@ const XPCard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
               {/* Card Preview - Left Side */}
               <div className="flex flex-col items-center">
-                <h2 className="text-xl font-semibold mb-4 text-white/80">Preview</h2>
+                <h2 className="text-xl font-semibold mb-4 text-black">Preview</h2>
                 <div 
                   className="relative rounded-lg overflow-hidden shadow-2xl [zoom:0.5] sm:[zoom:0.65] md:[zoom:0.8] lg:[zoom:1]"
                   style={{ 
@@ -245,10 +245,10 @@ const XPCard = () => {
 
               {/* Input Controls - Right Side */}
               <div className="flex flex-col justify-center space-y-6">
-                <h2 className="text-xl font-semibold mb-2 text-white/80">Customize Your Card</h2>
+                <h2 className="text-xl font-semibold mb-2 text-black">Customize Your Card</h2>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-white/90">Username</Label>
+                  <Label htmlFor="username" className="text-black">Username</Label>
                   <Input
                     id="username"
                     type="text"
@@ -256,24 +256,24 @@ const XPCard = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     maxLength={30}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                    className="bg-white border-black text-black placeholder:text-black/40 focus:border-black"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="xp" className="text-white/90">XP Amount</Label>
+                  <Label htmlFor="xp" className="text-black">XP Amount</Label>
                   <Input
                     id="xp"
                     type="text"
                     placeholder="e.g. 60,000"
                     value={xpAmount}
                     onChange={handleXPChange}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
+                    className="bg-white border-black text-black placeholder:text-black/40 focus:border-black"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white/90">Profile Photo</Label>
+                  <Label className="text-black">Profile Photo</Label>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -284,17 +284,17 @@ const XPCard = () => {
                   <Button
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    className="w-full bg-white border-black text-black hover:bg-gray-100 hover:text-black"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     {profilePhoto ? 'Change Photo' : 'Upload Profile Photo'}
                   </Button>
                   {profilePhoto && (
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
+                      <div className="w-10 h-10 rounded-full overflow-hidden border border-black">
                         <img src={profilePhoto} alt="Preview" className="w-full h-full object-cover" />
                       </div>
-                      <span className="text-white/60 text-sm">Photo uploaded</span>
+                      <span className="text-black/60 text-sm">Photo uploaded</span>
                       <button
                         onClick={() => setProfilePhoto(null)}
                         className="text-red-400 hover:text-red-300 text-sm underline"
@@ -307,7 +307,7 @@ const XPCard = () => {
 
                 <Button
                   onClick={handleDownload}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3"
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3"
                   disabled={!username && !xpAmount}
                 >
                   <Download className="w-4 h-4 mr-2" />
