@@ -78,7 +78,7 @@ const XPCard = () => {
         });
 
         const photoX = PHOTO_LEFT;
-        const photoY = CARD_HEIGHT - PHOTO_BOTTOM - PHOTO_SIZE / 2;
+        const photoY = CARD_HEIGHT - PHOTO_BOTTOM;
 
         ctx.save();
         ctx.beginPath();
@@ -188,7 +188,7 @@ const XPCard = () => {
                         width: `${PHOTO_SIZE}px`, 
                         height: `${PHOTO_SIZE}px`,
                         left: `${PHOTO_LEFT}px`,
-                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE / 2}px`
+                        bottom: `${PHOTO_BOTTOM - PHOTO_SIZE}px`
                       }}
                     >
                       <img 
