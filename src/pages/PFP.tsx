@@ -18,14 +18,9 @@ const PFP = () => {
             transition={{ duration: 0.6 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              <span className="text-white">Profile Picture </span>
-              <span className="text-primary">Converter</span>
+            <h1 className="text-4xl md:text-6xl font-bold">
+              <span className="text-white">Profile Picture Converter</span>
             </h1>
-            <p className="text-white/70 text-lg md:text-xl">
-              Transform your Pudgy Penguin into a fearsome Retsba. 
-              Upload your NFT and watch the magic happen.
-            </p>
           </motion.div>
         </div>
       </section>
