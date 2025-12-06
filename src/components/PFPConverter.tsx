@@ -4,6 +4,7 @@ import { Upload, Sparkles, Download, RefreshCw, AlertCircle, Check, X } from 'lu
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import retsbaBase from '@/assets/retsba-base.png';
 
 interface DetectedTraits {
   isPudgy: boolean;
@@ -320,10 +321,13 @@ const PFPConverter = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-center text-white/40"
+                  className="w-full"
                 >
-                  <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-40" />
-                  <p>Upload a Pudgy to see the magic</p>
+                  <img
+                    src={retsbaBase}
+                    alt="Retsba Base Template"
+                    className="w-full h-auto rounded-xl max-h-[400px] object-contain mx-auto"
+                  />
                 </motion.div>
               )}
 
