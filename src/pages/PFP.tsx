@@ -31,7 +31,7 @@ const PFP = () => {
       </section>
 
       {/* Converter Section */}
-      <section className="py-8">
+      <section className="py-5">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
