@@ -199,9 +199,9 @@ const PFPConverter = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side - Upload & Original */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="text-center lg:text-left">
-            <h2 className="text-2xl font-bold text-white mb-2">Your Pudgy</h2>
+            <h2 className="text-2xl font-bold text-white mb-1">Your Pudgy</h2>
             <p className="text-white/60 text-sm">Upload your Pudgy Penguin or Lil Pudgy NFT</p>
           </div>
 
@@ -307,9 +307,9 @@ const PFPConverter = () => {
         </div>
 
         {/* Right Side - Retsbafied Result */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="text-center lg:text-left">
-            <h2 className="text-2xl font-bold text-white mb-2">Retsbafied</h2>
+            <h2 className="text-2xl font-bold text-white mb-1">Retsbafied</h2>
             <p className="text-white/60 text-sm">Your Pudgy, transformed into a Retsba</p>
           </div>
 
