@@ -401,6 +401,13 @@ const NavBar = () => {
               >
                 XP CARD
               </a>
+              <a 
+                href="/pfp" 
+                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                PFP
+              </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => {
@@ -583,6 +590,13 @@ const NavBar = () => {
               onClick={() => setIsDropdownOpen(false)}
             >
               XP Card
+            </a>
+            <a 
+              href="/pfp" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              PFP
             </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
