@@ -9,27 +9,20 @@ const PFP = () => {
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
       
-      {/* Hero Section */}
-      <section className="pt-20 pb-6">
+      <section className="pt-16 pb-20">
         <div className="container mx-auto px-4">
           <motion.div
+            className="text-center mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center max-w-3xl mx-auto"
           >
-            <h1 className="text-4xl md:text-6xl font-bold">
-              <span className="text-white">Profile Picture Converter</span>
-            </h1>
+            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">Profile Picture Converter</h1>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Converter Section */}
-      <section className="py-5">
-        <div className="container mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            className="bg-white rounded-2xl p-6 md:p-8 max-w-5xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
