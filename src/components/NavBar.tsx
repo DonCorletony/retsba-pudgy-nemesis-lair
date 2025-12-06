@@ -361,7 +361,7 @@ const NavBar = () => {
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: 0.3 }}
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+            <div className="container mx-auto px-4 py-4 flex flex-col space-y-3">
               <a 
                 href="/" 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
@@ -544,16 +544,16 @@ const NavBar = () => {
         )}
         
         <div className="p-6 pt-20">
-          <div className="flex flex-col space-y-6">
+          <div className="flex flex-col space-y-4">
             <a 
               href="/" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               Home
             </a>
             <button 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20 text-left"
               onClick={() => {
                 navigateToSection('about');
                 setIsDropdownOpen(false);
@@ -565,27 +565,27 @@ const NavBar = () => {
               href="https://giphy.com/channel/Retsba" 
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               Giphy
             </a>
             <a 
               href="/memes" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               Memes
             </a>
             <a 
               href="/xp-card" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               XP Card
             </a>
             <button 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-4 border-b border-white/20 text-left"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-3 border-b border-white/20 text-left"
               onClick={() => {
                 navigateToSection('buy-now');
                 setIsDropdownOpen(false);
