@@ -283,10 +283,11 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - This is a novelty/joke glasses style with nose and mustache attached
 
 "Nerd_Normal" (RED FRAMES + WHITE BANDAGE):
-- Has RED frames
+- Has RED frames (can be square/rectangular shape)
 - Has a small WHITE BANDAGE on the BRIDGE of the glasses (the part between the lenses)
 - NO red nose, NO white mustache
 - Regular nerd glasses with bandage tape on bridge
+- IMPORTANT: Red square/rectangular glasses with a bandage = Nerd_Normal
 
 "Reading_Cute" (BLUE FRAMES, CIRCULAR):
 - Has BLUE frames (not red, not black)
@@ -347,16 +348,20 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Standard neutral expression with larger oval eyes
 - This is the KEY distinction: OVAL/OVULAR shaped eyes (NOT small dots)
 
-DECISION RULES:
+DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
-- RED frames + WHITE BANDAGE on bridge → Nerd_Normal
+- RED frames (any shape) + WHITE BANDAGE on bridge → Nerd_Normal
+- RED frames (square/rectangular) with bandage → Nerd_Normal
 - BLUE frames, circular, no dots → Reading_Cute
 - BLUE frames, circular, with black dots → Reading_Cross_eyed
 - TAN frames, rectangular, open eyes → Nerd_Cute
 - TAN frames, rectangular, closed eyes + blush → Nerd_Blushing
-- NO glasses + eyes looking INWARD/crossed → Cross_Eyed
+- NO glasses + small beady dot eyes → Cross_Eyed
 - NO glasses + one eye closed → Winking
 - NO glasses + angry expression → Mad
+- NO glasses + larger oval eyes → Normal
+
+CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
 HEAD TRAIT EXAMPLES:
 
