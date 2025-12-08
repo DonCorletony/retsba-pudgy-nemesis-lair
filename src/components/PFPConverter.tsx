@@ -30,6 +30,41 @@ const LIL_BLANK_FACE_TRAITS = [
   'Normal',
 ];
 
+// Lil face trait remapping - when detected trait maps to a different overlay image
+// The original trait is used for detection, but the "_2" version is used for the output
+const LIL_FACE_TRAIT_REMAP: Record<string, string> = {
+  'Reading_Cute': 'Reading_Cute_2',
+  'Reading_Cross_eyed': 'Reading_Cross_eyed_2',
+  'Nerd_Normal': 'Nerd_Normal_2',
+  'Scouter': 'Scouter_2',
+  'Goofy_Glasses': 'Goofy_Glasses_2',
+  'Nerd_Blushing': 'Nerd_Blushing_2',
+  'Reading_Normal': 'Reading_Normal_2',
+  'Nerd_Cute': 'Nerd_Cute_2',
+};
+
+// Import Lil face trait overlays
+import LilNerdCute2 from '@/assets/pfp-traits/lil/face/Nerd_Cute_2.png';
+import LilReadingNormal2 from '@/assets/pfp-traits/lil/face/Reading_Normal_2.png';
+import LilNerdBlushing2 from '@/assets/pfp-traits/lil/face/Nerd_Blushing_2.png';
+import LilGoofyGlasses2 from '@/assets/pfp-traits/lil/face/Goofy_Glasses_2.png';
+import LilScouter2 from '@/assets/pfp-traits/lil/face/Scouter_2.png';
+import LilNerdNormal2 from '@/assets/pfp-traits/lil/face/Nerd_Normal_2.png';
+import LilReadingCrossEyed2 from '@/assets/pfp-traits/lil/face/Reading_Cross_eyed_2.png';
+import LilReadingCute2 from '@/assets/pfp-traits/lil/face/Reading_Cute_2.png';
+
+// Mapping of Lil face trait names to imported images
+const LIL_FACE_TRAIT_MAP: Record<string, string> = {
+  Reading_Cute_2: LilReadingCute2,
+  Reading_Cross_eyed_2: LilReadingCrossEyed2,
+  Nerd_Normal_2: LilNerdNormal2,
+  Scouter_2: LilScouter2,
+  Goofy_Glasses_2: LilGoofyGlasses2,
+  Nerd_Blushing_2: LilNerdBlushing2,
+  Reading_Normal_2: LilReadingNormal2,
+  Nerd_Cute_2: LilNerdCute2,
+};
+
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
   'Headband',
@@ -566,12 +601,24 @@ const PFPConverter = () => {
       }
 
       // 2. Apply face trait overlay (middle layer)
-      if (faceTrait && FACE_TRAIT_MAP[faceTrait]) {
-        console.log(`Applying face trait: ${faceTrait}`);
-        const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
-        ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
-      } else if (faceTrait) {
-        console.log(`No overlay found for face trait: ${faceTrait}`);
+      if (faceTrait) {
+        // In Lil mode, check if the trait should be remapped to a different overlay
+        if (isLilMode && LIL_FACE_TRAIT_REMAP[faceTrait]) {
+          const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
+          if (LIL_FACE_TRAIT_MAP[remappedTrait]) {
+            console.log(`Applying Lil face trait (remapped): ${faceTrait} -> ${remappedTrait}`);
+            const faceOverlay = await loadImage(LIL_FACE_TRAIT_MAP[remappedTrait]);
+            ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+          } else {
+            console.log(`No Lil overlay found for remapped face trait: ${remappedTrait}`);
+          }
+        } else if (FACE_TRAIT_MAP[faceTrait]) {
+          console.log(`Applying face trait: ${faceTrait}`);
+          const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
+          ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+        } else {
+          console.log(`No overlay found for face trait: ${faceTrait}`);
+        }
       }
 
       // 3. Apply head trait overlay last (top layer)
