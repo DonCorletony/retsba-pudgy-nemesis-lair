@@ -196,11 +196,19 @@ Before analyzing traits, determine if this is a special penguin type:
 If the penguin matches "left_facing", set "isSpecialPenguin" to "left_facing" and set all traits to null.
 If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_kimono_special" - this will trigger special handling.
 
-GOLD SKIN DETECTION - VERY IMPORTANT:
-Check if the penguin has "Gold" skin. Gold skin penguins have a BRIGHT YELLOW or GOLDEN body color instead of the standard white/cream body. The gold/yellow color covers the penguin's entire body including the head, cheeks, and visible body areas. Gold skin may or may not have sparkle effects - the key identifier is the YELLOW/GOLD BODY COLOR rather than white. Standard penguins have WHITE/CREAM bodies. Gold penguins have YELLOW/GOLD bodies. If the penguin's body is yellow/gold colored, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
+GOLD SKIN DETECTION - CRITICAL (CHECK THE HEAD COLOR):
+To detect gold skin, look at the penguin's HEAD and CHEEKS area (NOT the belly/chest which is always white on all penguins).
+- STANDARD penguins: The HEAD/FACE area is WHITE or CREAM colored (same as the belly)
+- GOLD penguins: The HEAD/FACE area is BRIGHT YELLOW or GOLDEN colored (the belly is still white, but head is yellow/gold)
 
-ICE SKIN DETECTION:
-Check if the penguin has "Ice" skin - this is a distinctive light blue crystalline/icy body instead of white. The ice skin is a pale sky-blue color covering the penguin's body. If the penguin's body is light blue/icy colored instead of white, set the "skin" field to "Ice". Ice skin penguins still have their other traits detected normally.
+If the penguin's HEAD and CHEEKS are YELLOW/GOLD colored, set "skin" to "Gold". 
+The gold color is often bright yellow with possible sparkle/shine effects on the head area.
+Example: A penguin with a yellow/golden head wearing an orange kimono and headband = Gold skin penguin.
+
+ICE SKIN DETECTION (CHECK THE HEAD COLOR):
+To detect ice skin, look at the penguin's HEAD and CHEEKS area.
+- ICE penguins: The HEAD/FACE area is LIGHT BLUE or ICY colored (crystalline appearance)
+If the penguin's HEAD is light blue/icy colored, set "skin" to "Ice".
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
