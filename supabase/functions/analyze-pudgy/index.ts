@@ -86,6 +86,20 @@ const AVAILABLE_FACE_TRAITS = [
   "Monacle"
 ];
 
+// Available body trait overlays - these must match exactly to the file names
+const AVAILABLE_BODY_TRAITS = [
+  "Lei_Blue",
+  "Lei_Purple",
+  "Hoodie_Black",
+  "Hoodie_Pink",
+  "Puffer_Orange",
+  "Puffer_Blue",
+  "Bow_Tie_Blue",
+  "Turtleneck_Pink",
+  "Kimono_Brown",
+  "Blue_Shirt"
+];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -110,6 +124,7 @@ serve(async (req) => {
 
     const headTraitsList = AVAILABLE_HEAD_TRAITS.join(", ");
     const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
+    const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -122,13 +137,16 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert at analyzing Pudgy Penguin and Lil Pudgy NFT images. Your task is to identify the head and face traits/accessories visible in the image.
+            content: `You are an expert at analyzing Pudgy Penguin and Lil Pudgy NFT images. Your task is to identify the head, face, and body traits/accessories visible in the image.
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
 
 IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or null if no face trait):
 ${faceTraitsList}
+
+IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
+${bodyTraitsList}
 
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
@@ -193,13 +211,25 @@ FACE TRAIT EXAMPLES:
 - Angular/squad sunglasses → "Squad"
 - Monocle (single eyeglass) → "Monacle"
 
+BODY TRAIT EXAMPLES:
+- Blue flower lei/necklace → "Lei_Blue"
+- Purple flower lei/necklace → "Lei_Purple"
+- Black hoodie/sweatshirt → "Hoodie_Black"
+- Pink hoodie/sweatshirt → "Hoodie_Pink"
+- Orange puffer jacket/vest → "Puffer_Orange"
+- Blue puffer jacket/vest → "Puffer_Blue"
+- Blue bow tie → "Bow_Tie_Blue"
+- Pink turtleneck sweater → "Turtleneck_Pink"
+- Brown kimono/robe → "Kimono_Brown"
+- Blue t-shirt/shirt → "Blue_Shirt"
+
 Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
   "traits": {
     "background": "description or null",
     "skin": "description or null", 
-    "body": "description or null",
+    "body": "EXACT_BODY_TRAIT_NAME_FROM_LIST or null",
     "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null",
     "head": "EXACT_HEAD_TRAIT_NAME_FROM_LIST or null",
     "hand": "description or null"
@@ -213,7 +243,7 @@ Return ONLY valid JSON in this exact format:
             content: [
               {
                 type: "text",
-                text: "Analyze this Pudgy Penguin NFT image and identify the head and face traits. Both trait values MUST be one of the exact trait names from the provided lists, or null if not visible."
+                text: "Analyze this Pudgy Penguin NFT image and identify the head, face, and body traits. All trait values MUST be one of the exact trait names from the provided lists, or null if not visible."
               },
               {
                 type: "image_url",
@@ -319,9 +349,33 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
+    // Validate and normalize the body trait
+    if (traits.traits?.body && typeof traits.traits.body === 'string') {
+      const bodyTrait = traits.traits.body;
+      // Check if it's a valid trait
+      if (!AVAILABLE_BODY_TRAITS.includes(bodyTrait)) {
+        console.log(`Body trait "${bodyTrait}" not in available list, attempting to match...`);
+        // Try to find a close match
+        const normalizedInput = bodyTrait.toLowerCase().replace(/[\s-]/g, '_');
+        const match = AVAILABLE_BODY_TRAITS.find(t => 
+          t.toLowerCase() === normalizedInput ||
+          t.toLowerCase().includes(normalizedInput) ||
+          normalizedInput.includes(t.toLowerCase())
+        );
+        if (match) {
+          console.log(`Matched body to: ${match}`);
+          traits.traits.body = match;
+        } else {
+          console.log(`No match found for body trait "${bodyTrait}", setting to null`);
+          traits.traits.body = null;
+        }
+      }
+    }
+
     // Add metadata about available traits for the frontend
     traits.availableHeadTraits = AVAILABLE_HEAD_TRAITS;
     traits.availableFaceTraits = AVAILABLE_FACE_TRAITS;
+    traits.availableBodyTraits = AVAILABLE_BODY_TRAITS;
 
     return new Response(
       JSON.stringify(traits),

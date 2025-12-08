@@ -102,6 +102,18 @@ import Eye_Patch from '@/assets/pfp-traits/face/Eye_Patch.png';
 import Squad from '@/assets/pfp-traits/face/Squad.png';
 import Monacle from '@/assets/pfp-traits/face/Monacle.png';
 
+// Import all body trait overlays
+import Lei_Blue from '@/assets/pfp-traits/body/Lei_Blue.png';
+import Lei_Purple from '@/assets/pfp-traits/body/Lei_Purple.png';
+import Hoodie_Black from '@/assets/pfp-traits/body/Hoodie_Black.png';
+import Hoodie_Pink from '@/assets/pfp-traits/body/Hoodie_Pink.png';
+import Puffer_Orange from '@/assets/pfp-traits/body/Puffer_Orange.png';
+import Puffer_Blue from '@/assets/pfp-traits/body/Puffer_Blue.png';
+import Bow_Tie_Blue from '@/assets/pfp-traits/body/Bow_Tie_Blue.png';
+import Turtleneck_Pink from '@/assets/pfp-traits/body/Turtleneck_Pink.png';
+import Kimono_Brown from '@/assets/pfp-traits/body/Kimono_Brown.png';
+import Blue_Shirt from '@/assets/pfp-traits/body/Blue_Shirt.png';
+
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
   Afro_with_Pick,
@@ -181,6 +193,20 @@ const FACE_TRAIT_MAP: Record<string, string> = {
   Eye_Patch,
   Squad,
   Monacle,
+};
+
+// Mapping of body trait names to imported images
+const BODY_TRAIT_MAP: Record<string, string> = {
+  Lei_Blue,
+  Lei_Purple,
+  Hoodie_Black,
+  Hoodie_Pink,
+  Puffer_Orange,
+  Puffer_Blue,
+  Bow_Tie_Blue,
+  Turtleneck_Pink,
+  Kimono_Brown,
+  Blue_Shirt,
 };
 
 interface DetectedTraits {
@@ -311,17 +337,29 @@ const PFPConverter = () => {
       // Determine which template to use based on head or face trait
       const headTrait = traits.traits.head;
       const faceTrait = traits.traits.face;
+      const bodyTrait = traits.traits.body;
       const useTemplate2 = (headTrait && TEMPLATE_2_HEAD_TRAITS.includes(headTrait)) || 
                            (faceTrait && TEMPLATE_2_FACE_TRAITS.includes(faceTrait));
       const templateSrc = useTemplate2 ? Template_2 : Template;
       
-      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head: ${headTrait}, face: ${faceTrait}`);
+      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head: ${headTrait}, face: ${faceTrait}, body: ${bodyTrait}`);
       
       // Load and draw base template
       const baseImg = await loadImage(templateSrc);
       ctx.drawImage(baseImg, 0, 0, 1000, 1000);
 
-      // Check if we have a matching face trait overlay (apply before head so it's behind)
+      // LAYERING ORDER: body (bottom) → face → head (top)
+      
+      // 1. Apply body trait overlay first (bottom layer)
+      if (bodyTrait && BODY_TRAIT_MAP[bodyTrait]) {
+        console.log(`Applying body trait: ${bodyTrait}`);
+        const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
+        ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+      } else if (bodyTrait) {
+        console.log(`No overlay found for body trait: ${bodyTrait}`);
+      }
+
+      // 2. Apply face trait overlay (middle layer)
       if (faceTrait && FACE_TRAIT_MAP[faceTrait]) {
         console.log(`Applying face trait: ${faceTrait}`);
         const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
@@ -330,7 +368,7 @@ const PFPConverter = () => {
         console.log(`No overlay found for face trait: ${faceTrait}`);
       }
 
-      // Check if we have a matching head trait overlay
+      // 3. Apply head trait overlay last (top layer)
       if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
         console.log(`Applying head trait: ${headTrait}`);
         const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
