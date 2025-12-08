@@ -86,6 +86,16 @@ import Star_Glasses from '@/assets/pfp-traits/face/Star_Glasses.png';
 import Villain_Mask from '@/assets/pfp-traits/face/Villain_Mask.png';
 import Circle_Glasses from '@/assets/pfp-traits/face/Circle_Glasses.png';
 import Blush from '@/assets/pfp-traits/face/Blush.png';
+import Scouter from '@/assets/pfp-traits/face/Scouter.png';
+import Star_Eyes from '@/assets/pfp-traits/face/Star_Eyes.png';
+import Clout_Goggles from '@/assets/pfp-traits/face/Clout_Goggles.png';
+import Aviators from '@/assets/pfp-traits/face/Aviators.png';
+import Beard from '@/assets/pfp-traits/face/Beard.png';
+import Scar from '@/assets/pfp-traits/face/Scar.png';
+import Cucumbers from '@/assets/pfp-traits/face/Cucumbers.png';
+import Eye_Patch from '@/assets/pfp-traits/face/Eye_Patch.png';
+import Squad from '@/assets/pfp-traits/face/Squad.png';
+import Monacle from '@/assets/pfp-traits/face/Monacle.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -156,6 +166,16 @@ const FACE_TRAIT_MAP: Record<string, string> = {
   Villain_Mask,
   Circle_Glasses,
   Blush,
+  Scouter,
+  Star_Eyes,
+  Clout_Goggles,
+  Aviators,
+  Beard,
+  Scar,
+  Cucumbers,
+  Eye_Patch,
+  Squad,
+  Monacle,
 };
 
 interface DetectedTraits {
