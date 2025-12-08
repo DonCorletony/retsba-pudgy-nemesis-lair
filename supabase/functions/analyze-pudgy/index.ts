@@ -279,18 +279,26 @@ When a face trait like "Beard" is present, it may partially cover body traits li
 - Christmas_Lights: String of colorful lights worn as necklace
 Even if only partially visible, if you can identify the necklace type, include it as the body trait.
 
-CRITICAL - SURFBOARD_NECKLACE vs BOW_TIE_BLUE (COMMON CONFUSION):
-These two traits look VERY different - do NOT confuse them:
-- "Surfboard_Necklace": A SMALL WOODEN SURFBOARD PENDANT (tan/brown colored board shape) hanging on a CORD/STRING. The surfboard itself is tan/wood colored, NOT blue. The cord may be blue/teal but the pendant is a surfboard shape.
+CRITICAL - SURFBOARD_NECKLACE vs LEI vs BOW_TIE (COMMON CONFUSIONS):
+These traits look VERY different - do NOT confuse them:
+
+- "Surfboard_Necklace": A SINGLE SMALL WOODEN SURFBOARD PENDANT (tan/brown/wood colored board shape) hanging on a CORD/STRING around the neck. The surfboard itself is tan/wood colored. The cord may be blue/teal. There is only ONE pendant object - the surfboard. NO FLOWERS.
+
+- "Lei_Blue" / "Lei_Purple" / "Lei_Pink": A HAWAIIAN FLOWER LEI - MULTIPLE FLOWERS (typically 5+ flowers) strung together in a GARLAND that drapes around the neck. Leis have MANY individual flower shapes visible. They look like a floral necklace/garland.
+
 - "Bow_Tie_Blue": A BLUE BOW-SHAPED TIE worn at the collar/neck area. It's a symmetrical bow shape made of fabric. NO pendant, no string with hanging object.
 
-If you see a PENDANT hanging on a cord (especially below a beard), that is Surfboard_Necklace, NOT a bow tie!
-If you see a SYMMETRICAL BOW SHAPE at the collar, that is Bow_Tie_Blue.
+KEY IDENTIFICATION:
+- See a SINGLE PENDANT (surfboard shape) on a cord? → "Surfboard_Necklace"
+- See MULTIPLE FLOWERS in a garland around the neck? → Lei (Blue/Purple/Pink based on color)
+- See a SYMMETRICAL BOW SHAPE at the collar? → Bow_Tie
+
+If there's a beard covering part of the neck, look carefully for what's visible beneath it. A small surfboard pendant peeking out is Surfboard_Necklace, NOT a lei!
 
 BODY TRAIT EXAMPLES:
-- Blue flower lei/necklace → "Lei_Blue"
-- Purple flower lei/necklace → "Lei_Purple"
-- Pink flower lei/necklace → "Lei_Pink"
+- Blue FLOWER LEI with MULTIPLE blue flowers in a garland → "Lei_Blue"
+- Purple FLOWER LEI with MULTIPLE purple flowers → "Lei_Purple"
+- Pink FLOWER LEI with MULTIPLE pink flowers → "Lei_Pink"
 - Black hoodie/sweatshirt → "Hoodie_Black"
 - Pink hoodie/sweatshirt → "Hoodie_Pink"
 - Orange puffer jacket/vest → "Puffer_Orange"
