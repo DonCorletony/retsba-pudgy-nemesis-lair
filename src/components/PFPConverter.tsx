@@ -609,33 +609,30 @@ const PFPConverter = () => {
     <div className="w-full">
       <canvas ref={canvasRef} className="hidden" />
       
-      {/* Big/Lil Toggle Switch - Top Right */}
-      <div className="flex justify-end mb-4">
-        <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-full px-4 py-2">
-          <span className={`text-sm font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-            Big
-          </span>
-          <Switch
-            checked={isLilMode}
-            onCheckedChange={setIsLilMode}
-            className="data-[state=checked]:bg-primary"
-          />
-          <span className={`text-sm font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-            Lil
-          </span>
-        </div>
-      </div>
-      
       {/* Mobile Layout - Single unified window */}
       <div className="lg:hidden space-y-4">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
+        {/* Mobile Toggle */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-black dark:text-white">
             {showMobileResult ? 'Retsbafied' : isLilMode ? 'Your Lil' : 'Your Pudgy'}
           </h2>
-          <p className="text-black/60 dark:text-white/60 text-sm">
-            {showMobileResult ? 'Your Retsba' : isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}
-          </p>
+          <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 rounded-full px-3 py-1.5">
+            <span className={`text-xs font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+              Big
+            </span>
+            <Switch
+              checked={isLilMode}
+              onCheckedChange={setIsLilMode}
+              className="data-[state=checked]:bg-primary scale-90"
+            />
+            <span className={`text-xs font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+              Lil
+            </span>
+          </div>
         </div>
+        <p className="text-black/60 dark:text-white/60 text-sm -mt-2">
+          {showMobileResult ? 'Your Retsba' : isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}
+        </p>
 
         <div 
           className={`relative border-2 rounded-xl p-6 transition-all duration-300 min-h-[320px] flex items-center justify-center ${
@@ -757,13 +754,38 @@ const PFPConverter = () => {
       </div>
 
       {/* Desktop Layout - Two columns side by side */}
-      <div className="hidden lg:grid grid-cols-2 gap-6">
-        {/* Left Side - Upload & Original */}
-        <div className="space-y-4">
+      <div className="hidden lg:block">
+        {/* Headers row with toggle in center */}
+        <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="text-left">
             <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? 'Your Lil' : 'Your Pudgy'}</h2>
             <p className="text-black/60 dark:text-white/60 text-sm">{isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}</p>
           </div>
+          <div className="flex items-start justify-between">
+            <div className="text-left">
+              <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Retsbafied</h2>
+              <p className="text-black/60 dark:text-white/60 text-sm">Your Retsba</p>
+            </div>
+            <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-full px-4 py-2">
+              <span className={`text-sm font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+                Big
+              </span>
+              <Switch
+                checked={isLilMode}
+                onCheckedChange={setIsLilMode}
+                className="data-[state=checked]:bg-primary"
+              />
+              <span className={`text-sm font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+                Lil
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Content grid */}
+        <div className="grid grid-cols-2 gap-6">
+        {/* Left Side - Upload & Original */}
+        <div className="space-y-4">
 
           <motion.div
             className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer min-h-[320px] flex items-center justify-center ${
@@ -877,10 +899,6 @@ const PFPConverter = () => {
 
         {/* Right Side - Retsbafied Result */}
         <div className="space-y-4">
-          <div className="text-left">
-            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Retsbafied</h2>
-            <p className="text-black/60 dark:text-white/60 text-sm">Your Retsba</p>
-          </div>
 
           <div className="relative border-2 border-black/10 dark:border-white/20 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
             <AnimatePresence mode="wait">
@@ -966,6 +984,7 @@ const PFPConverter = () => {
             <Download className="w-4 h-4 mr-2" />
             Download
           </Button>
+        </div>
         </div>
       </div>
     </div>
