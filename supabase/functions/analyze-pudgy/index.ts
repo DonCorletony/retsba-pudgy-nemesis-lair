@@ -272,30 +272,28 @@ BIG PUDGY IDENTIFICATION (set isLilPudgy: false):
 
 IMPORTANT: If the penguin has a BLACK back and is in a grass/flower basket, it is a LIL PUDGY. Set isLilPudgy: true!
 
-CRITICAL - LIL PUDGY GLASSES DISTINCTION (LOOK AT LENS SHAPE):
-For Lil Pudgys with glasses, you MUST look at the SHAPE of the lens frames:
+CRITICAL - LIL PUDGY GLASSES DISTINCTION (LOOK AT LENS COLOR):
+For Lil Pudgys with glasses, you MUST look at the COLOR of the lenses:
 
-"Reading_Normal" (RECTANGULAR):
-- The lens frames are RECTANGULAR or SQUARE shaped
-- The frames have STRAIGHT EDGES on top and bottom
-- They look like reading glasses or nerd glasses
-- The glasses extend horizontally more than vertically
-- BLACK frames with rectangular lenses = Reading_Normal
+"Reading_Normal" (BLUE LENSES):
+- Round/circular glasses with BLUE colored lenses
+- The lenses have a BLUE tint or are clearly blue-colored
+- BLACK frames with BLUE lenses = Reading_Normal
 
-"Circle_Glasses" (ROUND):
-- The lens frames are PERFECTLY CIRCULAR/ROUND
-- The frames have no straight edges, purely curved circles
-- They look like John Lennon style round spectacles
-- The height and width of each lens are equal (circular)
+"Circle_Glasses" (BLACK/DARK LENSES):
+- Round/circular glasses with BLACK or DARK colored lenses
+- The lenses are dark/black, no blue tint
+- BLACK frames with BLACK/DARK lenses = Circle_Glasses
 
-DECISION RULE FOR GLASSES:
-- If the lenses have ANY straight/flat edges → Reading_Normal
-- If the lenses are perfectly round circles → Circle_Glasses
-- Most Lil Pudgy glasses with black rectangular frames = Reading_Normal
+DECISION RULE FOR ROUND GLASSES:
+- BLUE lenses → Reading_Normal
+- BLACK/DARK lenses → Circle_Glasses
 
 Other Lil face traits:
-- "Nerd_Normal": Similar to Reading_Normal but with a BLUE tint to the lenses
+- "Nerd_Normal": Similar to Reading_Normal but different expression
 - "Goofy_Glasses": Oversized novelty glasses with spiral/swirl patterns
+- "Nerd_Cute": Glasses with cute/happy expression
+- "Nerd_Blushing": Glasses with blushing cheeks
 
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
