@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import Template from '@/assets/pfp-templates/Template.png';
 import Template_2 from '@/assets/pfp-templates/Template_2.png';
+import Backwards_Template from '@/assets/pfp-templates/Backwards_Template.png';
 
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
@@ -309,6 +310,7 @@ const BODY_TRAIT_MAP: Record<string, string> = {
 
 interface DetectedTraits {
   isPudgy: boolean;
+  isSpecialPenguin?: 'left_facing' | null;
   traits: {
     background: string | null;
     skin: string | null;
@@ -432,6 +434,18 @@ const PFPConverter = () => {
     canvas.height = 1000;
 
     try {
+      // Check for special penguins first - these use unique templates with NO trait overlays
+      if (traits.isSpecialPenguin === 'left_facing') {
+        console.log('Special penguin detected: Left-Facing. Using Backwards_Template with no overlays.');
+        const baseImg = await loadImage(Backwards_Template);
+        ctx.drawImage(baseImg, 0, 0, 1000, 1000);
+        const dataUrl = canvas.toDataURL('image/png');
+        setRetsbafiedImage(dataUrl);
+        setStep('complete');
+        toast.success('Special Left-Facing Penguin detected! Retsbafied with Backwards Template.');
+        return;
+      }
+      
       // Determine which template to use based on head or face trait
       const headTrait = traits.traits.head;
       const faceTrait = traits.traits.face;
