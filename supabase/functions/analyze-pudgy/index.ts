@@ -579,12 +579,24 @@ Return ONLY valid JSON in this exact format:
     // Validate and normalize the face trait
     if (traits.traits?.face) {
       const faceTrait = traits.traits.face;
-      // Check if it's a valid trait
-      if (!AVAILABLE_FACE_TRAITS.includes(faceTrait)) {
+      const isLilPudgy = traits.isLilPudgy === true;
+      
+      // Check against appropriate list based on penguin type
+      const faceTraitList = isLilPudgy ? AVAILABLE_LIL_FACE_TRAITS : AVAILABLE_FACE_TRAITS;
+      const allFaceTraits = [...AVAILABLE_FACE_TRAITS, ...AVAILABLE_LIL_FACE_TRAITS];
+      
+      // First check if it's in the appropriate list
+      if (faceTraitList.includes(faceTrait)) {
+        // Valid trait for this penguin type, keep it
+        console.log(`Valid ${isLilPudgy ? 'Lil' : 'Big'} face trait: ${faceTrait}`);
+      } else if (allFaceTraits.includes(faceTrait)) {
+        // Valid trait but for the other penguin type - still keep it
+        console.log(`Face trait "${faceTrait}" is for ${isLilPudgy ? 'Big' : 'Lil'} Pudgy but keeping it`);
+      } else {
         console.log(`Face trait "${faceTrait}" not in available list, attempting to match...`);
-        // Try to find a close match
+        // Try to find a close match in the combined list
         const normalizedInput = faceTrait.toLowerCase().replace(/[\s-]/g, '_');
-        const match = AVAILABLE_FACE_TRAITS.find(t => 
+        const match = allFaceTraits.find(t => 
           t.toLowerCase() === normalizedInput ||
           t.toLowerCase().includes(normalizedInput) ||
           normalizedInput.includes(t.toLowerCase())
