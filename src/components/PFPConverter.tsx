@@ -598,14 +598,148 @@ const PFPConverter = () => {
     return trait.replace(/_/g, ' ');
   };
 
+  // Determine if we should show the result view on mobile (after upload started)
+  const showMobileResult = step !== 'idle' && uploadedImage;
+
   return (
     <div className="w-full">
       <canvas ref={canvasRef} className="hidden" />
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Mobile Layout - Single unified window */}
+      <div className="lg:hidden space-y-4">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
+            {showMobileResult ? 'Retsbafied' : 'Your Pudgy'}
+          </h2>
+          <p className="text-black/60 dark:text-white/60 text-sm">
+            {showMobileResult ? 'Your Retsba' : 'Upload your Pudgy Penguin NFT'}
+          </p>
+        </div>
+
+        <div 
+          className={`relative border-2 rounded-xl p-6 transition-all duration-300 min-h-[320px] flex items-center justify-center ${
+            showMobileResult 
+              ? 'border-black/10 dark:border-white/20 bg-gradient-to-br from-primary/5 to-transparent'
+              : isDragging 
+                ? 'border-primary bg-primary/10 border-dashed cursor-pointer' 
+                : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5 border-dashed cursor-pointer'
+          }`}
+          onDragOver={!showMobileResult ? handleDragOver : undefined}
+          onDragLeave={!showMobileResult ? handleDragLeave : undefined}
+          onDrop={!showMobileResult ? handleDrop : undefined}
+          onClick={!showMobileResult ? () => fileInputRef.current?.click() : undefined}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+
+          <AnimatePresence mode="wait">
+            {/* Upload state - no image yet */}
+            {step === 'idle' && !uploadedImage && (
+              <motion.div
+                key="mobile-upload"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
+                </div>
+                <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
+                <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
+              </motion.div>
+            )}
+
+            {/* Processing state */}
+            {(step === 'uploading' || step === 'analyzing' || step === 'compositing') && (
+              <motion.div
+                key="mobile-processing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center"
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  className="w-12 h-12 mx-auto mb-4"
+                >
+                  <RefreshCw className="w-12 h-12 text-primary" />
+                </motion.div>
+                <p className="text-black dark:text-white font-medium">{getStepMessage()}</p>
+              </motion.div>
+            )}
+
+            {/* Error state */}
+            {step === 'error' && (
+              <motion.div
+                key="mobile-error"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="text-center"
+              >
+                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+                <p className="text-red-500 font-medium text-sm">{error}</p>
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                >
+                  Try Again
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Complete state - show result */}
+            {step === 'complete' && retsbafiedImage && (
+              <motion.div
+                key="mobile-result"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative w-full"
+              >
+                <img
+                  src={retsbafiedImage}
+                  alt="Retsbafied Pudgy"
+                  className="w-full h-auto rounded-lg max-h-[320px] object-contain mx-auto"
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleReset();
+                  }}
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Mobile Download Button */}
+        <Button
+          onClick={handleDownload}
+          disabled={step !== 'complete'}
+          className="w-full bg-red-500 hover:bg-red-600 text-white"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download
+        </Button>
+      </div>
+
+      {/* Desktop Layout - Two columns side by side */}
+      <div className="hidden lg:grid grid-cols-2 gap-6">
         {/* Left Side - Upload & Original */}
         <div className="space-y-4">
-          <div className="text-center lg:text-left">
+          <div className="text-left">
             <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Your Pudgy</h2>
             <p className="text-black/60 dark:text-white/60 text-sm">Upload your Pudgy Penguin NFT</p>
           </div>
@@ -624,7 +758,6 @@ const PFPConverter = () => {
             whileTap={{ scale: 0.99 }}
           >
             <input
-              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleFileSelect}
@@ -673,7 +806,7 @@ const PFPConverter = () => {
             </AnimatePresence>
           </motion.div>
 
-          {/* Detected Traits */}
+          {/* Detected Traits - Desktop only */}
           <AnimatePresence>
             {detectedTraits && (
               <motion.div
@@ -723,7 +856,7 @@ const PFPConverter = () => {
 
         {/* Right Side - Retsbafied Result */}
         <div className="space-y-4">
-          <div className="text-center lg:text-left">
+          <div className="text-left">
             <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Retsbafied</h2>
             <p className="text-black/60 dark:text-white/60 text-sm">Your Retsba</p>
           </div>
@@ -812,7 +945,6 @@ const PFPConverter = () => {
             <Download className="w-4 h-4 mr-2" />
             Download
           </Button>
-
         </div>
       </div>
     </div>
