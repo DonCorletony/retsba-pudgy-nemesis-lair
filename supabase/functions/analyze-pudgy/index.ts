@@ -122,7 +122,15 @@ const AVAILABLE_BODY_TRAITS = [
   "Heart",
   "Crop_Top",
   "Biker_Jacket",
-  "Swordman"
+  "Swordman",
+  "Kimono_Pink",
+  "Kimono_Gold",
+  "Kimono_Ice",
+  "Suit_Blue",
+  "Suit_Red",
+  "Pudgy_Man",
+  "Lei_Assorted",
+  "I_Love_Fish"
 ];
 
 serve(async (req) => {
@@ -271,6 +279,14 @@ BODY TRAIT EXAMPLES:
 - Red crop top → "Crop_Top"
 - Black biker jacket with spikes → "Biker_Jacket"
 - Swordsman outfit with sword on back → "Swordman"
+- Pink kimono with flowers → "Kimono_Pink"
+- Gold/golden shiny kimono → "Kimono_Gold"
+- Ice blue shiny kimono → "Kimono_Ice"
+- Black suit/tuxedo with blue bow tie → "Suit_Blue"
+- Black suit/tuxedo with red bow tie → "Suit_Red"
+- Blue shirt with PM logo and red cape → "Pudgy_Man"
+- Colorful assorted flower lei → "Lei_Assorted"
+- White shirt with "I Love Fish" text → "I_Love_Fish"
 
 Return ONLY valid JSON in this exact format:
 {
