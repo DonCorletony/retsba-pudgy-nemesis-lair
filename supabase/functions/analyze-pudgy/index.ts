@@ -604,7 +604,28 @@ Return ONLY valid JSON in this exact format:
       // Extract JSON from the response (it might be wrapped in markdown code blocks)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        traits = JSON.parse(jsonMatch[0]);
+        let jsonString = jsonMatch[0];
+        
+        // Sanitize common AI mistakes in JSON:
+        // 1. Fix unquoted keys (e.g., awesome_bot_confidence: -> "confidence":)
+        jsonString = jsonString.replace(/(\n\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, (match, prefix, key) => {
+          // Check if this key is already quoted by looking at what comes before
+          // Skip if already properly formatted
+          if (key === 'isPudgy' || key === 'isLilPudgy' || key === 'isSpecialPenguin' || 
+              key === 'garmentMatchesSkinColor' || key === 'traits' || key === 'background' ||
+              key === 'skin' || key === 'body' || key === 'face' || key === 'head' || 
+              key === 'hand' || key === 'confidence' || key === 'description') {
+            return `${prefix}"${key}":`;
+          }
+          // Replace any weird key with "confidence" if it looks like confidence
+          if (key.toLowerCase().includes('confidence')) {
+            return `${prefix}"confidence":`;
+          }
+          return `${prefix}"${key}":`;
+        });
+        
+        // 2. Try to parse the sanitized JSON
+        traits = JSON.parse(jsonString);
       } else {
         throw new Error("No JSON found in response");
       }
