@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Download, RefreshCw, AlertCircle, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import Template from '@/assets/pfp-templates/Template.png';
@@ -11,7 +12,7 @@ import Gold_Template from '@/assets/pfp-templates/Gold_Template.png';
 import Gold_Template_2 from '@/assets/pfp-templates/Gold_Template_2.png';
 import Ice_Template from '@/assets/pfp-templates/Ice_Template.png';
 import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
-
+import Lil_Template from '@/assets/pfp-templates/Lil_Template.png';
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
   'Headband',
@@ -338,6 +339,7 @@ const PFPConverter = () => {
   const [step, setStep] = useState<AnalysisStep>('idle');
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLilMode, setIsLilMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -607,14 +609,31 @@ const PFPConverter = () => {
     <div className="w-full">
       <canvas ref={canvasRef} className="hidden" />
       
+      {/* Big/Lil Toggle Switch - Top Right */}
+      <div className="flex justify-end mb-4">
+        <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-full px-4 py-2">
+          <span className={`text-sm font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+            Big
+          </span>
+          <Switch
+            checked={isLilMode}
+            onCheckedChange={setIsLilMode}
+            className="data-[state=checked]:bg-primary"
+          />
+          <span className={`text-sm font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
+            Lil
+          </span>
+        </div>
+      </div>
+      
       {/* Mobile Layout - Single unified window */}
       <div className="lg:hidden space-y-4">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-black dark:text-white mb-1">
-            {showMobileResult ? 'Retsbafied' : 'Your Pudgy'}
+            {showMobileResult ? 'Retsbafied' : isLilMode ? 'Your Lil' : 'Your Pudgy'}
           </h2>
           <p className="text-black/60 dark:text-white/60 text-sm">
-            {showMobileResult ? 'Your Retsba' : 'Upload your Pudgy Penguin NFT'}
+            {showMobileResult ? 'Your Retsba' : isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}
           </p>
         </div>
 
@@ -652,7 +671,7 @@ const PFPConverter = () => {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
                   <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                 </div>
-                <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
+                <p className="text-black dark:text-white font-medium mb-2">Drop your {isLilMode ? 'Lil' : 'Pudgy'} here</p>
                 <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
               </motion.div>
             )}
@@ -742,8 +761,8 @@ const PFPConverter = () => {
         {/* Left Side - Upload & Original */}
         <div className="space-y-4">
           <div className="text-left">
-            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Your Pudgy</h2>
-            <p className="text-black/60 dark:text-white/60 text-sm">Upload your Pudgy Penguin NFT</p>
+            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? 'Your Lil' : 'Your Pudgy'}</h2>
+            <p className="text-black/60 dark:text-white/60 text-sm">{isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}</p>
           </div>
 
           <motion.div
@@ -801,7 +820,7 @@ const PFPConverter = () => {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
                     <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                   </div>
-                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
+                  <p className="text-black dark:text-white font-medium mb-2">Drop your {isLilMode ? 'Lil' : 'Pudgy'} here</p>
                   <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
                 </motion.div>
               )}
@@ -867,15 +886,15 @@ const PFPConverter = () => {
             <AnimatePresence mode="wait">
               {step === 'idle' && (
                 <motion.div
-                  key="waiting"
+                  key={`waiting-${isLilMode ? 'lil' : 'big'}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="w-full"
                 >
                   <img
-                    src={Template}
-                    alt="Retsba Base Template"
+                    src={isLilMode ? Lil_Template : Template}
+                    alt={isLilMode ? "Lil Retsba Template" : "Retsba Base Template"}
                     className="w-full h-auto rounded-lg max-h-[320px] object-contain mx-auto"
                   />
                 </motion.div>
