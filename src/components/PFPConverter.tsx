@@ -584,7 +584,7 @@ const PFPConverter = () => {
   const getStepMessage = () => {
     switch (step) {
       case 'uploading': return 'Uploading your Pudgy...';
-      case 'analyzing': return 'AI is detecting traits...';
+      case 'analyzing': return 'Assimilating...';
       case 'compositing': return 'Creating your Retsbafied image...';
       case 'complete': return 'Your Pudgy has been Retsbafied!';
       case 'error': return error || 'Something went wrong';
@@ -607,7 +607,7 @@ const PFPConverter = () => {
         <div className="space-y-4">
           <div className="text-center lg:text-left">
             <h2 className="text-xl font-semibold text-black mb-1">Your Pudgy</h2>
-            <p className="text-black/60 text-sm">Upload your Pudgy Penguin or Lil Pudgy NFT</p>
+            <p className="text-black/60 text-sm">Upload your Pudgy Penguin NFT</p>
           </div>
 
           <motion.div
@@ -725,7 +725,7 @@ const PFPConverter = () => {
         <div className="space-y-4">
           <div className="text-center lg:text-left">
             <h2 className="text-xl font-semibold text-black mb-1">Retsbafied</h2>
-            <p className="text-black/60 text-sm">Your Pudgy, transformed into a Retsba</p>
+            <p className="text-black/60 text-sm">Your Retsba</p>
           </div>
 
           <div className="relative border-2 border-black/10 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
@@ -823,13 +823,6 @@ const PFPConverter = () => {
             </Button>
           </div>
 
-          {/* Info Notice */}
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-            <p className="text-black/70 text-sm">
-              <span className="text-primary font-semibold">Testing Mode:</span> Currently detecting and applying head traits only. 
-              More trait categories coming soon!
-            </p>
-          </div>
         </div>
       </div>
     </div>
