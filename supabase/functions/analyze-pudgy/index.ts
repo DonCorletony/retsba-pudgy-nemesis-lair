@@ -305,7 +305,7 @@ BODY TRAIT EXAMPLES:
 - Black biker jacket with spikes → "Biker_Jacket"
 - Swordsman outfit with sword on back → "Swordman"
 - Pink kimono with flowers → "Kimono_Pink"
-- Gold/golden shiny kimono → "Kimono_Gold"
+- Gold/golden shiny kimono with Japanese-style pattern, metallic gold fabric with shine → "Kimono_Gold" (NOT Bathrobe - kimonos have patterns/designs and wrap style)
 - Ice blue shiny kimono → "Kimono_Ice"
 - Black suit/tuxedo with blue bow tie → "Suit_Blue"
 - Black suit/tuxedo with red bow tie → "Suit_Red"
@@ -327,7 +327,11 @@ BODY TRAIT EXAMPLES:
 - Blue scarf → "Scarf_Blue"
 - Green scarf → "Scarf_Green"
 - Red/maroon shirt with igloo logo → "Shirt_Red"
-- Cream/beige bathrobe → "Bathrobe"
+- Cream/beige/tan terry cloth bathrobe with belt, plain solid color without patterns → "Bathrobe" (NOT Kimono - bathrobes are plain solid color terry cloth with no Japanese patterns)
+
+CRITICAL DISTINCTION - Kimono vs Bathrobe:
+- Kimono_Gold: Shiny metallic GOLD fabric, Japanese-style with visible patterns/designs, ornate appearance
+- Bathrobe: Plain CREAM/BEIGE/TAN terry cloth, solid color, no patterns, casual loungewear style with belt
 
 Return ONLY valid JSON in this exact format:
 {
