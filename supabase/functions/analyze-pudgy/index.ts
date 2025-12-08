@@ -222,8 +222,16 @@ ${bodyTraitsList}
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
 HEAD TRAIT EXAMPLES:
-- A blue backwards cap → "Backwards_Hat_Blue"
-- A red beanie → "Beanie_Orange" (if closest match)
+- FORWARD-FACING CAP with brim in FRONT and logo visible on front → "Hat_Blue" or "Hat_Red"
+- BACKWARDS CAP with brim at BACK (no logo visible, back of cap faces forward) → "Backwards_Hat_Blue" or "Backwards_Hat_Red"
+- SIDEWAYS CAP with brim to the side → "Sideways_Blue" or "Sideways_Red"
+
+CRITICAL HAT DISTINCTION:
+- "Hat_Red" = Red baseball cap worn NORMALLY (brim facing forward, logo/design visible on front of cap)
+- "Backwards_Hat_Red" = Red cap worn BACKWARDS (brim is at the back of the head, cap's adjustable strap visible in front)
+- If you can see a logo/design on the FRONT of the cap, it's a forward-facing hat (Hat_Blue/Hat_Red)
+- If the cap appears to have its brim behind the penguin's head, it's backwards (Backwards_Hat_Blue/Backwards_Hat_Red)
+
 - A viking helmet → "Viking_Hat"
 - A cowboy hat → "Cowboy_Hat"
 - A crown → "Crown"
@@ -258,7 +266,6 @@ HEAD TRAIT EXAMPLES:
 - Macaroni → "Macaroni"
 - Biker/motorcycle helmet → "Biker_Helmet"
 - Camo/military helmet → "Camo_Helmet"
-- Basic hat/cap → "Hat_Blue", "Hat_Red", "Sideways_Blue", or "Sideways_Red"
 
 FACE TRAIT EXAMPLES:
 - Red/pink cheeks, blushing → "Blush"
