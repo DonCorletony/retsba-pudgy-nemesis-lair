@@ -104,17 +104,25 @@ const AVAILABLE_BODY_TRAITS = [
   "Kimono_Brown",
   "Kimono_Red",
   "Kimono_White",
+  "Kimono_Orange",
+  "Kimono_Blue",
+  "Kimono_Abstract",
   "Blue_Shirt",
   "Hawaiian_Shirt",
   "Bronze_Medal",
   "Silver_Medal",
+  "Gold_Medal",
   "Scarf_Pink",
   "Overalls",
   "Poncho",
   "Surfboard_Necklace",
   "Christmas_Lights",
   "Ice_Coat",
-  "Tribal_Necklace"
+  "Tribal_Necklace",
+  "Heart",
+  "Crop_Top",
+  "Biker_Jacket",
+  "Swordman"
 ];
 
 serve(async (req) => {
@@ -244,10 +252,14 @@ BODY TRAIT EXAMPLES:
 - Brown kimono/robe → "Kimono_Brown"
 - Red kimono/robe → "Kimono_Red"
 - White kimono/robe with black pattern → "Kimono_White"
+- Orange kimono/robe with triangles → "Kimono_Orange"
+- Blue kimono/robe with flowers → "Kimono_Blue"
+- Abstract geometric kimono → "Kimono_Abstract"
 - Blue t-shirt/shirt → "Blue_Shirt"
 - Hawaiian shirt with palm trees → "Hawaiian_Shirt"
 - Bronze medal with ribbon → "Bronze_Medal"
 - Silver medal with ribbon → "Silver_Medal"
+- Gold medal with ribbon → "Gold_Medal"
 - Pink scarf → "Scarf_Pink"
 - Blue overalls/dungarees → "Overalls"
 - Colorful poncho with pattern → "Poncho"
@@ -255,6 +267,10 @@ BODY TRAIT EXAMPLES:
 - Christmas lights string necklace → "Christmas_Lights"
 - Ice/frost themed coat → "Ice_Coat"
 - Tribal/tooth necklace → "Tribal_Necklace"
+- Red heart on body → "Heart"
+- Red crop top → "Crop_Top"
+- Black biker jacket with spikes → "Biker_Jacket"
+- Swordsman outfit with sword on back → "Swordman"
 
 Return ONLY valid JSON in this exact format:
 {
