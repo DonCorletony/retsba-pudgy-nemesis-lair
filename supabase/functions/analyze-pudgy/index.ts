@@ -187,7 +187,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    const { imageBase64, expectedMode } = await req.json();
     
     if (!imageBase64) {
       return new Response(
@@ -195,6 +195,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`Analyzing Pudgy Penguin image for traits... Expected mode: ${expectedMode || 'auto-detect'}`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -272,6 +274,14 @@ BIG PUDGY (set isLilPudgy: false):
 DECISION RULE: Can you see the penguin's FEET? 
 - YES (feet visible) → Lil Pudgy (isLilPudgy: true)
 - NO (feet not visible, cropped image) → Big Pudgy (isLilPudgy: false)
+
+${expectedMode === 'lil' ? `
+IMPORTANT: The user expects this to be a Lil Pudgy. Focus on analyzing Lil Pudgy traits from the LIL face trait list: ${lilFaceTraitsList}
+If the image shows a full-body penguin with feet visible, this is definitely a Lil Pudgy.
+` : expectedMode === 'big' ? `
+IMPORTANT: The user expects this to be a Big Pudgy. Focus on analyzing Big Pudgy traits from the BIG face trait list: ${faceTraitsList}
+If the image shows only the upper body without feet visible, this is definitely a Big Pudgy.
+` : ''}
 
 CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION:
 For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits:
