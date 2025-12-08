@@ -591,26 +591,39 @@ const PFPConverter = () => {
 
       // LAYERING ORDER: body (bottom) → face → head (top)
       
+      // In Lil mode, only use Lil-specific trait overlays (never fall back to Big traits)
+      // In Big mode, only use Big-specific trait overlays
+      
       // 1. Apply body trait overlay first (bottom layer)
-      if (bodyTrait && BODY_TRAIT_MAP[bodyTrait]) {
-        console.log(`Applying body trait: ${bodyTrait}`);
-        const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
-        ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
-      } else if (bodyTrait) {
-        console.log(`No overlay found for body trait: ${bodyTrait}`);
+      if (bodyTrait) {
+        if (isLilMode) {
+          // TODO: Add LIL_BODY_TRAIT_MAP when Lil body traits are uploaded
+          console.log(`Lil mode: No Lil body overlay available for: ${bodyTrait}`);
+        } else if (BODY_TRAIT_MAP[bodyTrait]) {
+          console.log(`Applying body trait: ${bodyTrait}`);
+          const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
+          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+        } else {
+          console.log(`No overlay found for body trait: ${bodyTrait}`);
+        }
       }
 
       // 2. Apply face trait overlay (middle layer)
       if (faceTrait) {
-        // In Lil mode, check if the trait should be remapped to a different overlay
-        if (isLilMode && LIL_FACE_TRAIT_REMAP[faceTrait]) {
-          const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
-          if (LIL_FACE_TRAIT_MAP[remappedTrait]) {
-            console.log(`Applying Lil face trait (remapped): ${faceTrait} -> ${remappedTrait}`);
-            const faceOverlay = await loadImage(LIL_FACE_TRAIT_MAP[remappedTrait]);
-            ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+        if (isLilMode) {
+          // In Lil mode, check if the trait should be remapped to a different overlay
+          if (LIL_FACE_TRAIT_REMAP[faceTrait]) {
+            const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
+            if (LIL_FACE_TRAIT_MAP[remappedTrait]) {
+              console.log(`Applying Lil face trait (remapped): ${faceTrait} -> ${remappedTrait}`);
+              const faceOverlay = await loadImage(LIL_FACE_TRAIT_MAP[remappedTrait]);
+              ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+            } else {
+              console.log(`Lil mode: No Lil overlay found for remapped face trait: ${remappedTrait}`);
+            }
           } else {
-            console.log(`No Lil overlay found for remapped face trait: ${remappedTrait}`);
+            // TODO: Add LIL_FACE_TRAIT_MAP direct lookups when more Lil face traits are uploaded
+            console.log(`Lil mode: No Lil face overlay available for: ${faceTrait}`);
           }
         } else if (FACE_TRAIT_MAP[faceTrait]) {
           console.log(`Applying face trait: ${faceTrait}`);
@@ -622,12 +635,17 @@ const PFPConverter = () => {
       }
 
       // 3. Apply head trait overlay last (top layer)
-      if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
-        console.log(`Applying head trait: ${headTrait}`);
-        const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
-        ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
-      } else if (headTrait) {
-        console.log(`No overlay found for head trait: ${headTrait}`);
+      if (headTrait) {
+        if (isLilMode) {
+          // TODO: Add LIL_HEAD_TRAIT_MAP when Lil head traits are uploaded
+          console.log(`Lil mode: No Lil head overlay available for: ${headTrait}`);
+        } else if (HEAD_TRAIT_MAP[headTrait]) {
+          console.log(`Applying head trait: ${headTrait}`);
+          const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        } else {
+          console.log(`No overlay found for head trait: ${headTrait}`);
+        }
       }
 
       const dataUrl = canvas.toDataURL('image/png');
