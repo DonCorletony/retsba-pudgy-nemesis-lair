@@ -4,7 +4,21 @@ import { Upload, Download, RefreshCw, AlertCircle, Check, X } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import retsbaBase from '@/assets/retsba-base.png';
+import Template from '@/assets/pfp-templates/Template.png';
+import Template_2 from '@/assets/pfp-templates/Template_2.png';
+
+// Traits that require Template_2 instead of the default Template
+const TEMPLATE_2_TRAITS = [
+  'Headband',
+  'Backwards_Hat_Red',
+  'Jester_Hat',
+  'Sideways_Blue',
+  'Blue_Durag',
+  'Red_Durag',
+  'Ninja_Headband',
+  'Backwards_Hat_Blue',
+  'Sideways_Red',
+];
 
 // Import all head trait overlays
 import Afro_with_Pick from '@/assets/pfp-traits/head/Afro_with_Pick.png';
@@ -243,12 +257,18 @@ const PFPConverter = () => {
     canvas.height = 1000;
 
     try {
-      // Load and draw base Retsba image
-      const baseImg = await loadImage(retsbaBase);
+      // Determine which template to use based on head trait
+      const headTrait = traits.traits.head;
+      const useTemplate2 = headTrait && TEMPLATE_2_TRAITS.includes(headTrait);
+      const templateSrc = useTemplate2 ? Template_2 : Template;
+      
+      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head trait: ${headTrait}`);
+      
+      // Load and draw base template
+      const baseImg = await loadImage(templateSrc);
       ctx.drawImage(baseImg, 0, 0, 1000, 1000);
 
       // Check if we have a matching head trait overlay
-      const headTrait = traits.traits.head;
       if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
         console.log(`Applying head trait: ${headTrait}`);
         const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
@@ -443,7 +463,7 @@ const PFPConverter = () => {
                   className="w-full"
                 >
                   <img
-                    src={retsbaBase}
+                    src={Template}
                     alt="Retsba Base Template"
                     className="w-full h-auto rounded-lg max-h-[320px] object-contain mx-auto"
                   />
