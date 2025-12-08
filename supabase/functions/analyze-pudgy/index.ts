@@ -317,6 +317,32 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Round/circular glasses with BLACK or DARK colored lenses
 - BLACK frames with BLACK/DARK lenses
 
+"Cross_Eyed" (CROSSED EYES, NO GLASSES):
+- NO glasses at all
+- The penguin's eyes are looking INWARD (crossed)
+- Both pupils/irises point toward the nose
+- This is just an expression trait, not eyewear
+
+"Curious" (CURIOUS EXPRESSION, NO GLASSES):
+- NO glasses
+- Eyes looking curious/wondering
+- Simple expression trait
+
+"Mad" (ANGRY EXPRESSION, NO GLASSES):
+- NO glasses
+- Eyes showing angry/mad expression
+- Furrowed brow or angry eyes
+
+"Winking" (ONE EYE CLOSED, NO GLASSES):
+- NO glasses
+- One eye is CLOSED (winking)
+- The other eye is open
+
+"Normal" (NORMAL EXPRESSION, NO GLASSES):
+- NO glasses
+- Standard neutral expression
+- Default Lil Pudgy face
+
 DECISION RULES:
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
 - RED frames + WHITE BANDAGE on bridge → Nerd_Normal
@@ -324,6 +350,9 @@ DECISION RULES:
 - BLUE frames, circular, with black dots → Reading_Cross_eyed
 - TAN frames, rectangular, open eyes → Nerd_Cute
 - TAN frames, rectangular, closed eyes + blush → Nerd_Blushing
+- NO glasses + eyes looking INWARD/crossed → Cross_Eyed
+- NO glasses + one eye closed → Winking
+- NO glasses + angry expression → Mad
 
 HEAD TRAIT EXAMPLES:
 
