@@ -62,6 +62,30 @@ const AVAILABLE_HEAD_TRAITS = [
   "Wizard_Hat"
 ];
 
+// Available face trait overlays - these must match exactly to the file names
+const AVAILABLE_FACE_TRAITS = [
+  "Handlebar_Bear",
+  "Football",
+  "Goggles",
+  "Moustache",
+  "Hero_Mask_Blue",
+  "Hero_Mask_Red",
+  "Star_Glasses",
+  "Villain_Mask",
+  "Circle_Glasses",
+  "Blush",
+  "Scouter",
+  "Star_Eyes",
+  "Clout_Goggles",
+  "Aviators",
+  "Beard",
+  "Scar",
+  "Cucumbers",
+  "Eye_Patch",
+  "Squad",
+  "Monacle"
+];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -85,6 +109,7 @@ serve(async (req) => {
     console.log("Analyzing Pudgy Penguin image for traits...");
 
     const headTraitsList = AVAILABLE_HEAD_TRAITS.join(", ");
+    const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -97,14 +122,17 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert at analyzing Pudgy Penguin and Lil Pudgy NFT images. Your task is to identify the head trait/accessory visible in the image.
+            content: `You are an expert at analyzing Pudgy Penguin and Lil Pudgy NFT images. Your task is to identify the head and face traits/accessories visible in the image.
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
 
-These are the only valid head trait values. Match the uploaded Pudgy's headwear to the closest matching trait from this list. Use underscores and exact capitalization as shown.
+IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or null if no face trait):
+${faceTraitsList}
 
-Examples of matching:
+These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
+
+HEAD TRAIT EXAMPLES:
 - A blue backwards cap → "Backwards_Hat_Blue"
 - A red beanie → "Beanie_Orange" (if closest match)
 - A viking helmet → "Viking_Hat"
@@ -143,6 +171,28 @@ Examples of matching:
 - Camo/military helmet → "Camo_Helmet"
 - Basic hat/cap → "Hat_Blue", "Hat_Red", "Sideways_Blue", or "Sideways_Red"
 
+FACE TRAIT EXAMPLES:
+- Red/pink cheeks, blushing → "Blush"
+- Handlebar mustache (brown/bear style) → "Handlebar_Bear"
+- Football eye black marks → "Football"
+- Swimming goggles (blue) → "Goggles"
+- Curly mustache → "Moustache"
+- Blue superhero mask → "Hero_Mask_Blue"
+- Red superhero mask → "Hero_Mask_Red"
+- Star-shaped glasses/sunglasses → "Star_Glasses"
+- Black villain/bandit mask → "Villain_Mask"
+- Round circle glasses/sunglasses → "Circle_Glasses"
+- Purple/pink scouter device → "Scouter"
+- Star eyes (yellow stars for eyes) → "Star_Eyes"
+- White clout goggles → "Clout_Goggles"
+- Aviator sunglasses → "Aviators"
+- Full fluffy beard → "Beard"
+- Red scar on face → "Scar"
+- Cucumber slices on eyes → "Cucumbers"
+- Eye patch (pirate style) → "Eye_Patch"
+- Angular/squad sunglasses → "Squad"
+- Monocle (single eyeglass) → "Monacle"
+
 Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
@@ -150,8 +200,8 @@ Return ONLY valid JSON in this exact format:
     "background": "description or null",
     "skin": "description or null", 
     "body": "description or null",
-    "face": "description or null",
-    "head": "EXACT_TRAIT_NAME_FROM_LIST or null",
+    "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null",
+    "head": "EXACT_HEAD_TRAIT_NAME_FROM_LIST or null",
     "hand": "description or null"
   },
   "confidence": "high/medium/low",
@@ -163,7 +213,7 @@ Return ONLY valid JSON in this exact format:
             content: [
               {
                 type: "text",
-                text: "Analyze this Pudgy Penguin NFT image and identify the head trait. The head trait value MUST be one of the exact trait names from the provided list, or null if no head accessory is visible."
+                text: "Analyze this Pudgy Penguin NFT image and identify the head and face traits. Both trait values MUST be one of the exact trait names from the provided lists, or null if not visible."
               },
               {
                 type: "image_url",
@@ -246,8 +296,32 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
+    // Validate and normalize the face trait
+    if (traits.traits?.face) {
+      const faceTrait = traits.traits.face;
+      // Check if it's a valid trait
+      if (!AVAILABLE_FACE_TRAITS.includes(faceTrait)) {
+        console.log(`Face trait "${faceTrait}" not in available list, attempting to match...`);
+        // Try to find a close match
+        const normalizedInput = faceTrait.toLowerCase().replace(/[\s-]/g, '_');
+        const match = AVAILABLE_FACE_TRAITS.find(t => 
+          t.toLowerCase() === normalizedInput ||
+          t.toLowerCase().includes(normalizedInput) ||
+          normalizedInput.includes(t.toLowerCase())
+        );
+        if (match) {
+          console.log(`Matched face to: ${match}`);
+          traits.traits.face = match;
+        } else {
+          console.log(`No match found for face trait "${faceTrait}", setting to null`);
+          traits.traits.face = null;
+        }
+      }
+    }
+
     // Add metadata about available traits for the frontend
     traits.availableHeadTraits = AVAILABLE_HEAD_TRAITS;
+    traits.availableFaceTraits = AVAILABLE_FACE_TRAITS;
 
     return new Response(
       JSON.stringify(traits),
