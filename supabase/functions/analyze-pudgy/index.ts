@@ -330,7 +330,7 @@ BODY TRAIT EXAMPLES:
 - Ice/frost themed coat → "Ice_Coat"
 - Tribal/tooth necklace → "Tribal_Necklace"
 - Red heart on body → "Heart"
-- Red crop top → "Crop_Top"
+- Red/maroon CROP TOP - a short tight-fitting top that shows the belly area, casual sleeveless or short-sleeve style, plain solid red/maroon color with NO LOGO → "Crop_Top"
 - Black biker jacket with spikes → "Biker_Jacket"
 - Swordsman outfit with sword on back → "Swordman"
 - Pink kimono with flowers → "Kimono_Pink"
@@ -355,8 +355,12 @@ BODY TRAIT EXAMPLES:
 - Green apron with "Pudge" text → "Apron"
 - Blue scarf → "Scarf_Blue"
 - Green scarf → "Scarf_Green"
-- Red/maroon shirt with igloo logo → "Shirt_Red"
+- Red/maroon HOODIE or SWEATSHIRT with a WHITE IGLOO/DISCO BALL LOGO on the chest → "Shirt_Red" (MUST have a visible white circular logo/design on the chest)
 - Cream/beige/tan terry cloth bathrobe with belt, plain solid color without patterns → "Bathrobe" (NOT Kimono - bathrobes are plain solid color terry cloth with no Japanese patterns)
+
+CRITICAL - CROP_TOP vs SHIRT_RED (YOU MUST GET THIS RIGHT):
+- "Crop_Top": A plain solid RED/MAROON top with NO LOGO or design. It's a casual crop top style that exposes the belly area. The garment is PLAIN with no visible markings.
+- "Shirt_Red": A red/maroon HOODIE or SWEATSHIRT with a distinctive WHITE CIRCULAR LOGO (looks like an igloo or disco ball) visible on the chest. If there's a WHITE LOGO on the chest → Shirt_Red. If the red top is PLAIN with no logo → Crop_Top.
 
 CRITICAL - KIMONO_GOLD vs BATHROBE (YOU MUST GET THIS RIGHT):
 Step 1: Look ONLY at the garment/clothing the penguin is wearing (ignore skin color)
