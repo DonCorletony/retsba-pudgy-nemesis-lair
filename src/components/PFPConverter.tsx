@@ -16,13 +16,15 @@ import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
 const TEMPLATE_2_HEAD_TRAITS = [
   'Headband',
   'Backwards_Hat_Red',
+  'Backwards_Hat_Blue',
+  'Hat_Red',
+  'Hat_Blue',
   'Jester_Hat',
   'Sideways_Blue',
+  'Sideways_Red',
   'Blue_Durag',
   'Red_Durag',
   'Ninja_Headband',
-  'Backwards_Hat_Blue',
-  'Sideways_Red',
 ];
 
 // Face traits that require Template_2 instead of the default Template
