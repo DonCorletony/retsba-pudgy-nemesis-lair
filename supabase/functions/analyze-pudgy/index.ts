@@ -330,8 +330,10 @@ BODY TRAIT EXAMPLES:
 - Cream/beige/tan terry cloth bathrobe with belt, plain solid color without patterns → "Bathrobe" (NOT Kimono - bathrobes are plain solid color terry cloth with no Japanese patterns)
 
 CRITICAL DISTINCTION - Kimono vs Bathrobe:
-- Kimono_Gold: Shiny metallic GOLD fabric, Japanese-style with visible patterns/designs, ornate appearance
-- Bathrobe: Plain CREAM/BEIGE/TAN terry cloth, solid color, no patterns, casual loungewear style with belt
+- Kimono_Gold: Shiny metallic GOLD fabric, Japanese-style with visible patterns/designs, ornate appearance. IMPORTANT: If the penguin has Gold skin AND is wearing a gold/golden/shiny garment, it is ALWAYS "Kimono_Gold" NOT Bathrobe!
+- Bathrobe: Plain CREAM/BEIGE/TAN terry cloth (NOT gold/shiny), solid muted color, no patterns, casual loungewear style with belt
+
+RULE: Gold skin + gold/shiny garment = "Kimono_Gold" (the kimono matches the gold skin color)
 
 Return ONLY valid JSON in this exact format:
 {
