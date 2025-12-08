@@ -1,10 +1,122 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Sparkles, Download, RefreshCw, AlertCircle, Check, X } from 'lucide-react';
+import { Upload, Download, RefreshCw, AlertCircle, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import retsbaBase from '@/assets/retsba-base.png';
+
+// Import all head trait overlays
+import Afro_with_Pick from '@/assets/pfp-traits/head/Afro_with_Pick.png';
+import Backwards_Hat_Blue from '@/assets/pfp-traits/head/Backwards_Hat_Blue.png';
+import Backwards_Hat_Red from '@/assets/pfp-traits/head/Backwards_Hat_Red.png';
+import Banana_Suit from '@/assets/pfp-traits/head/Banana_Suit.png';
+import Beanie_Gray from '@/assets/pfp-traits/head/Beanie_Gray.png';
+import Beanie_Orange from '@/assets/pfp-traits/head/Beanie_Orange.png';
+import Biker_Helmet from '@/assets/pfp-traits/head/Biker_Helmet.png';
+import Blue_Durag from '@/assets/pfp-traits/head/Blue_Durag.png';
+import Bucket_Hat_Green from '@/assets/pfp-traits/head/Bucket_Hat_Green.png';
+import Bucket_Hat_Tan from '@/assets/pfp-traits/head/Bucket_Hat_Tan.png';
+import Camo_Helmet from '@/assets/pfp-traits/head/Camo_Helmet.png';
+import Cowboy_Hat from '@/assets/pfp-traits/head/Cowboy_Hat.png';
+import Crown from '@/assets/pfp-traits/head/Crown.png';
+import Egg from '@/assets/pfp-traits/head/Egg.png';
+import Egg_Gold from '@/assets/pfp-traits/head/Egg_Gold.png';
+import Fish_Blue from '@/assets/pfp-traits/head/Fish_Blue.png';
+import Fish_Gold from '@/assets/pfp-traits/head/Fish_Gold.png';
+import Fish_Green from '@/assets/pfp-traits/head/Fish_Green.png';
+import Fish_Orange from '@/assets/pfp-traits/head/Fish_Orange.png';
+import Flat_Cap_Black from '@/assets/pfp-traits/head/Flat_Cap_Black.png';
+import Flat_Cap_Blue from '@/assets/pfp-traits/head/Flat_Cap_Blue.png';
+import Flat_Cap_Tan from '@/assets/pfp-traits/head/Flat_Cap_Tan.png';
+import Flower_Crown from '@/assets/pfp-traits/head/Flower_Crown.png';
+import Ghost from '@/assets/pfp-traits/head/Ghost.png';
+import Grizzly_Bear_Hat from '@/assets/pfp-traits/head/Grizzly_Bear_Hat.png';
+import Hat_Blue from '@/assets/pfp-traits/head/Hat_Blue.png';
+import Hat_Red from '@/assets/pfp-traits/head/Hat_Red.png';
+import Hatched from '@/assets/pfp-traits/head/Hatched.png';
+import Hatched_Gold from '@/assets/pfp-traits/head/Hatched_Gold.png';
+import Headband from '@/assets/pfp-traits/head/Headband.png';
+import Hippy_Hair from '@/assets/pfp-traits/head/Hippy_Hair.png';
+import Ice_Crown from '@/assets/pfp-traits/head/Ice_Crown.png';
+import Jester_Hat from '@/assets/pfp-traits/head/Jester_Hat.png';
+import Macaroni from '@/assets/pfp-traits/head/Macaroni.png';
+import Mohawk_Green from '@/assets/pfp-traits/head/Mohawk_Green.png';
+import Mohawk_Purple from '@/assets/pfp-traits/head/Mohawk_Purple.png';
+import Ninja_Headband from '@/assets/pfp-traits/head/Ninja_Headband.png';
+import Panda_Hat from '@/assets/pfp-traits/head/Panda_Hat.png';
+import Party_Hat from '@/assets/pfp-traits/head/Party_Hat.png';
+import Pineapple from '@/assets/pfp-traits/head/Pineapple.png';
+import Pink_Beanie from '@/assets/pfp-traits/head/Pink_Beanie.png';
+import Pirate_Hat from '@/assets/pfp-traits/head/Pirate_Hat.png';
+import Polar_Bear_Hat from '@/assets/pfp-traits/head/Polar_Bear_Hat.png';
+import Red_Durag from '@/assets/pfp-traits/head/Red_Durag.png';
+import Rice_Hat from '@/assets/pfp-traits/head/Rice_Hat.png';
+import Santa_Hat from '@/assets/pfp-traits/head/Santa_Hat.png';
+import Shark_Suit from '@/assets/pfp-traits/head/Shark_Suit.png';
+import Sideways_Blue from '@/assets/pfp-traits/head/Sideways_Blue.png';
+import Sideways_Red from '@/assets/pfp-traits/head/Sideways_Red.png';
+import Sombrero from '@/assets/pfp-traits/head/Sombrero.png';
+import Top_Hat from '@/assets/pfp-traits/head/Top_Hat.png';
+import Viking_Hat from '@/assets/pfp-traits/head/Viking_Hat.png';
+import Wizard_Hat from '@/assets/pfp-traits/head/Wizard_Hat.png';
+
+// Mapping of trait names to imported images
+const HEAD_TRAIT_MAP: Record<string, string> = {
+  Afro_with_Pick,
+  Backwards_Hat_Blue,
+  Backwards_Hat_Red,
+  Banana_Suit,
+  Beanie_Gray,
+  Beanie_Orange,
+  Biker_Helmet,
+  Blue_Durag,
+  Bucket_Hat_Green,
+  Bucket_Hat_Tan,
+  Camo_Helmet,
+  Cowboy_Hat,
+  Crown,
+  Egg,
+  Egg_Gold,
+  Fish_Blue,
+  Fish_Gold,
+  Fish_Green,
+  Fish_Orange,
+  Flat_Cap_Black,
+  Flat_Cap_Blue,
+  Flat_Cap_Tan,
+  Flower_Crown,
+  Ghost,
+  Grizzly_Bear_Hat,
+  Hat_Blue,
+  Hat_Red,
+  Hatched,
+  Hatched_Gold,
+  Headband,
+  Hippy_Hair,
+  Ice_Crown,
+  Jester_Hat,
+  Macaroni,
+  Mohawk_Green,
+  Mohawk_Purple,
+  Ninja_Headband,
+  Panda_Hat,
+  Party_Hat,
+  Pineapple,
+  Pink_Beanie,
+  Pirate_Hat,
+  Polar_Bear_Hat,
+  Red_Durag,
+  Rice_Hat,
+  Santa_Hat,
+  Shark_Suit,
+  Sideways_Blue,
+  Sideways_Red,
+  Sombrero,
+  Top_Hat,
+  Viking_Hat,
+  Wizard_Hat,
+};
 
 interface DetectedTraits {
   isPudgy: boolean;
@@ -110,10 +222,17 @@ const PFPConverter = () => {
     }
   };
 
+  const loadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
   const generateRetsbafiedImage = async (traits: DetectedTraits) => {
-    // For now, we'll create a placeholder composite
-    // In the future, this will layer actual Retsba trait assets
-    
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -123,43 +242,30 @@ const PFPConverter = () => {
     canvas.width = 1000;
     canvas.height = 1000;
 
-    // Load base Retsba image
-    const baseImg = new Image();
-    baseImg.crossOrigin = 'anonymous';
-    
-    await new Promise<void>((resolve, reject) => {
-      baseImg.onload = () => {
-        ctx.drawImage(baseImg, 0, 0, 1000, 1000);
-        resolve();
-      };
-      baseImg.onerror = reject;
-      // Using the main Retsba image as base
-      baseImg.src = '/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png';
-    });
+    try {
+      // Load and draw base Retsba image
+      const baseImg = await loadImage(retsbaBase);
+      ctx.drawImage(baseImg, 0, 0, 1000, 1000);
 
-    // Add trait overlay text (placeholder until actual assets are added)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(20, canvas.height - 180, canvas.width - 40, 160);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 24px system-ui';
-    ctx.fillText('RETSBAFIED', 40, canvas.height - 140);
-    
-    ctx.font = '16px system-ui';
-    ctx.fillStyle = '#aaaaaa';
-    let y = canvas.height - 110;
-    
-    Object.entries(traits.traits).forEach(([key, value]) => {
-      if (value) {
-        ctx.fillText(`${key}: ${value}`, 40, y);
-        y += 25;
+      // Check if we have a matching head trait overlay
+      const headTrait = traits.traits.head;
+      if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
+        console.log(`Applying head trait: ${headTrait}`);
+        const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
+        ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+      } else if (headTrait) {
+        console.log(`No overlay found for head trait: ${headTrait}`);
       }
-    });
 
-    const dataUrl = canvas.toDataURL('image/png');
-    setRetsbafiedImage(dataUrl);
-    setStep('complete');
-    toast.success('Your Pudgy has been Retsbafied!');
+      const dataUrl = canvas.toDataURL('image/png');
+      setRetsbafiedImage(dataUrl);
+      setStep('complete');
+      toast.success('Your Pudgy has been Retsbafied!');
+    } catch (err) {
+      console.error('Compositing error:', err);
+      setError('Failed to generate Retsbafied image');
+      setStep('error');
+    }
   };
 
   const handleDownload = () => {
@@ -191,6 +297,12 @@ const PFPConverter = () => {
       case 'error': return error || 'Something went wrong';
       default: return '';
     }
+  };
+
+  // Format trait name for display
+  const formatTraitName = (trait: string | null) => {
+    if (!trait) return null;
+    return trait.replace(/_/g, ' ');
   };
 
   return (
@@ -294,9 +406,16 @@ const PFPConverter = () => {
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(detectedTraits.traits).map(([key, value]) => (
                     value && (
-                      <div key={key} className="bg-white rounded-lg p-2 border border-black/10">
+                      <div key={key} className={`bg-white rounded-lg p-2 border ${
+                        key === 'head' && HEAD_TRAIT_MAP[value] 
+                          ? 'border-green-500/50 bg-green-50' 
+                          : 'border-black/10'
+                      }`}>
                         <p className="text-black/40 text-xs uppercase tracking-wide">{key}</p>
-                        <p className="text-black text-sm">{value}</p>
+                        <p className="text-black text-sm">{formatTraitName(value)}</p>
+                        {key === 'head' && HEAD_TRAIT_MAP[value] && (
+                          <p className="text-green-600 text-xs mt-0.5">✓ Overlay applied</p>
+                        )}
                       </div>
                     )
                   ))}
@@ -411,8 +530,8 @@ const PFPConverter = () => {
           {/* Info Notice */}
           <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
             <p className="text-black/70 text-sm">
-              <span className="text-primary font-semibold">Note:</span> Trait overlays are being developed. 
-              Currently showing a preview with detected traits. Full trait layering coming soon!
+              <span className="text-primary font-semibold">Testing Mode:</span> Currently detecting and applying head traits only. 
+              More trait categories coming soon!
             </p>
           </div>
         </div>
