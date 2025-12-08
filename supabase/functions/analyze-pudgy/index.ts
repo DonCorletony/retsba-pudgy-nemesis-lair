@@ -222,15 +222,15 @@ ${bodyTraitsList}
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
 HEAD TRAIT EXAMPLES:
-- FORWARD-FACING CAP with brim in FRONT and logo visible on front → "Hat_Blue" or "Hat_Red"
-- BACKWARDS CAP with brim at BACK (no logo visible, back of cap faces forward) → "Backwards_Hat_Blue" or "Backwards_Hat_Red"
-- SIDEWAYS CAP with brim to the side → "Sideways_Blue" or "Sideways_Red"
 
-CRITICAL HAT DISTINCTION:
-- "Hat_Red" = Red baseball cap worn NORMALLY (brim facing forward, logo/design visible on front of cap)
-- "Backwards_Hat_Red" = Red cap worn BACKWARDS (brim is at the back of the head, cap's adjustable strap visible in front)
-- If you can see a logo/design on the FRONT of the cap, it's a forward-facing hat (Hat_Blue/Hat_Red)
-- If the cap appears to have its brim behind the penguin's head, it's backwards (Backwards_Hat_Blue/Backwards_Hat_Red)
+CRITICAL HAT DISTINCTION - LOOK FOR THE IGLOO LOGO:
+- "Hat_Red" / "Hat_Blue" = Forward-facing cap WITH AN IGLOO LOGO visible on the front. The igloo is a white building design on the cap.
+- "Backwards_Hat_Red" / "Backwards_Hat_Blue" = Backwards cap with NO IGLOO LOGO visible (plain front, logo is hidden at back)
+
+THE IGLOO LOGO IS THE KEY:
+- If you see a WHITE IGLOO LOGO on the front of the cap → "Hat_Red" or "Hat_Blue"
+- If there is NO igloo logo visible (plain cap front) → "Backwards_Hat_Red" or "Backwards_Hat_Blue"
+- SIDEWAYS CAP with brim to the side → "Sideways_Blue" or "Sideways_Red"
 
 - A viking helmet → "Viking_Hat"
 - A cowboy hat → "Cowboy_Hat"
