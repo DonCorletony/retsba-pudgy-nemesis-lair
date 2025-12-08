@@ -326,12 +326,18 @@ BODY TRAIT EXAMPLES:
 - Pink bow tie → "Bowtie_Pink"
 - Pink turtleneck sweater → "Turtleneck_Pink"
 - Green turtleneck sweater → "Turtleneck_Green"
-- Brown kimono/robe → "Kimono_Brown"
-- Red kimono/robe → "Kimono_Red"
-- White kimono/robe with black pattern → "Kimono_White"
-- Orange kimono/robe with triangles → "Kimono_Orange"
-- Blue kimono/robe with flowers → "Kimono_Blue"
-- Abstract geometric kimono → "Kimono_Abstract"
+CRITICAL - KIMONO DISTINCTION (LOOK AT THE PATTERN):
+- "Kimono_Red" = RED kimono with WHITE STRIPS/LINES on the LAPELS (solid white trim along the edges)
+- "Kimono_Orange" = ORANGE kimono with WHITE TRIANGLES pattern scattered across the fabric
+- "Kimono_Brown" = Brown/tan solid kimono
+- "Kimono_White" = White kimono with black geometric pattern
+- "Kimono_Blue" = Blue kimono with flower pattern
+- "Kimono_Abstract" = Abstract geometric colorful kimono
+- "Kimono_Gold" = Gold/yellow metallic kimono
+- "Kimono_Pink" = Pink kimono
+- "Kimono_Ice" = Ice/blue frosted kimono
+
+KEY: If the kimono is RED with simple WHITE EDGE TRIM → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange".
 - Blue t-shirt/shirt → "Blue_Shirt"
 - Hawaiian shirt with palm trees → "Hawaiian_Shirt"
 - Bronze medal with ribbon → "Bronze_Medal"
