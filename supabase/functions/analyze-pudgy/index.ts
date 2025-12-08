@@ -188,6 +188,12 @@ serve(async (req) => {
             role: "system",
             content: `You are an expert at analyzing Pudgy Penguin and Lil Pudgy NFT images. Your task is to identify the head, face, and body traits/accessories visible in the image.
 
+SPECIAL PENGUIN DETECTION - CHECK FIRST:
+Before analyzing traits, determine if this is a special penguin type:
+- "left_facing" penguin: The penguin is facing LEFT (looking to the left side of the image) AND has its eyes CLOSED. This is a rare backwards-facing penguin variant.
+
+If the penguin matches a special type, set "isSpecialPenguin" to that type and set all traits to null. Regular penguins face forward-right with open eyes.
+
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
 
@@ -323,6 +329,7 @@ BODY TRAIT EXAMPLES:
 Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
+  "isSpecialPenguin": "left_facing" or null,
   "traits": {
     "background": "description or null",
     "skin": "description or null", 
