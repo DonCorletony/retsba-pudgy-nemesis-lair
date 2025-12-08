@@ -344,6 +344,7 @@ Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
   "isSpecialPenguin": "left_facing" or null,
+  "garmentMatchesSkinColor": true/false (IMPORTANT: Does the garment/clothing appear to be the SAME COLOR as the skin? If gold skin and gold garment = true. If gold skin and cream garment = false),
   "traits": {
     "background": "description or null",
     "skin": "description or null", 
@@ -488,6 +489,15 @@ Return ONLY valid JSON in this exact format:
           traits.traits.body = null;
         }
       }
+    }
+    
+    // POST-PROCESSING: Use garmentMatchesSkinColor to fix Kimono_Gold vs Bathrobe confusion
+    // If the AI detected Gold skin + Bathrobe, but garment matches skin color, it's Kimono_Gold
+    if (traits.garmentMatchesSkinColor === true && 
+        traits.traits?.skin?.toLowerCase()?.includes('gold') && 
+        traits.traits?.body === 'Bathrobe') {
+      console.log('POST-PROCESSING: garmentMatchesSkinColor=true + Gold skin + Bathrobe detected, correcting to Kimono_Gold');
+      traits.traits.body = 'Kimono_Gold';
     }
 
     // Add metadata about available traits for the frontend
