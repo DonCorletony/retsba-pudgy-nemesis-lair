@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Template from '@/assets/pfp-templates/Template.png';
 import Template_2 from '@/assets/pfp-templates/Template_2.png';
 import Backwards_Template from '@/assets/pfp-templates/Backwards_Template.png';
+import Gold_Template from '@/assets/pfp-templates/Gold_Template.png';
 
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
@@ -446,15 +447,31 @@ const PFPConverter = () => {
         return;
       }
       
-      // Determine which template to use based on head or face trait
+      // Determine which template to use based on skin, head, or face trait
       const headTrait = traits.traits.head;
       const faceTrait = traits.traits.face;
       const bodyTrait = traits.traits.body;
-      const useTemplate2 = (headTrait && TEMPLATE_2_HEAD_TRAITS.includes(headTrait)) || 
-                           (faceTrait && TEMPLATE_2_FACE_TRAITS.includes(faceTrait));
-      const templateSrc = useTemplate2 ? Template_2 : Template;
+      const skinTrait = traits.traits.skin?.toLowerCase() || '';
       
-      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head: ${headTrait}, face: ${faceTrait}, body: ${bodyTrait}`);
+      // Check for gold skin - use Gold_Template
+      const isGoldSkin = skinTrait.includes('gold') || skinTrait.includes('golden');
+      
+      const useTemplate2 = !isGoldSkin && (
+        (headTrait && TEMPLATE_2_HEAD_TRAITS.includes(headTrait)) || 
+        (faceTrait && TEMPLATE_2_FACE_TRAITS.includes(faceTrait))
+      );
+      
+      let templateSrc = Template;
+      let templateName = 'Template';
+      if (isGoldSkin) {
+        templateSrc = Gold_Template;
+        templateName = 'Gold_Template';
+      } else if (useTemplate2) {
+        templateSrc = Template_2;
+        templateName = 'Template_2';
+      }
+      
+      console.log(`Using template: ${templateName} for skin: ${skinTrait}, head: ${headTrait}, face: ${faceTrait}, body: ${bodyTrait}`);
       
       // Load and draw base template
       const baseImg = await loadImage(templateSrc);
