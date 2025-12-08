@@ -43,7 +43,7 @@ const LIL_FACE_TRAIT_REMAP: Record<string, string> = {
   'Nerd_Cute': 'Nerd_Cute_2',
 };
 
-// Import Lil face trait overlays
+// Import Lil face trait overlays (remapped _2 versions)
 import LilNerdCute2 from '@/assets/pfp-traits/lil/face/Nerd_Cute_2.png';
 import LilReadingNormal2 from '@/assets/pfp-traits/lil/face/Reading_Normal_2.png';
 import LilNerdBlushing2 from '@/assets/pfp-traits/lil/face/Nerd_Blushing_2.png';
@@ -53,8 +53,18 @@ import LilNerdNormal2 from '@/assets/pfp-traits/lil/face/Nerd_Normal_2.png';
 import LilReadingCrossEyed2 from '@/assets/pfp-traits/lil/face/Reading_Cross_eyed_2.png';
 import LilReadingCute2 from '@/assets/pfp-traits/lil/face/Reading_Cute_2.png';
 
-// Mapping of Lil face trait names to imported images
-const LIL_FACE_TRAIT_MAP: Record<string, string> = {
+// Import Lil face trait overlays (direct 1:1 mappings)
+import LilCircleGlasses from '@/assets/pfp-traits/lil/face/Circle_Glasses.png';
+import LilBlushing from '@/assets/pfp-traits/lil/face/Blushing.png';
+import LilCrossEyed from '@/assets/pfp-traits/lil/face/Cross_Eyed.png';
+import LilCurious from '@/assets/pfp-traits/lil/face/Curious.png';
+import LilMad from '@/assets/pfp-traits/lil/face/Mad.png';
+import LilNormal from '@/assets/pfp-traits/lil/face/Normal.png';
+import LilReadingCute from '@/assets/pfp-traits/lil/face/Reading_Cute.png';
+import LilWinking from '@/assets/pfp-traits/lil/face/Winking.png';
+
+// Mapping of remapped Lil face trait names (_2 versions) to imported images
+const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
   Reading_Cute_2: LilReadingCute2,
   Reading_Cross_eyed_2: LilReadingCrossEyed2,
   Nerd_Normal_2: LilNerdNormal2,
@@ -63,6 +73,18 @@ const LIL_FACE_TRAIT_MAP: Record<string, string> = {
   Nerd_Blushing_2: LilNerdBlushing2,
   Reading_Normal_2: LilReadingNormal2,
   Nerd_Cute_2: LilNerdCute2,
+};
+
+// Mapping of direct Lil face trait names to imported images (no remapping needed)
+const LIL_FACE_DIRECT_MAP: Record<string, string> = {
+  Circle_Glasses: LilCircleGlasses,
+  Blushing: LilBlushing,
+  Cross_Eyed: LilCrossEyed,
+  Curious: LilCurious,
+  Mad: LilMad,
+  Normal: LilNormal,
+  Reading_Cute: LilReadingCute,
+  Winking: LilWinking,
 };
 
 // Head traits that require Template_2 instead of the default Template
@@ -611,18 +633,22 @@ const PFPConverter = () => {
       // 2. Apply face trait overlay (middle layer)
       if (faceTrait) {
         if (isLilMode) {
-          // In Lil mode, check if the trait should be remapped to a different overlay
+          // In Lil mode, first check if the trait should be remapped to a different overlay
           if (LIL_FACE_TRAIT_REMAP[faceTrait]) {
             const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
-            if (LIL_FACE_TRAIT_MAP[remappedTrait]) {
+            if (LIL_FACE_REMAP_IMAGE_MAP[remappedTrait]) {
               console.log(`Applying Lil face trait (remapped): ${faceTrait} -> ${remappedTrait}`);
-              const faceOverlay = await loadImage(LIL_FACE_TRAIT_MAP[remappedTrait]);
+              const faceOverlay = await loadImage(LIL_FACE_REMAP_IMAGE_MAP[remappedTrait]);
               ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
             } else {
               console.log(`Lil mode: No Lil overlay found for remapped face trait: ${remappedTrait}`);
             }
+          } else if (LIL_FACE_DIRECT_MAP[faceTrait]) {
+            // Direct 1:1 mapping for Lil face traits
+            console.log(`Applying Lil face trait (direct): ${faceTrait}`);
+            const faceOverlay = await loadImage(LIL_FACE_DIRECT_MAP[faceTrait]);
+            ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
           } else {
-            // TODO: Add LIL_FACE_TRAIT_MAP direct lookups when more Lil face traits are uploaded
             console.log(`Lil mode: No Lil face overlay available for: ${faceTrait}`);
           }
         } else if (FACE_TRAIT_MAP[faceTrait]) {
