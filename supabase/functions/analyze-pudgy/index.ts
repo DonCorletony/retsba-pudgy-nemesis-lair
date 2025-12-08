@@ -484,6 +484,16 @@ Return ONLY valid JSON in this exact format:
         }
       }
     }
+    
+    // POST-PROCESSING RULE: Gold skin + Bathrobe = Kimono_Gold
+    // The AI often confuses gold kimono with bathrobe when the penguin has gold skin
+    if (traits.traits?.skin && traits.traits?.body === 'Bathrobe') {
+      const skinLower = traits.traits.skin.toLowerCase();
+      if (skinLower.includes('gold') || skinLower.includes('golden')) {
+        console.log('POST-PROCESSING: Gold skin + Bathrobe detected, correcting to Kimono_Gold');
+        traits.traits.body = 'Kimono_Gold';
+      }
+    }
 
     // Add metadata about available traits for the frontend
     traits.availableHeadTraits = AVAILABLE_HEAD_TRAITS;
