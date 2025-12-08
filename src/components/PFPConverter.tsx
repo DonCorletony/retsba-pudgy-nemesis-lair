@@ -416,9 +416,15 @@ const PFPConverter = () => {
   const [isLilMode, setIsLilMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isAutoSwitchingRef = useRef(false);
 
-  // Clear uploaded image when switching between Big and Lil modes
+  // Clear uploaded image when manually switching between Big and Lil modes
   useEffect(() => {
+    if (isAutoSwitchingRef.current) {
+      // Don't clear when auto-switching from detection
+      isAutoSwitchingRef.current = false;
+      return;
+    }
     setUploadedImage(null);
     setDetectedTraits(null);
     setRetsbafiedImage(null);
@@ -489,6 +495,14 @@ const PFPConverter = () => {
         setError("This doesn't appear to be a Pudgy Penguin NFT. Please upload a valid Pudgy image.");
         setStep('error');
         return;
+      }
+
+      // Auto-switch mode if detected type doesn't match current mode
+      const detectedIsLil = data.isLilPudgy === true;
+      if (detectedIsLil !== isLilMode) {
+        isAutoSwitchingRef.current = true;
+        setIsLilMode(detectedIsLil);
+        toast.info(`Detected a ${detectedIsLil ? 'Lil Pudgy' : 'Big Pudgy'}! Switched mode automatically.`);
       }
 
       setDetectedTraits(data);
