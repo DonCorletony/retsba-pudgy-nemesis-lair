@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Download, RefreshCw, AlertCircle, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -416,6 +416,15 @@ const PFPConverter = () => {
   const [isLilMode, setIsLilMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Clear uploaded image when switching between Big and Lil modes
+  useEffect(() => {
+    setUploadedImage(null);
+    setDetectedTraits(null);
+    setRetsbafiedImage(null);
+    setStep('idle');
+    setError(null);
+  }, [isLilMode]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
