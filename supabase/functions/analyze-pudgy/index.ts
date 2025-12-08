@@ -273,11 +273,19 @@ FACE TRAIT EXAMPLES:
 
 IMPORTANT - NECKLACES AND BODY TRAITS CAN BE PARTIALLY HIDDEN:
 When a face trait like "Beard" is present, it may partially cover body traits like necklaces. Look CAREFULLY at the neck/chest area for any visible necklaces or pendants peeking out from behind the beard or other face accessories. Common necklaces include:
-- Surfboard_Necklace: A small wooden surfboard pendant on a string around the neck - may be partially visible under a beard
+- Surfboard_Necklace: A small wooden/tan surfboard pendant on a string around the neck - may be partially visible under a beard
 - Shark_Tooth: A shark tooth on a cord around the neck
 - Tribal_Necklace: A tribal/bone necklace around the neck
 - Christmas_Lights: String of colorful lights worn as necklace
 Even if only partially visible, if you can identify the necklace type, include it as the body trait.
+
+CRITICAL - SURFBOARD_NECKLACE vs BOW_TIE_BLUE (COMMON CONFUSION):
+These two traits look VERY different - do NOT confuse them:
+- "Surfboard_Necklace": A SMALL WOODEN SURFBOARD PENDANT (tan/brown colored board shape) hanging on a CORD/STRING. The surfboard itself is tan/wood colored, NOT blue. The cord may be blue/teal but the pendant is a surfboard shape.
+- "Bow_Tie_Blue": A BLUE BOW-SHAPED TIE worn at the collar/neck area. It's a symmetrical bow shape made of fabric. NO pendant, no string with hanging object.
+
+If you see a PENDANT hanging on a cord (especially below a beard), that is Surfboard_Necklace, NOT a bow tie!
+If you see a SYMMETRICAL BOW SHAPE at the collar, that is Bow_Tie_Blue.
 
 BODY TRAIT EXAMPLES:
 - Blue flower lei/necklace → "Lei_Blue"
@@ -287,7 +295,7 @@ BODY TRAIT EXAMPLES:
 - Pink hoodie/sweatshirt → "Hoodie_Pink"
 - Orange puffer jacket/vest → "Puffer_Orange"
 - Blue puffer jacket/vest → "Puffer_Blue"
-- Blue bow tie → "Bow_Tie_Blue"
+- Blue bow tie (symmetrical bow shape at collar, NO pendant) → "Bow_Tie_Blue"
 - Black bow tie → "Bowtie_Black"
 - Pink bow tie → "Bowtie_Pink"
 - Pink turtleneck sweater → "Turtleneck_Pink"
