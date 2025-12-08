@@ -146,6 +146,14 @@ import Suit_Red from '@/assets/pfp-traits/body/Suit_Red.png';
 import Pudgy_Man from '@/assets/pfp-traits/body/Pudgy_Man.png';
 import Lei_Assorted from '@/assets/pfp-traits/body/Lei_Assorted.png';
 import I_Love_Fish from '@/assets/pfp-traits/body/I_Love_Fish.png';
+import Big_P from '@/assets/pfp-traits/body/Big_P.png';
+import Shark_Tooth from '@/assets/pfp-traits/body/Shark_Tooth.png';
+import Christmas_Sweater_Red from '@/assets/pfp-traits/body/Christmas_Sweater_Red.png';
+import Christmas_Sweater_Blue from '@/assets/pfp-traits/body/Christmas_Sweater_Blue.png';
+import The_Huddle from '@/assets/pfp-traits/body/The_Huddle.png';
+import Tanktop_Yellow from '@/assets/pfp-traits/body/Tanktop_Yellow.png';
+import Tanktop_Blue from '@/assets/pfp-traits/body/Tanktop_Blue.png';
+import Vote_4_Pudgy from '@/assets/pfp-traits/body/Vote_4_Pudgy.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -273,6 +281,14 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Pudgy_Man,
   Lei_Assorted,
   I_Love_Fish,
+  Big_P,
+  Shark_Tooth,
+  Christmas_Sweater_Red,
+  Christmas_Sweater_Blue,
+  The_Huddle,
+  Tanktop_Yellow,
+  Tanktop_Blue,
+  Vote_4_Pudgy,
 };
 
 interface DetectedTraits {

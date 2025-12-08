@@ -130,7 +130,15 @@ const AVAILABLE_BODY_TRAITS = [
   "Suit_Red",
   "Pudgy_Man",
   "Lei_Assorted",
-  "I_Love_Fish"
+  "I_Love_Fish",
+  "Big_P",
+  "Shark_Tooth",
+  "Christmas_Sweater_Red",
+  "Christmas_Sweater_Blue",
+  "The_Huddle",
+  "Tanktop_Yellow",
+  "Tanktop_Blue",
+  "Vote_4_Pudgy"
 ];
 
 serve(async (req) => {
@@ -287,6 +295,14 @@ BODY TRAIT EXAMPLES:
 - Blue shirt with PM logo and red cape → "Pudgy_Man"
 - Colorful assorted flower lei → "Lei_Assorted"
 - White shirt with "I Love Fish" text → "I_Love_Fish"
+- Brown bag necklace with P letter → "Big_P"
+- Shark tooth necklace → "Shark_Tooth"
+- Red Christmas sweater with snowflakes → "Christmas_Sweater_Red"
+- Blue Christmas sweater with snowflakes → "Christmas_Sweater_Blue"
+- Pink shirt with "The Huddle" text → "The_Huddle"
+- Yellow tank top → "Tanktop_Yellow"
+- Blue tank top → "Tanktop_Blue"
+- White shirt with "Vote 4 Pudgy" text → "Vote_4_Pudgy"
 
 Return ONLY valid JSON in this exact format:
 {
