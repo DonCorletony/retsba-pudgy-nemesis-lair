@@ -271,6 +271,14 @@ FACE TRAIT EXAMPLES:
 - Angular/squad sunglasses → "Squad"
 - Monocle (single eyeglass) → "Monacle"
 
+IMPORTANT - NECKLACES AND BODY TRAITS CAN BE PARTIALLY HIDDEN:
+When a face trait like "Beard" is present, it may partially cover body traits like necklaces. Look CAREFULLY at the neck/chest area for any visible necklaces or pendants peeking out from behind the beard or other face accessories. Common necklaces include:
+- Surfboard_Necklace: A small wooden surfboard pendant on a string around the neck - may be partially visible under a beard
+- Shark_Tooth: A shark tooth on a cord around the neck
+- Tribal_Necklace: A tribal/bone necklace around the neck
+- Christmas_Lights: String of colorful lights worn as necklace
+Even if only partially visible, if you can identify the necklace type, include it as the body trait.
+
 BODY TRAIT EXAMPLES:
 - Blue flower lei/necklace → "Lei_Blue"
 - Purple flower lei/necklace → "Lei_Purple"
