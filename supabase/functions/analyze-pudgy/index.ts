@@ -62,7 +62,7 @@ const AVAILABLE_HEAD_TRAITS = [
   "Wizard_Hat"
 ];
 
-// Available face trait overlays - these must match exactly to the file names
+// Available face trait overlays for Big Pudgys - these must match exactly to the file names
 const AVAILABLE_FACE_TRAITS = [
   "Handlebar_Bear",
   "Football",
@@ -84,6 +84,38 @@ const AVAILABLE_FACE_TRAITS = [
   "Eye_Patch",
   "Squad",
   "Monacle"
+];
+
+// Available face trait overlays for Lil Pudgys - these must match exactly to the file names
+const AVAILABLE_LIL_FACE_TRAITS = [
+  "Circle_Glasses",
+  "Blushing",
+  "Cross_Eyed",
+  "Curious",
+  "Mad",
+  "Normal",
+  "Reading_Cute",
+  "Winking",
+  "Reading_Normal",
+  "Reading_Cross_eyed",
+  "Nerd_Normal",
+  "Nerd_Cute",
+  "Nerd_Blushing",
+  "Scouter",
+  "Goofy_Glasses",
+  "Football",
+  "Goggles",
+  "Goggles_Pink",
+  "Goggles_Yellow",
+  "Aviators",
+  "Clout_Goggles",
+  "Ski_Goggles",
+  "Squad",
+  "Star_Glasses",
+  "Shades_Blue",
+  "Shades_Yellow",
+  "Upsidedown_Orange",
+  "Upsidedown_Purple"
 ];
 
 // Available body trait overlays - these must match exactly to the file names
@@ -173,6 +205,7 @@ serve(async (req) => {
 
     const headTraitsList = AVAILABLE_HEAD_TRAITS.join(", ");
     const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
+    const lilFaceTraitsList = AVAILABLE_LIL_FACE_TRAITS.join(", ");
     const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -214,10 +247,30 @@ IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or n
 ${headTraitsList}
 
 IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or null if no face trait):
-${faceTraitsList}
+- For BIG PUDGY (larger, rounder penguin with bigger body proportions): ${faceTraitsList}
+- For LIL PUDGY (smaller, cuter baby penguin with smaller proportions): ${lilFaceTraitsList}
 
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
+
+LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL:
+First determine if this is a Lil Pudgy or Big Pudgy:
+- LIL PUDGY: Smaller, baby penguin with SMALLER proportions. Has a SMALLER ROUNDER head relative to body. Eyes are typically BIGGER and more expressive. Often has simpler, cuter accessories. The penguin looks like a BABY or CHILD version.
+- BIG PUDGY: Full-sized adult penguin with LARGER body proportions. More detailed accessories and clothing.
+
+Set "isLilPudgy" to true if this is a Lil Pudgy, false if it's a Big Pudgy.
+
+CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION (GLASSES):
+For Lil Pudgys, pay CLOSE ATTENTION to the glasses style:
+
+- "Reading_Normal": RECTANGULAR glasses with a BLACK FRAME. The lenses are RECTANGULAR/SQUARE shaped, not round. These are reading/nerd glasses style with thick black frames. The penguin's eyes look normal/neutral behind the glasses.
+- "Circle_Glasses": ROUND/CIRCULAR glasses. The lenses are PERFECTLY ROUND circles. These look like John Lennon style round spectacles.
+- "Nerd_Normal": Similar to Reading_Normal but with a BLUE tint to the lenses
+- "Goofy_Glasses": Oversized novelty glasses with spiral/swirl patterns
+
+KEY DISTINCTION FOR RECTANGULAR vs ROUND:
+- RECTANGULAR lens shape = Reading_Normal, Nerd_Normal, or Reading_* variants
+- ROUND/CIRCULAR lens shape = Circle_Glasses
 
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
@@ -397,13 +450,14 @@ EXAMPLES:
 Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
+  "isLilPudgy": true/false (true if this is a Lil Pudgy baby penguin, false if Big Pudgy adult penguin),
   "isSpecialPenguin": "left_facing" or null,
   "garmentMatchesSkinColor": true/false (IMPORTANT: Does the garment/clothing appear to be the SAME COLOR as the skin? If gold skin and gold garment = true. If gold skin and cream garment = false),
   "traits": {
     "background": "description or null",
     "skin": "description or null", 
     "body": "EXACT_BODY_TRAIT_NAME_FROM_LIST or null",
-    "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null",
+    "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null (use Lil Pudgy traits if isLilPudgy is true)",
     "head": "EXACT_HEAD_TRAIT_NAME_FROM_LIST or null",
     "hand": "description or null"
   },
