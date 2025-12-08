@@ -743,6 +743,13 @@ Return ONLY valid JSON in this exact format:
       traits.traits.body = 'Kimono_Gold';
     }
 
+    // FIX CONTRADICTION: If isLilPudgy is true, isPudgy must also be true
+    // The AI sometimes returns isPudgy: false but isLilPudgy: true which is illogical
+    if (traits.isLilPudgy === true && traits.isPudgy === false) {
+      console.log('POST-PROCESSING: Fixed contradiction - isLilPudgy=true implies isPudgy=true');
+      traits.isPudgy = true;
+    }
+
     // Add metadata about available traits for the frontend
     traits.availableHeadTraits = AVAILABLE_HEAD_TRAITS;
     traits.availableFaceTraits = AVAILABLE_FACE_TRAITS;
