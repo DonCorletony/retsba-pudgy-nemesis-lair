@@ -138,6 +138,14 @@ import Heart from '@/assets/pfp-traits/body/Heart.png';
 import Crop_Top from '@/assets/pfp-traits/body/Crop_Top.png';
 import Biker_Jacket from '@/assets/pfp-traits/body/Biker_Jacket.png';
 import Swordman from '@/assets/pfp-traits/body/Swordman.png';
+import Kimono_Pink from '@/assets/pfp-traits/body/Kimono_Pink.png';
+import Kimono_Gold from '@/assets/pfp-traits/body/Kimono_Gold.png';
+import Kimono_Ice from '@/assets/pfp-traits/body/Kimono_Ice.png';
+import Suit_Blue from '@/assets/pfp-traits/body/Suit_Blue.png';
+import Suit_Red from '@/assets/pfp-traits/body/Suit_Red.png';
+import Pudgy_Man from '@/assets/pfp-traits/body/Pudgy_Man.png';
+import Lei_Assorted from '@/assets/pfp-traits/body/Lei_Assorted.png';
+import I_Love_Fish from '@/assets/pfp-traits/body/I_Love_Fish.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -257,6 +265,14 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Crop_Top,
   Biker_Jacket,
   Swordman,
+  Kimono_Pink,
+  Kimono_Gold,
+  Kimono_Ice,
+  Suit_Blue,
+  Suit_Red,
+  Pudgy_Man,
+  Lei_Assorted,
+  I_Love_Fish,
 };
 
 interface DetectedTraits {
