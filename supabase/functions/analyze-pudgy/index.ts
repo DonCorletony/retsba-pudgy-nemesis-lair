@@ -196,11 +196,11 @@ Before analyzing traits, determine if this is a special penguin type:
 If the penguin matches "left_facing", set "isSpecialPenguin" to "left_facing" and set all traits to null.
 If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_kimono_special" - this will trigger special handling.
 
-GOLD SKIN DETECTION:
-Check if the penguin has "Gold" skin - this is a distinctive shiny golden/yellow metallic body with sparkle effects. The gold skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
+GOLD SKIN DETECTION - VERY IMPORTANT:
+Check if the penguin has "Gold" skin. Gold skin penguins have a BRIGHT YELLOW or GOLDEN body color instead of the standard white/cream body. The gold/yellow color covers the penguin's entire body including the head, cheeks, and visible body areas. Gold skin may or may not have sparkle effects - the key identifier is the YELLOW/GOLD BODY COLOR rather than white. Standard penguins have WHITE/CREAM bodies. Gold penguins have YELLOW/GOLD bodies. If the penguin's body is yellow/gold colored, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
 
 ICE SKIN DETECTION:
-Check if the penguin has "Ice" skin - this is a distinctive light blue crystalline/icy body with white sparkle effects and a translucent/frozen appearance. The ice skin is a pale sky-blue color with a crystalline sheen and white highlight reflections. Ice skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Ice". Ice skin penguins still have their other traits detected normally.
+Check if the penguin has "Ice" skin - this is a distinctive light blue crystalline/icy body instead of white. The ice skin is a pale sky-blue color covering the penguin's body. If the penguin's body is light blue/icy colored instead of white, set the "skin" field to "Ice". Ice skin penguins still have their other traits detected normally.
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
