@@ -9,6 +9,8 @@ import Template_2 from '@/assets/pfp-templates/Template_2.png';
 import Backwards_Template from '@/assets/pfp-templates/Backwards_Template.png';
 import Gold_Template from '@/assets/pfp-templates/Gold_Template.png';
 import Gold_Template_2 from '@/assets/pfp-templates/Gold_Template_2.png';
+import Ice_Template from '@/assets/pfp-templates/Ice_Template.png';
+import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
 
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
@@ -480,8 +482,9 @@ const PFPConverter = () => {
       const bodyTrait = traits.traits.body;
       const skinTrait = traits.traits.skin?.toLowerCase() || '';
       
-      // Check for gold skin
+      // Check for special skin types
       const isGoldSkin = skinTrait.includes('gold') || skinTrait.includes('golden');
+      const isIceSkin = skinTrait.includes('ice');
       
       // Check if Template_2 traits are present
       const hasTemplate2Trait = (headTrait && TEMPLATE_2_HEAD_TRAITS.includes(headTrait)) || 
@@ -490,7 +493,15 @@ const PFPConverter = () => {
       let templateSrc = Template;
       let templateName = 'Template';
       
-      if (isGoldSkin && hasTemplate2Trait) {
+      if (isIceSkin && hasTemplate2Trait) {
+        // Ice skin + Template_2 trait = Ice_Template_2
+        templateSrc = Ice_Template_2;
+        templateName = 'Ice_Template_2';
+      } else if (isIceSkin) {
+        // Ice skin only = Ice_Template
+        templateSrc = Ice_Template;
+        templateName = 'Ice_Template';
+      } else if (isGoldSkin && hasTemplate2Trait) {
         // Gold skin + Template_2 trait = Gold_Template_2
         templateSrc = Gold_Template_2;
         templateName = 'Gold_Template_2';

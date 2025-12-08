@@ -199,6 +199,9 @@ If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_ki
 GOLD SKIN DETECTION:
 Check if the penguin has "Gold" skin - this is a distinctive shiny golden/yellow metallic body with sparkle effects. The gold skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
 
+ICE SKIN DETECTION:
+Check if the penguin has "Ice" skin - this is a distinctive light blue crystalline/icy body with white sparkle effects and a translucent/frozen appearance. The ice skin is a pale sky-blue color with a crystalline sheen and white highlight reflections. Ice skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Ice". Ice skin penguins still have their other traits detected normally.
+
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
 
