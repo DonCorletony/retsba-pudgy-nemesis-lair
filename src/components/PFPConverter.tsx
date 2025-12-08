@@ -803,25 +803,15 @@ const PFPConverter = () => {
             </AnimatePresence>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button
-              onClick={handleDownload}
-              disabled={step !== 'complete'}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              className="flex-1 border-black/20 text-black hover:bg-black/5"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Start Over
-            </Button>
-          </div>
+          {/* Action Button */}
+          <Button
+            onClick={handleDownload}
+            disabled={step !== 'complete'}
+            className="w-full bg-red-500 hover:bg-red-600 text-white"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
 
         </div>
       </div>
