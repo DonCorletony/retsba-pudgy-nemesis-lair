@@ -154,6 +154,14 @@ import The_Huddle from '@/assets/pfp-traits/body/The_Huddle.png';
 import Tanktop_Yellow from '@/assets/pfp-traits/body/Tanktop_Yellow.png';
 import Tanktop_Blue from '@/assets/pfp-traits/body/Tanktop_Blue.png';
 import Vote_4_Pudgy from '@/assets/pfp-traits/body/Vote_4_Pudgy.png';
+import Turtleneck_Gray from '@/assets/pfp-traits/body/Turtleneck_Gray.png';
+import Turtleneck_Blue from '@/assets/pfp-traits/body/Turtleneck_Blue.png';
+import Labcoat from '@/assets/pfp-traits/body/Labcoat.png';
+import Apron from '@/assets/pfp-traits/body/Apron.png';
+import Scarf_Blue from '@/assets/pfp-traits/body/Scarf_Blue.png';
+import Scarf_Green from '@/assets/pfp-traits/body/Scarf_Green.png';
+import Shirt_Red from '@/assets/pfp-traits/body/Shirt_Red.png';
+import Bathrobe from '@/assets/pfp-traits/body/Bathrobe.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -289,6 +297,14 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Tanktop_Yellow,
   Tanktop_Blue,
   Vote_4_Pudgy,
+  Turtleneck_Gray,
+  Turtleneck_Blue,
+  Labcoat,
+  Apron,
+  Scarf_Blue,
+  Scarf_Green,
+  Shirt_Red,
+  Bathrobe,
 };
 
 interface DetectedTraits {
