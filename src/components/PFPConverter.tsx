@@ -119,10 +119,14 @@ import Turtleneck_Green from '@/assets/pfp-traits/body/Turtleneck_Green.png';
 import Kimono_Brown from '@/assets/pfp-traits/body/Kimono_Brown.png';
 import Kimono_Red from '@/assets/pfp-traits/body/Kimono_Red.png';
 import Kimono_White from '@/assets/pfp-traits/body/Kimono_White.png';
+import Kimono_Orange from '@/assets/pfp-traits/body/Kimono_Orange.png';
+import Kimono_Blue from '@/assets/pfp-traits/body/Kimono_Blue.png';
+import Kimono_Abstract from '@/assets/pfp-traits/body/Kimono_Abstract.png';
 import Blue_Shirt from '@/assets/pfp-traits/body/Blue_Shirt.png';
 import Hawaiian_Shirt from '@/assets/pfp-traits/body/Hawaiian_Shirt.png';
 import Bronze_Medal from '@/assets/pfp-traits/body/Bronze_Medal.png';
 import Silver_Medal from '@/assets/pfp-traits/body/Silver_Medal.png';
+import Gold_Medal from '@/assets/pfp-traits/body/Gold_Medal.png';
 import Scarf_Pink from '@/assets/pfp-traits/body/Scarf_Pink.png';
 import Overalls from '@/assets/pfp-traits/body/Overalls.png';
 import Poncho from '@/assets/pfp-traits/body/Poncho.png';
@@ -130,6 +134,10 @@ import Surfboard_Necklace from '@/assets/pfp-traits/body/Surfboard_Necklace.png'
 import Christmas_Lights from '@/assets/pfp-traits/body/Christmas_Lights.png';
 import Ice_Coat from '@/assets/pfp-traits/body/Ice_Coat.png';
 import Tribal_Necklace from '@/assets/pfp-traits/body/Tribal_Necklace.png';
+import Heart from '@/assets/pfp-traits/body/Heart.png';
+import Crop_Top from '@/assets/pfp-traits/body/Crop_Top.png';
+import Biker_Jacket from '@/assets/pfp-traits/body/Biker_Jacket.png';
+import Swordman from '@/assets/pfp-traits/body/Swordman.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -230,10 +238,14 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Kimono_Brown,
   Kimono_Red,
   Kimono_White,
+  Kimono_Orange,
+  Kimono_Blue,
+  Kimono_Abstract,
   Blue_Shirt,
   Hawaiian_Shirt,
   Bronze_Medal,
   Silver_Medal,
+  Gold_Medal,
   Scarf_Pink,
   Overalls,
   Poncho,
@@ -241,6 +253,10 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Christmas_Lights,
   Ice_Coat,
   Tribal_Necklace,
+  Heart,
+  Crop_Top,
+  Biker_Jacket,
+  Swordman,
 };
 
 interface DetectedTraits {
