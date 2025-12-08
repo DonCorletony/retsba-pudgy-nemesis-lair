@@ -182,7 +182,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           {
             role: "system",
@@ -329,14 +329,16 @@ BODY TRAIT EXAMPLES:
 - Red/maroon shirt with igloo logo → "Shirt_Red"
 - Cream/beige/tan terry cloth bathrobe with belt, plain solid color without patterns → "Bathrobe" (NOT Kimono - bathrobes are plain solid color terry cloth with no Japanese patterns)
 
-CRITICAL DISTINCTION - Kimono_Gold vs Bathrobe (LOOK AT THE GARMENT COLOR, NOT SKIN COLOR):
-- Kimono_Gold: The GARMENT ITSELF is shiny metallic GOLD/YELLOW colored (same color as gold skin). The fabric appears shiny/reflective.
-- Bathrobe: The GARMENT ITSELF is CREAM/BEIGE/TAN colored (different from gold skin). The fabric appears matte/soft.
+CRITICAL - KIMONO_GOLD vs BATHROBE (YOU MUST GET THIS RIGHT):
+Step 1: Look ONLY at the garment/clothing the penguin is wearing (ignore skin color)
+Step 2: Determine the COLOR of the garment fabric:
+  - If the garment fabric is GOLD/YELLOW/SHINY METALLIC (bright, reflective, same hue as gold skin) → "Kimono_Gold"
+  - If the garment fabric is CREAM/BEIGE/TAN/OFF-WHITE (muted, soft, matte texture) → "Bathrobe"
 
-KEY RULE: Look at what color the CLOTHING is, not the skin:
-- Gold-colored shiny garment = "Kimono_Gold"  
-- Cream/beige/tan matte garment = "Bathrobe"
-- A penguin can have Gold skin AND wear a cream-colored Bathrobe - these are DIFFERENT
+EXAMPLES:
+- Gold skin penguin wearing a GOLD-colored shiny wrap = "Kimono_Gold" (garment is gold)
+- Gold skin penguin wearing a CREAM-colored soft robe = "Bathrobe" (garment is cream, NOT gold)
+- The garment color determines the trait, NOT the skin color!
 
 Return ONLY valid JSON in this exact format:
 {
