@@ -253,28 +253,25 @@ IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or n
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
 
-LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL:
-You MUST determine if this is a Lil Pudgy or Big Pudgy FIRST before identifying traits:
+LIL PUDGY vs BIG PUDGY DETECTION - SIMPLE RULE:
 
-LIL PUDGY IDENTIFICATION (set isLilPudgy: true):
-- Lil Pudgys have a more COMPACT, BABY-LIKE body shape
-- The penguin appears SMALLER and more CHILD-LIKE
-- Lil Pudgys often have BIGGER, more expressive cartoon eyes relative to their head
-- Lil Pudgys can have BLUE or BLACK colored backs/wings
-- Often have simpler, cuter accessories
-- May be standing in a grass skirt/hula basket with flowers
-- The overall art style is CUTER and more CARTOONISH
+THE KEY DIFFERENCE IS THE BODY VISIBILITY:
+- LIL PUDGY: The ENTIRE BODY is visible, including FEET. You can see the penguin from head to toe.
+- BIG PUDGY: Only the UPPER HALF of the body is visible. The image is cropped - NO FEET visible.
 
-BIG PUDGY IDENTIFICATION (set isLilPudgy: false):
-- Big Pudgys have a LARGER, ROUNDER adult-like body
-- The body proportions are more MATURE/ADULT
-- Standard Pudgy Penguin art style with more realistic proportions
-- More detailed, elaborate accessories and clothing
-- The penguin appears as an ADULT, not a baby/child
+LIL PUDGY (set isLilPudgy: true):
+- FULL BODY visible including feet/flippers at the bottom
+- You can see the penguin standing on its feet
+- The penguin's entire figure is shown from head to feet
 
-KEY DIFFERENCE: Lil Pudgys look like BABY/CHILD penguins with a cuter, more cartoonish style. Big Pudgys look like ADULT penguins with standard proportions.
+BIG PUDGY (set isLilPudgy: false):
+- Only UPPER HALF of body visible (head, shoulders, chest area)
+- NO FEET visible - image is cropped at the waist/belly area
+- Portrait-style framing showing just the top portion
 
-WHEN IN DOUBT: If the penguin has a cute, baby-like appearance with big expressive eyes, it's likely a Lil Pudgy.
+DECISION RULE: Can you see the penguin's FEET? 
+- YES (feet visible) → Lil Pudgy (isLilPudgy: true)
+- NO (feet not visible, cropped image) → Big Pudgy (isLilPudgy: false)
 
 CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION:
 For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits:
