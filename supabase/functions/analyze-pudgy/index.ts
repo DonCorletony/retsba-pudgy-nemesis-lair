@@ -253,24 +253,28 @@ IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or n
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
 
-LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL (CHECK THESE FEATURES):
+LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL:
 You MUST determine if this is a Lil Pudgy or Big Pudgy FIRST before identifying traits:
 
 LIL PUDGY IDENTIFICATION (set isLilPudgy: true):
-- The penguin has a BLACK colored back/wings (NOT blue-gray like Big Pudgys)
-- The body shape is more compact and baby-like
-- Often standing in a grass skirt/hula basket with flowers
-- The penguin has BIGGER, more expressive cartoon eyes
-- Simpler, cuter art style overall
-- The penguin appears more child-like or baby-like
+- Lil Pudgys have a more COMPACT, BABY-LIKE body shape
+- The penguin appears SMALLER and more CHILD-LIKE
+- Lil Pudgys often have BIGGER, more expressive cartoon eyes relative to their head
+- Lil Pudgys can have BLUE or BLACK colored backs/wings
+- Often have simpler, cuter accessories
+- May be standing in a grass skirt/hula basket with flowers
+- The overall art style is CUTER and more CARTOONISH
 
 BIG PUDGY IDENTIFICATION (set isLilPudgy: false):
-- The penguin has a BLUE-GRAY colored back/wings (NOT black)
-- The body is rounder, more adult-like proportions
-- More detailed accessories and clothing
-- Standard Pudgy Penguin art style
+- Big Pudgys have a LARGER, ROUNDER adult-like body
+- The body proportions are more MATURE/ADULT
+- Standard Pudgy Penguin art style with more realistic proportions
+- More detailed, elaborate accessories and clothing
+- The penguin appears as an ADULT, not a baby/child
 
-IMPORTANT: If the penguin has a BLACK back and is in a grass/flower basket, it is a LIL PUDGY. Set isLilPudgy: true!
+KEY DIFFERENCE: Lil Pudgys look like BABY/CHILD penguins with a cuter, more cartoonish style. Big Pudgys look like ADULT penguins with standard proportions.
+
+WHEN IN DOUBT: If the penguin has a cute, baby-like appearance with big expressive eyes, it's likely a Lil Pudgy.
 
 CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION:
 For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits:
