@@ -312,7 +312,7 @@ const BODY_TRAIT_MAP: Record<string, string> = {
 
 interface DetectedTraits {
   isPudgy: boolean;
-  isSpecialPenguin?: 'left_facing' | null;
+  isSpecialPenguin?: 'left_facing' | 'gold_kimono_special' | null;
   traits: {
     background: string | null;
     skin: string | null;
@@ -445,6 +445,32 @@ const PFPConverter = () => {
         setRetsbafiedImage(dataUrl);
         setStep('complete');
         toast.success('Special Left-Facing Penguin detected! Retsbafied with Backwards Template.');
+        return;
+      }
+      
+      // Gold Kimono Special penguin - uses Gold_Template_2 with Kimono_Gold overlay
+      if (traits.isSpecialPenguin === 'gold_kimono_special') {
+        console.log('Special penguin detected: Gold Kimono Special. Using Gold_Template_2 with Kimono_Gold and Backwards_Hat_Red overlays.');
+        // Use Gold_Template_2 as base (for backwards hat compatibility)
+        const baseImg = await loadImage(Gold_Template_2);
+        ctx.drawImage(baseImg, 0, 0, 1000, 1000);
+        
+        // Apply Kimono_Gold body overlay
+        if (BODY_TRAIT_MAP['Kimono_Gold']) {
+          const bodyOverlay = await loadImage(BODY_TRAIT_MAP['Kimono_Gold']);
+          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+        }
+        
+        // Apply Backwards_Hat_Red head overlay
+        if (HEAD_TRAIT_MAP['Backwards_Hat_Red']) {
+          const headOverlay = await loadImage(HEAD_TRAIT_MAP['Backwards_Hat_Red']);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        }
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        setRetsbafiedImage(dataUrl);
+        setStep('complete');
+        toast.success('Special Gold Kimono Penguin detected! Retsbafied with Gold Template.');
         return;
       }
       

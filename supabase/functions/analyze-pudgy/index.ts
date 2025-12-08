@@ -191,8 +191,10 @@ serve(async (req) => {
 SPECIAL PENGUIN DETECTION - CHECK FIRST:
 Before analyzing traits, determine if this is a special penguin type:
 - "left_facing" penguin: The penguin is facing LEFT (looking to the left side of the image) AND has its eyes CLOSED. This is a rare backwards-facing penguin variant.
+- "gold_kimono_special" penguin: A penguin with ALL of these features: Gold/shiny metallic skin, wearing a RED BACKWARDS HAT with blue brim, WINKING (one eye open, one closed), ORANGE background, and wearing a gold-colored shiny garment/kimono that matches the gold skin color. This is the only penguin with both Gold skin AND Kimono Gold.
 
-If the penguin matches a special type, set "isSpecialPenguin" to that type and set all traits to null. Regular penguins face forward-right with open eyes.
+If the penguin matches "left_facing", set "isSpecialPenguin" to "left_facing" and set all traits to null.
+If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_kimono_special" - this will trigger special handling.
 
 GOLD SKIN DETECTION:
 Check if the penguin has "Gold" skin - this is a distinctive shiny golden/yellow metallic body with sparkle effects. The gold skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
@@ -489,6 +491,19 @@ Return ONLY valid JSON in this exact format:
           traits.traits.body = null;
         }
       }
+    }
+    
+    // SPECIAL HANDLING: gold_kimono_special penguin - override traits
+    if (traits.isSpecialPenguin === 'gold_kimono_special') {
+      console.log('POST-PROCESSING: gold_kimono_special detected, setting hardcoded traits');
+      traits.traits = {
+        background: 'Orange',
+        skin: 'Gold',
+        body: 'Kimono_Gold',
+        face: null,
+        head: 'Backwards_Hat_Red',
+        hand: null
+      };
     }
     
     // POST-PROCESSING: Use garmentMatchesSkinColor to fix Kimono_Gold vs Bathrobe confusion
