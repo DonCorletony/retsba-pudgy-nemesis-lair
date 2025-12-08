@@ -90,14 +90,23 @@ const AVAILABLE_FACE_TRAITS = [
 const AVAILABLE_BODY_TRAITS = [
   "Lei_Blue",
   "Lei_Purple",
+  "Lei_Pink",
   "Hoodie_Black",
   "Hoodie_Pink",
   "Puffer_Orange",
   "Puffer_Blue",
   "Bow_Tie_Blue",
+  "Bowtie_Black",
+  "Bowtie_Pink",
   "Turtleneck_Pink",
+  "Turtleneck_Green",
   "Kimono_Brown",
-  "Blue_Shirt"
+  "Blue_Shirt",
+  "Hawaiian_Shirt",
+  "Bronze_Medal",
+  "Silver_Medal",
+  "Scarf_Pink",
+  "Overalls"
 ];
 
 serve(async (req) => {
@@ -214,14 +223,23 @@ FACE TRAIT EXAMPLES:
 BODY TRAIT EXAMPLES:
 - Blue flower lei/necklace → "Lei_Blue"
 - Purple flower lei/necklace → "Lei_Purple"
+- Pink flower lei/necklace → "Lei_Pink"
 - Black hoodie/sweatshirt → "Hoodie_Black"
 - Pink hoodie/sweatshirt → "Hoodie_Pink"
 - Orange puffer jacket/vest → "Puffer_Orange"
 - Blue puffer jacket/vest → "Puffer_Blue"
 - Blue bow tie → "Bow_Tie_Blue"
+- Black bow tie → "Bowtie_Black"
+- Pink bow tie → "Bowtie_Pink"
 - Pink turtleneck sweater → "Turtleneck_Pink"
+- Green turtleneck sweater → "Turtleneck_Green"
 - Brown kimono/robe → "Kimono_Brown"
 - Blue t-shirt/shirt → "Blue_Shirt"
+- Hawaiian shirt with palm trees → "Hawaiian_Shirt"
+- Bronze medal with ribbon → "Bronze_Medal"
+- Silver medal with ribbon → "Silver_Medal"
+- Pink scarf → "Scarf_Pink"
+- Blue overalls/dungarees → "Overalls"
 
 Return ONLY valid JSON in this exact format:
 {

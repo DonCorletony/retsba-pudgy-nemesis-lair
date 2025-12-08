@@ -105,14 +105,23 @@ import Monacle from '@/assets/pfp-traits/face/Monacle.png';
 // Import all body trait overlays
 import Lei_Blue from '@/assets/pfp-traits/body/Lei_Blue.png';
 import Lei_Purple from '@/assets/pfp-traits/body/Lei_Purple.png';
+import Lei_Pink from '@/assets/pfp-traits/body/Lei_Pink.png';
 import Hoodie_Black from '@/assets/pfp-traits/body/Hoodie_Black.png';
 import Hoodie_Pink from '@/assets/pfp-traits/body/Hoodie_Pink.png';
 import Puffer_Orange from '@/assets/pfp-traits/body/Puffer_Orange.png';
 import Puffer_Blue from '@/assets/pfp-traits/body/Puffer_Blue.png';
 import Bow_Tie_Blue from '@/assets/pfp-traits/body/Bow_Tie_Blue.png';
+import Bowtie_Black from '@/assets/pfp-traits/body/Bowtie_Black.png';
+import Bowtie_Pink from '@/assets/pfp-traits/body/Bowtie_Pink.png';
 import Turtleneck_Pink from '@/assets/pfp-traits/body/Turtleneck_Pink.png';
+import Turtleneck_Green from '@/assets/pfp-traits/body/Turtleneck_Green.png';
 import Kimono_Brown from '@/assets/pfp-traits/body/Kimono_Brown.png';
 import Blue_Shirt from '@/assets/pfp-traits/body/Blue_Shirt.png';
+import Hawaiian_Shirt from '@/assets/pfp-traits/body/Hawaiian_Shirt.png';
+import Bronze_Medal from '@/assets/pfp-traits/body/Bronze_Medal.png';
+import Silver_Medal from '@/assets/pfp-traits/body/Silver_Medal.png';
+import Scarf_Pink from '@/assets/pfp-traits/body/Scarf_Pink.png';
+import Overalls from '@/assets/pfp-traits/body/Overalls.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -199,14 +208,23 @@ const FACE_TRAIT_MAP: Record<string, string> = {
 const BODY_TRAIT_MAP: Record<string, string> = {
   Lei_Blue,
   Lei_Purple,
+  Lei_Pink,
   Hoodie_Black,
   Hoodie_Pink,
   Puffer_Orange,
   Puffer_Blue,
   Bow_Tie_Blue,
+  Bowtie_Black,
+  Bowtie_Pink,
   Turtleneck_Pink,
+  Turtleneck_Green,
   Kimono_Brown,
   Blue_Shirt,
+  Hawaiian_Shirt,
+  Bronze_Medal,
+  Silver_Medal,
+  Scarf_Pink,
+  Overalls,
 };
 
 interface DetectedTraits {
