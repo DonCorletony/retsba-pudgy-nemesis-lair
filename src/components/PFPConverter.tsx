@@ -481,12 +481,18 @@ const PFPConverter = () => {
     reader.readAsDataURL(file);
   };
 
-  const analyzeImage = async (imageBase64: string) => {
+  const analyzeImage = async (imageBase64: string, isReanalysis: boolean = false) => {
     setStep('analyzing');
     
     try {
+      // Get current mode from ref to avoid stale closure
+      const currentIsLilMode = isLilModeRef.current;
+      
       const { data, error } = await supabase.functions.invoke('analyze-pudgy', {
-        body: { imageBase64 }
+        body: { 
+          imageBase64,
+          expectedMode: currentIsLilMode ? 'lil' : 'big' // Tell the AI what mode we're in
+        }
       });
 
       if (error) {
@@ -506,19 +512,26 @@ const PFPConverter = () => {
       // Determine the correct mode based on detection
       const detectedIsLil = data.isLilPudgy === true;
       
-      // Auto-switch mode if detected type doesn't match current mode
-      // Use ref to get current value (avoids stale closure issues)
-      const currentIsLilMode = isLilModeRef.current;
-      if (detectedIsLil !== currentIsLilMode) {
+      // If mode mismatch and this is NOT a re-analysis, switch mode and re-analyze
+      if (detectedIsLil !== currentIsLilMode && !isReanalysis) {
+        console.log(`Mode mismatch detected: expected ${currentIsLilMode ? 'Lil' : 'Big'}, got ${detectedIsLil ? 'Lil' : 'Big'}. Switching and re-analyzing...`);
+        
+        // Switch to the correct mode
         isAutoSwitchingRef.current = true;
         setIsLilMode(detectedIsLil);
-        toast.info(`Detected a ${detectedIsLil ? 'Lil Pudgy' : 'Big Pudgy'}! Switched mode automatically.`);
+        isLilModeRef.current = detectedIsLil; // Update ref immediately for re-analysis
+        
+        toast.info(`Detected a ${detectedIsLil ? 'Lil Pudgy' : 'Big Pudgy'}! Re-analyzing with correct mode...`);
+        
+        // Re-analyze with the correct mode (mark as re-analysis to prevent infinite loop)
+        await analyzeImage(imageBase64, true);
+        return; // Exit this call, the re-analysis will handle the rest
       }
 
       setDetectedTraits(data);
       setStep('compositing');
       
-      // Generate the Retsbafied image using the DETECTED mode (not state, which may be stale)
+      // Generate the Retsbafied image using the DETECTED mode
       await generateRetsbafiedImage(data, detectedIsLil);
       
     } catch (err) {
