@@ -75,6 +75,18 @@ import Top_Hat from '@/assets/pfp-traits/head/Top_Hat.png';
 import Viking_Hat from '@/assets/pfp-traits/head/Viking_Hat.png';
 import Wizard_Hat from '@/assets/pfp-traits/head/Wizard_Hat.png';
 
+// Import all face trait overlays
+import Handlebar_Bear from '@/assets/pfp-traits/face/Handlebar_Bear.png';
+import Football from '@/assets/pfp-traits/face/Football.png';
+import Goggles from '@/assets/pfp-traits/face/Goggles.png';
+import Moustache from '@/assets/pfp-traits/face/Moustache.png';
+import Hero_Mask_Blue from '@/assets/pfp-traits/face/Hero_Mask_Blue.png';
+import Hero_Mask_Red from '@/assets/pfp-traits/face/Hero_Mask_Red.png';
+import Star_Glasses from '@/assets/pfp-traits/face/Star_Glasses.png';
+import Villain_Mask from '@/assets/pfp-traits/face/Villain_Mask.png';
+import Circle_Glasses from '@/assets/pfp-traits/face/Circle_Glasses.png';
+import Blush from '@/assets/pfp-traits/face/Blush.png';
+
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
   Afro_with_Pick,
@@ -130,6 +142,20 @@ const HEAD_TRAIT_MAP: Record<string, string> = {
   Top_Hat,
   Viking_Hat,
   Wizard_Hat,
+};
+
+// Mapping of face trait names to imported images
+const FACE_TRAIT_MAP: Record<string, string> = {
+  Handlebar_Bear,
+  Football,
+  Goggles,
+  Moustache,
+  Hero_Mask_Blue,
+  Hero_Mask_Red,
+  Star_Glasses,
+  Villain_Mask,
+  Circle_Glasses,
+  Blush,
 };
 
 interface DetectedTraits {
@@ -267,6 +293,16 @@ const PFPConverter = () => {
       // Load and draw base template
       const baseImg = await loadImage(templateSrc);
       ctx.drawImage(baseImg, 0, 0, 1000, 1000);
+
+      // Check if we have a matching face trait overlay (apply before head so it's behind)
+      const faceTrait = traits.traits.face;
+      if (faceTrait && FACE_TRAIT_MAP[faceTrait]) {
+        console.log(`Applying face trait: ${faceTrait}`);
+        const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
+        ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+      } else if (faceTrait) {
+        console.log(`No overlay found for face trait: ${faceTrait}`);
+      }
 
       // Check if we have a matching head trait overlay
       if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
@@ -427,13 +463,16 @@ const PFPConverter = () => {
                   {Object.entries(detectedTraits.traits).map(([key, value]) => (
                     value && (
                       <div key={key} className={`bg-white rounded-lg p-2 border ${
-                        key === 'head' && HEAD_TRAIT_MAP[value] 
+                        (key === 'head' && HEAD_TRAIT_MAP[value]) || (key === 'face' && FACE_TRAIT_MAP[value])
                           ? 'border-green-500/50 bg-green-50' 
                           : 'border-black/10'
                       }`}>
                         <p className="text-black/40 text-xs uppercase tracking-wide">{key}</p>
                         <p className="text-black text-sm">{formatTraitName(value)}</p>
                         {key === 'head' && HEAD_TRAIT_MAP[value] && (
+                          <p className="text-green-600 text-xs mt-0.5">✓ Overlay applied</p>
+                        )}
+                        {key === 'face' && FACE_TRAIT_MAP[value] && (
                           <p className="text-green-600 text-xs mt-0.5">✓ Overlay applied</p>
                         )}
                       </div>
