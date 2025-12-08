@@ -194,6 +194,9 @@ Before analyzing traits, determine if this is a special penguin type:
 
 If the penguin matches a special type, set "isSpecialPenguin" to that type and set all traits to null. Regular penguins face forward-right with open eyes.
 
+GOLD SKIN DETECTION:
+Check if the penguin has "Gold" skin - this is a distinctive shiny golden/yellow metallic body with sparkle effects. The gold skin covers the penguin's body (not just accessories). If detected, set the "skin" field to "Gold". Gold skin penguins still have their other traits detected normally.
+
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
 
