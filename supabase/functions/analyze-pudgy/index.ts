@@ -272,30 +272,58 @@ BIG PUDGY IDENTIFICATION (set isLilPudgy: false):
 
 IMPORTANT: If the penguin has a BLACK back and is in a grass/flower basket, it is a LIL PUDGY. Set isLilPudgy: true!
 
-CRITICAL - LIL PUDGY GLASSES DISTINCTION (LOOK AT LENS COLOR):
-For Lil Pudgys with glasses, you MUST look at the COLOR of the lenses:
+CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION:
+For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits:
+
+"Goofy_Glasses" (RED NOSE + WHITE MUSTACHE):
+- Has RED frames
+- Has a RED NOSE (clown-style red nose ball)
+- Has a WHITE MUSTACHE below the nose
+- This is a novelty/joke glasses style with nose and mustache attached
+
+"Nerd_Normal" (RED FRAMES + WHITE BANDAGE):
+- Has RED frames
+- Has a small WHITE BANDAGE on the BRIDGE of the glasses (the part between the lenses)
+- NO red nose, NO white mustache
+- Regular nerd glasses with bandage tape on bridge
+
+"Reading_Cute" (BLUE FRAMES, CIRCULAR):
+- Has BLUE frames (not red, not black)
+- CIRCULAR/round lens shape
+- Clear or light-colored lenses
+- NO dots in the center of lenses
+
+"Reading_Cross_eyed" (BLUE FRAMES + BLACK DOTS):
+- Same as Reading_Cute (blue frames, circular)
+- BUT has BLACK CIRCULAR DOTS in the CENTER of the blue frames/lenses
+- The dots represent crossed eyes
+
+"Nerd_Cute" (TAN FRAMES, RECTANGULAR, OPEN EYES):
+- Has TAN/BEIGE colored frames
+- RECTANGULAR lens shape (not circular)
+- Eyes are OPEN and visible
+- NO blush marks
+
+"Nerd_Blushing" (TAN FRAMES, RECTANGULAR, CLOSED EYES + BLUSH):
+- Same as Nerd_Cute (tan frames, rectangular)
+- BUT eyes are CLOSED
+- Has RED BLUSH SPOTS beneath the eyes
 
 "Reading_Normal" (BLUE LENSES):
 - Round/circular glasses with BLUE colored lenses
-- The lenses have a BLUE tint or are clearly blue-colored
-- BLACK frames with BLUE lenses = Reading_Normal
+- BLACK frames with BLUE lenses
 
 "Circle_Glasses" (BLACK/DARK LENSES):
 - Round/circular glasses with BLACK or DARK colored lenses
-- The lenses are dark/black, no blue tint
-- BLACK frames with BLACK/DARK lenses = Circle_Glasses
+- BLACK frames with BLACK/DARK lenses
 
-DECISION RULE FOR ROUND GLASSES:
-- BLUE lenses → Reading_Normal
-- BLACK/DARK lenses → Circle_Glasses
-
-Other Lil face traits:
-- "Nerd_Normal": Similar to Reading_Normal but different expression
-- "Goofy_Glasses": Oversized novelty glasses with spiral/swirl patterns
-- "Nerd_Cute": Glasses with cute/happy expression
-- "Nerd_Blushing": Glasses with blushing cheeks
-
-These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
+DECISION RULES:
+- RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
+- RED frames + WHITE BANDAGE on bridge → Nerd_Normal
+- BLUE frames, circular, no dots → Reading_Cute
+- BLUE frames, circular, with black dots → Reading_Cross_eyed
+- TAN frames, rectangular, open eyes → Nerd_Cute
+- TAN frames, rectangular, closed eyes + blush → Nerd_Blushing
 
 HEAD TRAIT EXAMPLES:
 
