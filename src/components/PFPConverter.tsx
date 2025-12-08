@@ -110,18 +110,26 @@ import Hoodie_Black from '@/assets/pfp-traits/body/Hoodie_Black.png';
 import Hoodie_Pink from '@/assets/pfp-traits/body/Hoodie_Pink.png';
 import Puffer_Orange from '@/assets/pfp-traits/body/Puffer_Orange.png';
 import Puffer_Blue from '@/assets/pfp-traits/body/Puffer_Blue.png';
+import Puffer_Green from '@/assets/pfp-traits/body/Puffer_Green.png';
 import Bow_Tie_Blue from '@/assets/pfp-traits/body/Bow_Tie_Blue.png';
 import Bowtie_Black from '@/assets/pfp-traits/body/Bowtie_Black.png';
 import Bowtie_Pink from '@/assets/pfp-traits/body/Bowtie_Pink.png';
 import Turtleneck_Pink from '@/assets/pfp-traits/body/Turtleneck_Pink.png';
 import Turtleneck_Green from '@/assets/pfp-traits/body/Turtleneck_Green.png';
 import Kimono_Brown from '@/assets/pfp-traits/body/Kimono_Brown.png';
+import Kimono_Red from '@/assets/pfp-traits/body/Kimono_Red.png';
+import Kimono_White from '@/assets/pfp-traits/body/Kimono_White.png';
 import Blue_Shirt from '@/assets/pfp-traits/body/Blue_Shirt.png';
 import Hawaiian_Shirt from '@/assets/pfp-traits/body/Hawaiian_Shirt.png';
 import Bronze_Medal from '@/assets/pfp-traits/body/Bronze_Medal.png';
 import Silver_Medal from '@/assets/pfp-traits/body/Silver_Medal.png';
 import Scarf_Pink from '@/assets/pfp-traits/body/Scarf_Pink.png';
 import Overalls from '@/assets/pfp-traits/body/Overalls.png';
+import Poncho from '@/assets/pfp-traits/body/Poncho.png';
+import Surfboard_Necklace from '@/assets/pfp-traits/body/Surfboard_Necklace.png';
+import Christmas_Lights from '@/assets/pfp-traits/body/Christmas_Lights.png';
+import Ice_Coat from '@/assets/pfp-traits/body/Ice_Coat.png';
+import Tribal_Necklace from '@/assets/pfp-traits/body/Tribal_Necklace.png';
 
 // Mapping of trait names to imported images
 const HEAD_TRAIT_MAP: Record<string, string> = {
@@ -213,18 +221,26 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Hoodie_Pink,
   Puffer_Orange,
   Puffer_Blue,
+  Puffer_Green,
   Bow_Tie_Blue,
   Bowtie_Black,
   Bowtie_Pink,
   Turtleneck_Pink,
   Turtleneck_Green,
   Kimono_Brown,
+  Kimono_Red,
+  Kimono_White,
   Blue_Shirt,
   Hawaiian_Shirt,
   Bronze_Medal,
   Silver_Medal,
   Scarf_Pink,
   Overalls,
+  Poncho,
+  Surfboard_Necklace,
+  Christmas_Lights,
+  Ice_Coat,
+  Tribal_Necklace,
 };
 
 interface DetectedTraits {
