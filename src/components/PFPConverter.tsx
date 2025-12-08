@@ -7,8 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import Template from '@/assets/pfp-templates/Template.png';
 import Template_2 from '@/assets/pfp-templates/Template_2.png';
 
-// Traits that require Template_2 instead of the default Template
-const TEMPLATE_2_TRAITS = [
+// Head traits that require Template_2 instead of the default Template
+const TEMPLATE_2_HEAD_TRAITS = [
   'Headband',
   'Backwards_Hat_Red',
   'Jester_Hat',
@@ -18,6 +18,11 @@ const TEMPLATE_2_TRAITS = [
   'Ninja_Headband',
   'Backwards_Hat_Blue',
   'Sideways_Red',
+];
+
+// Face traits that require Template_2 instead of the default Template
+const TEMPLATE_2_FACE_TRAITS = [
+  'Villain_Mask',
 ];
 
 // Import all head trait overlays
@@ -303,19 +308,20 @@ const PFPConverter = () => {
     canvas.height = 1000;
 
     try {
-      // Determine which template to use based on head trait
+      // Determine which template to use based on head or face trait
       const headTrait = traits.traits.head;
-      const useTemplate2 = headTrait && TEMPLATE_2_TRAITS.includes(headTrait);
+      const faceTrait = traits.traits.face;
+      const useTemplate2 = (headTrait && TEMPLATE_2_HEAD_TRAITS.includes(headTrait)) || 
+                           (faceTrait && TEMPLATE_2_FACE_TRAITS.includes(faceTrait));
       const templateSrc = useTemplate2 ? Template_2 : Template;
       
-      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head trait: ${headTrait}`);
+      console.log(`Using template: ${useTemplate2 ? 'Template_2' : 'Template'} for head: ${headTrait}, face: ${faceTrait}`);
       
       // Load and draw base template
       const baseImg = await loadImage(templateSrc);
       ctx.drawImage(baseImg, 0, 0, 1000, 1000);
 
       // Check if we have a matching face trait overlay (apply before head so it's behind)
-      const faceTrait = traits.traits.face;
       if (faceTrait && FACE_TRAIT_MAP[faceTrait]) {
         console.log(`Applying face trait: ${faceTrait}`);
         const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
