@@ -21,7 +21,7 @@ const PFP = () => {
           </motion.div>
 
           <motion.div
-            className="bg-white rounded-2xl p-6 md:p-8 max-w-5xl mx-auto"
+            className="bg-white dark:bg-retsba rounded-2xl p-6 md:p-8 max-w-5xl mx-auto border border-transparent dark:border-white/20"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}

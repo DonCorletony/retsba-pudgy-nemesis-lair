@@ -606,15 +606,15 @@ const PFPConverter = () => {
         {/* Left Side - Upload & Original */}
         <div className="space-y-4">
           <div className="text-center lg:text-left">
-            <h2 className="text-xl font-semibold text-black mb-1">Your Pudgy</h2>
-            <p className="text-black/60 text-sm">Upload your Pudgy Penguin NFT</p>
+            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Your Pudgy</h2>
+            <p className="text-black/60 dark:text-white/60 text-sm">Upload your Pudgy Penguin NFT</p>
           </div>
 
           <motion.div
             className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer min-h-[320px] flex items-center justify-center ${
               isDragging 
                 ? 'border-primary bg-primary/10' 
-                : 'border-black/20 hover:border-black/40 bg-black/5'
+                : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -663,11 +663,11 @@ const PFPConverter = () => {
                   exit={{ opacity: 0 }}
                   className="text-center"
                 >
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-black/40" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                   </div>
-                  <p className="text-black font-medium mb-2">Drop your Pudgy here</p>
-                  <p className="text-black/40 text-sm">or click to browse</p>
+                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
+                  <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -680,17 +680,17 @@ const PFPConverter = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-black/5 border border-black/10 rounded-xl p-4"
+                className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl p-4"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Check className="w-4 h-4 text-green-600" />
-                  <h3 className="font-semibold text-black text-sm">Detected Traits</h3>
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <h3 className="font-semibold text-black dark:text-white text-sm">Detected Traits</h3>
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
                     detectedTraits.confidence === 'high' 
-                      ? 'bg-green-500/20 text-green-600' 
+                      ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
                       : detectedTraits.confidence === 'medium'
-                      ? 'bg-yellow-500/20 text-yellow-600'
-                      : 'bg-red-500/20 text-red-600'
+                      ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                      : 'bg-red-500/20 text-red-600 dark:text-red-400'
                   }`}>
                     {detectedTraits.confidence} confidence
                   </span>
@@ -699,18 +699,18 @@ const PFPConverter = () => {
                 <div className="grid grid-cols-2 gap-2">
                   {Object.entries(detectedTraits.traits).map(([key, value]) => (
                     value && (
-                      <div key={key} className={`bg-white rounded-lg p-2 border ${
+                      <div key={key} className={`bg-white dark:bg-retsba rounded-lg p-2 border ${
                         (key === 'head' && HEAD_TRAIT_MAP[value]) || (key === 'face' && FACE_TRAIT_MAP[value])
-                          ? 'border-green-500/50 bg-green-50' 
-                          : 'border-black/10'
+                          ? 'border-green-500/50 bg-green-50 dark:bg-green-500/10' 
+                          : 'border-black/10 dark:border-white/10'
                       }`}>
-                        <p className="text-black/40 text-xs uppercase tracking-wide">{key}</p>
-                        <p className="text-black text-sm">{formatTraitName(value)}</p>
+                        <p className="text-black/40 dark:text-white/40 text-xs uppercase tracking-wide">{key}</p>
+                        <p className="text-black dark:text-white text-sm">{formatTraitName(value)}</p>
                         {key === 'head' && HEAD_TRAIT_MAP[value] && (
-                          <p className="text-green-600 text-xs mt-0.5">✓ Overlay applied</p>
+                          <p className="text-green-600 dark:text-green-400 text-xs mt-0.5">✓ Overlay applied</p>
                         )}
                         {key === 'face' && FACE_TRAIT_MAP[value] && (
-                          <p className="text-green-600 text-xs mt-0.5">✓ Overlay applied</p>
+                          <p className="text-green-600 dark:text-green-400 text-xs mt-0.5">✓ Overlay applied</p>
                         )}
                       </div>
                     )
@@ -724,11 +724,11 @@ const PFPConverter = () => {
         {/* Right Side - Retsbafied Result */}
         <div className="space-y-4">
           <div className="text-center lg:text-left">
-            <h2 className="text-xl font-semibold text-black mb-1">Retsbafied</h2>
-            <p className="text-black/60 text-sm">Your Retsba</p>
+            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Retsbafied</h2>
+            <p className="text-black/60 dark:text-white/60 text-sm">Your Retsba</p>
           </div>
 
-          <div className="relative border-2 border-black/10 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
+          <div className="relative border-2 border-black/10 dark:border-white/20 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
             <AnimatePresence mode="wait">
               {step === 'idle' && (
                 <motion.div
@@ -761,7 +761,7 @@ const PFPConverter = () => {
                   >
                     <RefreshCw className="w-12 h-12 text-primary" />
                   </motion.div>
-                  <p className="text-black font-medium">{getStepMessage()}</p>
+                  <p className="text-black dark:text-white font-medium">{getStepMessage()}</p>
                 </motion.div>
               )}
 
@@ -778,7 +778,7 @@ const PFPConverter = () => {
                   <Button
                     onClick={handleReset}
                     variant="outline"
-                    className="mt-4 border-black/20 text-black hover:bg-black/5"
+                    className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
                   >
                     Try Again
                   </Button>
