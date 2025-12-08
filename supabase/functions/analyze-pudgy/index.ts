@@ -253,24 +253,49 @@ IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or n
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
 
-LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL:
-First determine if this is a Lil Pudgy or Big Pudgy:
-- LIL PUDGY: Smaller, baby penguin with SMALLER proportions. Has a SMALLER ROUNDER head relative to body. Eyes are typically BIGGER and more expressive. Often has simpler, cuter accessories. The penguin looks like a BABY or CHILD version.
-- BIG PUDGY: Full-sized adult penguin with LARGER body proportions. More detailed accessories and clothing.
+LIL PUDGY vs BIG PUDGY DETECTION - CRITICAL (CHECK THESE FEATURES):
+You MUST determine if this is a Lil Pudgy or Big Pudgy FIRST before identifying traits:
 
-Set "isLilPudgy" to true if this is a Lil Pudgy, false if it's a Big Pudgy.
+LIL PUDGY IDENTIFICATION (set isLilPudgy: true):
+- The penguin has a BLACK colored back/wings (NOT blue-gray like Big Pudgys)
+- The body shape is more compact and baby-like
+- Often standing in a grass skirt/hula basket with flowers
+- The penguin has BIGGER, more expressive cartoon eyes
+- Simpler, cuter art style overall
+- The penguin appears more child-like or baby-like
 
-CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION (GLASSES):
-For Lil Pudgys, pay CLOSE ATTENTION to the glasses style:
+BIG PUDGY IDENTIFICATION (set isLilPudgy: false):
+- The penguin has a BLUE-GRAY colored back/wings (NOT black)
+- The body is rounder, more adult-like proportions
+- More detailed accessories and clothing
+- Standard Pudgy Penguin art style
 
-- "Reading_Normal": RECTANGULAR glasses with a BLACK FRAME. The lenses are RECTANGULAR/SQUARE shaped, not round. These are reading/nerd glasses style with thick black frames. The penguin's eyes look normal/neutral behind the glasses.
-- "Circle_Glasses": ROUND/CIRCULAR glasses. The lenses are PERFECTLY ROUND circles. These look like John Lennon style round spectacles.
+IMPORTANT: If the penguin has a BLACK back and is in a grass/flower basket, it is a LIL PUDGY. Set isLilPudgy: true!
+
+CRITICAL - LIL PUDGY GLASSES DISTINCTION (LOOK AT LENS SHAPE):
+For Lil Pudgys with glasses, you MUST look at the SHAPE of the lens frames:
+
+"Reading_Normal" (RECTANGULAR):
+- The lens frames are RECTANGULAR or SQUARE shaped
+- The frames have STRAIGHT EDGES on top and bottom
+- They look like reading glasses or nerd glasses
+- The glasses extend horizontally more than vertically
+- BLACK frames with rectangular lenses = Reading_Normal
+
+"Circle_Glasses" (ROUND):
+- The lens frames are PERFECTLY CIRCULAR/ROUND
+- The frames have no straight edges, purely curved circles
+- They look like John Lennon style round spectacles
+- The height and width of each lens are equal (circular)
+
+DECISION RULE FOR GLASSES:
+- If the lenses have ANY straight/flat edges → Reading_Normal
+- If the lenses are perfectly round circles → Circle_Glasses
+- Most Lil Pudgy glasses with black rectangular frames = Reading_Normal
+
+Other Lil face traits:
 - "Nerd_Normal": Similar to Reading_Normal but with a BLUE tint to the lenses
 - "Goofy_Glasses": Oversized novelty glasses with spiral/swirl patterns
-
-KEY DISTINCTION FOR RECTANGULAR vs ROUND:
-- RECTANGULAR lens shape = Reading_Normal, Nerd_Normal, or Reading_* variants
-- ROUND/CIRCULAR lens shape = Circle_Glasses
 
 These are the only valid trait values. Match the uploaded Pudgy's traits to the closest matching from these lists. Use underscores and exact capitalization as shown.
 
