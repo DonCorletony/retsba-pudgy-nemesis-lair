@@ -318,11 +318,12 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Round/circular glasses with BLACK or DARK colored lenses
 - BLACK frames with BLACK/DARK lenses
 
-"Cross_Eyed" (CROSSED EYES, NO GLASSES):
+"Cross_Eyed" (SMALL BEADY DOT EYES, NO GLASSES):
 - NO glasses at all
-- The penguin's eyes are looking INWARD (crossed)
-- Both pupils/irises point toward the nose
-- This is just an expression trait, not eyewear
+- Eyes are TWO SMALL, ROUND, BEADY BLACK DOTS
+- The dots are SMALL and CIRCULAR - like little points
+- Very simple, minimal eye shape - just tiny black circles
+- This is the KEY distinction: SMALL DOT eyes
 
 "Curious" (CURIOUS EXPRESSION, NO GLASSES):
 - NO glasses
@@ -339,10 +340,12 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - One eye is CLOSED (winking)
 - The other eye is open
 
-"Normal" (NORMAL EXPRESSION, NO GLASSES):
+"Normal" (OVULAR/OVAL SHAPED EYES, NO GLASSES):
 - NO glasses
-- Standard neutral expression
-- Default Lil Pudgy face
+- Eyes are TWO LARGER, OVAL-SHAPED BLACK MARKS
+- The eyes are OVAL/OVULAR shape - elongated, not round dots
+- Standard neutral expression with larger oval eyes
+- This is the KEY distinction: OVAL/OVULAR shaped eyes (NOT small dots)
 
 DECISION RULES:
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
