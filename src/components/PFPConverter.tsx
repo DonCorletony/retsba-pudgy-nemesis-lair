@@ -13,6 +13,23 @@ import Gold_Template_2 from '@/assets/pfp-templates/Gold_Template_2.png';
 import Ice_Template from '@/assets/pfp-templates/Ice_Template.png';
 import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
 import Lil_Template from '@/assets/pfp-templates/Lil_Template.png';
+import Lil_Template_Blank from '@/assets/pfp-templates/Lil_Template_Blank.png';
+
+// Lil face traits that require Lil_Template_Blank (blank eyes) instead of default Lil_Template
+const LIL_BLANK_FACE_TRAITS = [
+  'Football',
+  'Reading_Normal',
+  'Goofy_Glasses',
+  'Scouter',
+  'Nerd_Normal',
+  'Reading_Cross_eyed',
+  'Curious',
+  'Mad',
+  'Winking',
+  'Cross_Eyed',
+  'Normal',
+];
+
 // Head traits that require Template_2 instead of the default Template
 const TEMPLATE_2_HEAD_TRAITS = [
   'Headband',
@@ -497,7 +514,19 @@ const PFPConverter = () => {
       let templateSrc = Template;
       let templateName = 'Template';
       
-      if (isIceSkin && hasTemplate2Trait) {
+      // Handle Lil mode template selection
+      if (isLilMode) {
+        // Check if face trait requires blank template (no eyes on base)
+        const needsBlankTemplate = faceTrait && LIL_BLANK_FACE_TRAITS.includes(faceTrait);
+        
+        if (needsBlankTemplate) {
+          templateSrc = Lil_Template_Blank;
+          templateName = 'Lil_Template_Blank';
+        } else {
+          templateSrc = Lil_Template;
+          templateName = 'Lil_Template';
+        }
+      } else if (isIceSkin && hasTemplate2Trait) {
         // Ice skin + Template_2 trait = Ice_Template_2
         templateSrc = Ice_Template_2;
         templateName = 'Ice_Template_2';
