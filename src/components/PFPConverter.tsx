@@ -417,6 +417,12 @@ const PFPConverter = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isAutoSwitchingRef = useRef(false);
+  const isLilModeRef = useRef(isLilMode); // Track current mode to avoid stale closures
+  
+  // Keep the ref in sync with state
+  useEffect(() => {
+    isLilModeRef.current = isLilMode;
+  }, [isLilMode]);
 
   // Clear uploaded image when manually switching between Big and Lil modes
   useEffect(() => {
@@ -501,7 +507,9 @@ const PFPConverter = () => {
       const detectedIsLil = data.isLilPudgy === true;
       
       // Auto-switch mode if detected type doesn't match current mode
-      if (detectedIsLil !== isLilMode) {
+      // Use ref to get current value (avoids stale closure issues)
+      const currentIsLilMode = isLilModeRef.current;
+      if (detectedIsLil !== currentIsLilMode) {
         isAutoSwitchingRef.current = true;
         setIsLilMode(detectedIsLil);
         toast.info(`Detected a ${detectedIsLil ? 'Lil Pudgy' : 'Big Pudgy'}! Switched mode automatically.`);
