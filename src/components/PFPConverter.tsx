@@ -497,8 +497,10 @@ const PFPConverter = () => {
         return;
       }
 
-      // Auto-switch mode if detected type doesn't match current mode
+      // Determine the correct mode based on detection
       const detectedIsLil = data.isLilPudgy === true;
+      
+      // Auto-switch mode if detected type doesn't match current mode
       if (detectedIsLil !== isLilMode) {
         isAutoSwitchingRef.current = true;
         setIsLilMode(detectedIsLil);
@@ -508,8 +510,8 @@ const PFPConverter = () => {
       setDetectedTraits(data);
       setStep('compositing');
       
-      // Generate the Retsbafied image
-      await generateRetsbafiedImage(data);
+      // Generate the Retsbafied image using the DETECTED mode (not state, which may be stale)
+      await generateRetsbafiedImage(data, detectedIsLil);
       
     } catch (err) {
       console.error('Analysis error:', err);
@@ -528,7 +530,7 @@ const PFPConverter = () => {
     });
   };
 
-  const generateRetsbafiedImage = async (traits: DetectedTraits) => {
+  const generateRetsbafiedImage = async (traits: DetectedTraits, useLilMode: boolean) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -595,7 +597,7 @@ const PFPConverter = () => {
       let templateName = 'Template';
       
       // Handle Lil mode template selection
-      if (isLilMode) {
+      if (useLilMode) {
         // Check if face trait requires blank template (no eyes on base)
         const needsBlankTemplate = faceTrait && LIL_BLANK_FACE_TRAITS.includes(faceTrait);
         
@@ -641,7 +643,7 @@ const PFPConverter = () => {
       
       // 1. Apply body trait overlay first (bottom layer)
       if (bodyTrait) {
-        if (isLilMode) {
+        if (useLilMode) {
           // TODO: Add LIL_BODY_TRAIT_MAP when Lil body traits are uploaded
           console.log(`Lil mode: No Lil body overlay available for: ${bodyTrait}`);
         } else if (BODY_TRAIT_MAP[bodyTrait]) {
@@ -655,7 +657,7 @@ const PFPConverter = () => {
 
       // 2. Apply face trait overlay (middle layer)
       if (faceTrait) {
-        if (isLilMode) {
+        if (useLilMode) {
           // In Lil mode, first check if the trait should be remapped to a different overlay
           if (LIL_FACE_TRAIT_REMAP[faceTrait]) {
             const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
@@ -685,7 +687,7 @@ const PFPConverter = () => {
 
       // 3. Apply head trait overlay last (top layer)
       if (headTrait) {
-        if (isLilMode) {
+        if (useLilMode) {
           // TODO: Add LIL_HEAD_TRAIT_MAP when Lil head traits are uploaded
           console.log(`Lil mode: No Lil head overlay available for: ${headTrait}`);
         } else if (HEAD_TRAIT_MAP[headTrait]) {
