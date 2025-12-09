@@ -496,10 +496,21 @@ const PFPConverter = () => {
       });
 
       if (error) {
-        throw new Error(error.message || 'Failed to analyze image');
+        // Check if the error contains a more specific message from the edge function
+        const errorMessage = error.message || 'Failed to analyze image';
+        
+        // Handle specific error cases
+        if (errorMessage.includes('402') || errorMessage.includes('credits')) {
+          throw new Error('AI credits exhausted. Please try again later or contact support.');
+        }
+        if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      if (data.error) {
+      if (data?.error) {
         throw new Error(data.error);
       }
 
