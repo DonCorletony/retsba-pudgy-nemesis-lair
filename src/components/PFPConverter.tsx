@@ -811,113 +811,132 @@ const PFPConverter = () => {
           {showMobileResult ? 'Your Retsba' : isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}
         </p>
 
-        <div 
-          className={`relative border-2 rounded-xl p-6 transition-all duration-300 min-h-[320px] flex items-center justify-center ${
-            showMobileResult 
-              ? 'border-black/10 dark:border-white/20 bg-gradient-to-br from-primary/5 to-transparent'
-              : isDragging 
-                ? 'border-primary bg-primary/10 border-dashed cursor-pointer' 
-                : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5 border-dashed cursor-pointer'
-          }`}
-          onDragOver={!showMobileResult ? handleDragOver : undefined}
-          onDragLeave={!showMobileResult ? handleDragLeave : undefined}
-          onDrop={!showMobileResult ? handleDrop : undefined}
-          onClick={!showMobileResult ? () => fileInputRef.current?.click() : undefined}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+        {/* Coming Soon Overlay for Lil Mode - Mobile */}
+        {isLilMode ? (
+          <div className="relative border-2 border-black/20 dark:border-white/20 rounded-xl p-6 min-h-[320px] flex items-center justify-center bg-black/5 dark:bg-white/5">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
+              <div className="text-center">
+                <p className="text-white text-2xl font-bold">Coming Soon</p>
+                <p className="text-white/70 text-sm mt-1">Lil Pudgy support is under development</p>
+              </div>
+            </div>
+            <div className="blur-sm pointer-events-none text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
+              </div>
+              <p className="text-black dark:text-white font-medium mb-2">Drop your Lil here</p>
+              <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
+            </div>
+          </div>
+        ) : (
+          <div 
+            className={`relative border-2 rounded-xl p-6 transition-all duration-300 min-h-[320px] flex items-center justify-center ${
+              showMobileResult 
+                ? 'border-black/10 dark:border-white/20 bg-gradient-to-br from-primary/5 to-transparent'
+                : isDragging 
+                  ? 'border-primary bg-primary/10 border-dashed cursor-pointer' 
+                  : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5 border-dashed cursor-pointer'
+            }`}
+            onDragOver={!showMobileResult ? handleDragOver : undefined}
+            onDragLeave={!showMobileResult ? handleDragLeave : undefined}
+            onDrop={!showMobileResult ? handleDrop : undefined}
+            onClick={!showMobileResult ? () => fileInputRef.current?.click() : undefined}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
 
-          <AnimatePresence mode="wait">
-            {/* Upload state - no image yet */}
-            {step === 'idle' && !uploadedImage && (
-              <motion.div
-                key="mobile-upload"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
-                </div>
-                <p className="text-black dark:text-white font-medium mb-2">Drop your {isLilMode ? 'Lil' : 'Pudgy'} here</p>
-                <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
-              </motion.div>
-            )}
-
-            {/* Processing state */}
-            {(step === 'uploading' || step === 'analyzing' || step === 'compositing') && (
-              <motion.div
-                key="mobile-processing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="text-center"
-              >
+            <AnimatePresence mode="wait">
+              {/* Upload state - no image yet */}
+              {step === 'idle' && !uploadedImage && (
                 <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-12 h-12 mx-auto mb-4"
+                  key="mobile-upload"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center"
                 >
-                  <RefreshCw className="w-12 h-12 text-primary" />
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                    <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
+                  </div>
+                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
+                  <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
                 </motion.div>
-                <p className="text-black dark:text-white font-medium">{getStepMessage()}</p>
-              </motion.div>
-            )}
+              )}
 
-            {/* Error state */}
-            {step === 'error' && (
-              <motion.div
-                key="mobile-error"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="text-center"
-              >
-                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-                <p className="text-red-500 font-medium text-sm">{error}</p>
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
+              {/* Processing state */}
+              {(step === 'uploading' || step === 'analyzing' || step === 'compositing') && (
+                <motion.div
+                  key="mobile-processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center"
                 >
-                  Try Again
-                </Button>
-              </motion.div>
-            )}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                    className="w-12 h-12 mx-auto mb-4"
+                  >
+                    <RefreshCw className="w-12 h-12 text-primary" />
+                  </motion.div>
+                  <p className="text-black dark:text-white font-medium">{getStepMessage()}</p>
+                </motion.div>
+              )}
 
-            {/* Complete state - show result */}
-            {step === 'complete' && retsbafiedImage && (
-              <motion.div
-                key="mobile-result"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="relative w-full"
-              >
-                <img
-                  src={retsbafiedImage}
-                  alt="Retsbafied Pudgy"
-                  className="w-full h-auto rounded-lg max-h-[320px] object-contain mx-auto"
-                />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleReset();
-                  }}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+              {/* Error state */}
+              {step === 'error' && (
+                <motion.div
+                  key="mobile-error"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="text-center"
                 >
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+                  <p className="text-red-500 font-medium text-sm">{error}</p>
+                  <Button
+                    onClick={handleReset}
+                    variant="outline"
+                    className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    Try Again
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Complete state - show result */}
+              {step === 'complete' && retsbafiedImage && (
+                <motion.div
+                  key="mobile-result"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative w-full"
+                >
+                  <img
+                    src={retsbafiedImage}
+                    alt="Retsbafied Pudgy"
+                    className="w-full h-auto rounded-lg max-h-[320px] object-contain mx-auto"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReset();
+                    }}
+                    className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Mobile Download Button */}
         <Button
@@ -960,9 +979,19 @@ const PFPConverter = () => {
         </div>
 
         {/* Content grid */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6 relative">
+        {/* Coming Soon Overlay for Lil Mode - Desktop */}
+        {isLilMode && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
+            <div className="text-center">
+              <p className="text-white text-3xl font-bold">Coming Soon</p>
+              <p className="text-white/70 text-sm mt-2">Lil Pudgy support is under development</p>
+            </div>
+          </div>
+        )}
+        
         {/* Left Side - Upload & Original */}
-        <div className="space-y-4">
+        <div className={`space-y-4 ${isLilMode ? 'blur-sm pointer-events-none' : ''}`}>
 
           <motion.div
             className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer min-h-[320px] flex items-center justify-center ${
@@ -970,12 +999,12 @@ const PFPConverter = () => {
                 ? 'border-primary bg-primary/10' 
                 : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5'
             }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            onDragOver={!isLilMode ? handleDragOver : undefined}
+            onDragLeave={!isLilMode ? handleDragLeave : undefined}
+            onDrop={!isLilMode ? handleDrop : undefined}
+            onClick={!isLilMode ? () => fileInputRef.current?.click() : undefined}
+            whileHover={!isLilMode ? { scale: 1.01 } : undefined}
+            whileTap={!isLilMode ? { scale: 0.99 } : undefined}
           >
             <input
               type="file"
@@ -1019,7 +1048,7 @@ const PFPConverter = () => {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
                     <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                   </div>
-                  <p className="text-black dark:text-white font-medium mb-2">Drop your {isLilMode ? 'Lil' : 'Pudgy'} here</p>
+                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
                   <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
                 </motion.div>
               )}
@@ -1075,7 +1104,7 @@ const PFPConverter = () => {
         </div>
 
         {/* Right Side - Retsbafied Result */}
-        <div className="space-y-4">
+        <div className={`space-y-4 ${isLilMode ? 'blur-sm pointer-events-none' : ''}`}>
 
           <div className="relative border-2 border-black/10 dark:border-white/20 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
             <AnimatePresence mode="wait">
