@@ -415,7 +415,7 @@ THE IGLOO LOGO IS THE KEY:
 - Flower crown → "Flower_Crown"
 - Jester hat → "Jester_Hat"
 - Pineapple → "Pineapple"
-- Macaroni → "Macaroni"
+- Macaroni (BRIGHT YELLOW strands fanning outward like a sunburst/explosion from the head - NOT a bowlcut, the strands spike OUT in all directions like uncooked macaroni pasta sticking up and out) → "Macaroni"
 - Biker/motorcycle helmet → "Biker_Helmet"
 - Camo/military helmet → "Camo_Helmet"
 
