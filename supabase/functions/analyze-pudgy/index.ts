@@ -505,70 +505,67 @@ KEY IDENTIFICATION:
 If there's a beard covering part of the neck, look carefully for what's visible beneath it. A small surfboard pendant peeking out is Surfboard_Necklace, NOT a lei!
 
 BODY TRAIT EXAMPLES:
-- Blue FLOWER LEI with MULTIPLE blue flowers in a garland → "Lei_Blue"
-- Purple FLOWER LEI with MULTIPLE purple flowers → "Lei_Purple"
-- Pink FLOWER LEI with MULTIPLE pink flowers → "Lei_Pink"
-- Black hoodie/sweatshirt → "Hoodie_Black"
-- Pink hoodie/sweatshirt → "Hoodie_Pink"
-- Orange puffer jacket/vest → "Puffer_Orange"
-- Blue puffer jacket/vest → "Puffer_Blue"
-- Blue bow tie (symmetrical bow shape at collar, NO pendant) → "Bow_Tie_Blue"
-- Black bow tie → "Bowtie_Black"
-- Pink bow tie → "Bowtie_Pink"
-- Pink turtleneck sweater → "Turtleneck_Pink"
-- Green turtleneck sweater → "Turtleneck_Green"
+- "Lei_Blue" = A string of flowers around the neck with blue petals and yellow center.
+- "Lei_Purple" = A string of flowers around the neck with purple petals and yellow center.
+- "Lei_Pink" = A string of flowers around the neck with pink petals and yellow center.
+- "Lei_Assorted" = A string of flowers around the neck with blue, purple, and pink petals with yellow centers.
+- "Hoodie_Black" = A black hoodie with a white igloo on the front.
+- "Hoodie_Pink" = A pink hoodie with white igloo logo on the front.
+- "Puffer_Orange" = An orange sleeveless puffer jacket.
+- "Puffer_Blue" = A blue sleeveless puffer jacket.
+- "Puffer_Green" = A green sleeveless puffer jacket.
+- "Bow_Tie_Blue" = A blue bowtie, secured by a thin blue string around the neck.
+- "Bowtie_Black" = A black bowtie, secured by a thin black string around the neck.
+- "Bowtie_Pink" = A pink bowtie, secured around the neck by a thin pink string.
+- "Turtleneck_Pink" = A pink turtleneck sweater.
+- "Turtleneck_Gray" = A gray turtleneck sweater.
+- "Turtleneck_Blue" = A blue turtleneck sweater.
+- "Turtleneck_Green" = A green turtleneck sweater.
+- "Bronze_Medal" = A bronze medal with a red/white/blue band.
+- "Silver_Medal" = A silver medal with a red/white/blue band.
+- "Gold_Medal" = A gold medal with a red/white/blue band.
+- "Hawaiian_Shirt" = A turquoise blue hawaiian shirt with purple palm trees on it.
+- "Scarf_Pink" = A dark pink scarf.
+- "Scarf_Blue" = A blue scarf.
+- "Scarf_Green" = A green scarf.
+- "Overalls" = Denim blue overalls with yellow buttons.
+- "Poncho" = An orange poncho with tan triangles on it.
+- "Surfboard_Necklace" = A blue surfboard pendant on a black string necklace.
+- "Christmas_Lights" = A string of red and white christmas lights around the neck.
+- "Ice_Coat" = A black akatsuki-style cloak from naruto, with a blue zipper down the center and blue designs on the sleeves.
+- "Tribal_Necklace" = A string necklace with big off-white triangles hanging off of it.
+- "Heart" = A lone heart on the Pudgy's chest.
+- "Crop_Top" = A red croptop-style shirt, exposing the belly. PLAIN with no logo.
+- "Biker_Jacket" = A black leather jacket with gray spikes on the shoulders.
+- "Swordman" = An orange kimono with black triangles, with the hilt of a sword showing on the back.
+- "Suit_Blue" = A black suit with a white button up undershirt and blue bowtie.
+- "Suit_Red" = A black suit with a white button up undershirt and red bowtie.
+- "Pudgy_Man" = A blue superman-style outfit with a red cape and PM logo on the front.
+- "I_Love_Fish" = A white shirt with green collar and green sleeves which reads "I (heart) fish".
+- "Big_P" = A black string necklace with a dark brown seashell pendant with a big P on it.
+- "Shark_Tooth" = A black string necklace with a single shark tooth pendant.
+- "Christmas_Sweater_Red" = A red sweater with white snowflakes.
+- "Christmas_Sweater_Blue" = A blue sweater with white snowflakes.
+- "The_Huddle" = A pink shirt with "the Huddle" written on the front in dark pink.
+- "Tanktop_Yellow" = A yellow tanktop with a blue surfboard on the front.
+- "Tanktop_Blue" = A blue tanktop with a white surfboard on the front.
+- "Vote_4_Pudgy" = A white shirt with red collar which reads "Vote 4 Pudgy" in red text on the front.
+- "Labcoat" = A white labcoat with blue undershirt.
+- "Apron" = A green chef's apron which reads "Pudge" in white letters.
+- "Shirt_Red" = A maroon t-shirt with a white igloo logo on the front. MUST have visible white logo.
+- "Blue_Shirt" = A blue t-shirt with a white igloo logo on the front.
 CRITICAL - KIMONO DISTINCTION (LOOK AT THE PATTERN):
-- "Kimono_Red" = RED kimono with WHITE STRIPS/LINES on the LAPELS (solid white trim along the edges)
-- "Kimono_Orange" = ORANGE kimono with WHITE TRIANGLES pattern scattered across the fabric
-- "Kimono_Brown" = Brown/tan solid kimono
-- "Kimono_White" = White kimono with black geometric pattern
-- "Kimono_Blue" = Blue kimono with flower pattern
-- "Kimono_Abstract" = Abstract geometric colorful kimono
-- "Kimono_Gold" = Gold/yellow metallic kimono
-- "Kimono_Pink" = Pink kimono
-- "Kimono_Ice" = Ice/blue frosted kimono
-
+- "Kimono_Red" = A solid orange-red kimono with a white stripe around the lapels.
+- "Kimono_Orange" = An orange kimono with white triangles on it.
+- "Kimono_Brown" = A brown kimono with white strip on the lapels. Similar to Kimono_Red, but darker.
+- "Kimono_White" = A white kimono with black triangles on it.
+- "Kimono_Blue" = A light blue kimono with blue flowers on it.
+- "Kimono_Abstract" = A kimono with an abstract design on it. Solid purple on the right side, and a green/white/dark tan geometric pattern on the left.
+- "Kimono_Pink" = A pink Kimono with dark pink flowers.
+- "Kimono_Gold" = A gold kimono with sparkles on it.
+- "Kimono_Ice" = A blue kimono with sparkles.
 KEY: If the kimono is RED with simple WHITE EDGE TRIM → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange".
-- Blue t-shirt/shirt → "Blue_Shirt"
-- Hawaiian shirt with palm trees → "Hawaiian_Shirt"
-- Bronze medal with ribbon → "Bronze_Medal"
-- Silver medal with ribbon → "Silver_Medal"
-- Gold medal with ribbon → "Gold_Medal"
-- Pink scarf → "Scarf_Pink"
-- Blue overalls/dungarees → "Overalls"
-- Colorful poncho with pattern → "Poncho"
-- Surfboard pendant necklace → "Surfboard_Necklace"
-- Christmas lights string necklace → "Christmas_Lights"
-- Ice/frost themed coat → "Ice_Coat"
-- Tribal/tooth necklace → "Tribal_Necklace"
-- Red heart on body → "Heart"
-- Red/maroon CROP TOP - a short tight-fitting top that shows the belly area, casual sleeveless or short-sleeve style, plain solid red/maroon color with NO LOGO → "Crop_Top"
-- Black biker jacket with spikes → "Biker_Jacket"
-- Swordsman outfit with sword on back → "Swordman"
-- Pink kimono with flowers → "Kimono_Pink"
-- Gold/golden shiny kimono with Japanese-style pattern, metallic gold fabric with shine → "Kimono_Gold" (NOT Bathrobe - kimonos have patterns/designs and wrap style)
-- Ice blue shiny kimono → "Kimono_Ice"
-- Black suit/tuxedo with blue bow tie → "Suit_Blue"
-- Black suit/tuxedo with red bow tie → "Suit_Red"
-- Blue shirt with PM logo and red cape → "Pudgy_Man"
-- Colorful assorted flower lei → "Lei_Assorted"
-- White shirt with "I Love Fish" text → "I_Love_Fish"
-- Brown bag necklace with P letter → "Big_P"
-- Shark tooth necklace → "Shark_Tooth"
-- Red Christmas sweater with snowflakes → "Christmas_Sweater_Red"
-- Blue Christmas sweater with snowflakes → "Christmas_Sweater_Blue"
-- Pink shirt with "The Huddle" text → "The_Huddle"
-- Yellow tank top → "Tanktop_Yellow"
-- Blue tank top → "Tanktop_Blue"
-- White shirt with "Vote 4 Pudgy" text → "Vote_4_Pudgy"
-- Gray turtleneck sweater → "Turtleneck_Gray"
-- Blue turtleneck sweater → "Turtleneck_Blue"
-- White lab coat with blue undershirt → "Labcoat"
-- Green apron with "Pudge" text → "Apron"
-- Blue scarf → "Scarf_Blue"
-- Green scarf → "Scarf_Green"
-- Red/maroon HOODIE or SWEATSHIRT with a WHITE IGLOO/DISCO BALL LOGO on the chest → "Shirt_Red" (MUST have a visible white circular logo/design on the chest)
-- Cream/beige/tan terry cloth bathrobe with belt, plain solid color without patterns → "Bathrobe" (NOT Kimono - bathrobes are plain solid color terry cloth with no Japanese patterns)
+- "Bathrobe" = An off-white bathrobe. Similar to a Kimono, but the two lapels meet together at the bottom of the image to form a 'V' shape, while Kimonos have a completely open front.
 
 CRITICAL - CROP_TOP vs SHIRT_RED (YOU MUST GET THIS RIGHT):
 - "Crop_Top": A plain solid RED/MAROON top with NO LOGO or design. It's a casual crop top style that exposes the belly area. The garment is PLAIN with no visible markings.
