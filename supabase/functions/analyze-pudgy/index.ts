@@ -245,9 +245,23 @@ Before analyzing traits, determine if this is a special penguin type:
 
 3. "gold_kimono_special" penguin: A penguin with ALL of these features: Gold/shiny metallic skin, wearing a RED BACKWARDS HAT with blue brim, WINKING (one eye open, one closed), ORANGE background, and wearing a gold-colored shiny garment/kimono that matches the gold skin color. This is the only penguin with both Gold skin AND Kimono Gold.
 
+4. OTHER 1:1 LIL PUDGY SPECIAL VARIANTS - CHECK FOR THESE DISTINCTIVE LILS:
+   - "lil_hot_dog" = A Lil wearing a HOT DOG COSTUME with trees and a RED GRILL in the background. The penguin is inside a hot dog bun with mustard/ketchup visible.
+   - "lil_backward" = A BLUE Lil facing AWAY from us (showing its back), looking toward an OCEAN with a MOON in the sky. You see the back of the penguin, not its face.
+   - "lil_jetpack" = A BLACK Lil wearing a JETPACK, flying through the SKY with clouds. Flames shooting from the jetpack.
+   - "lil_runt" = An EXTRA-SMALL tiny blue Lil on a flat SKYBLUE background. The penguin is very small compared to normal Lils.
+   - "lil_taco" = A GRAY Lil in a TACO COSTUME with TACOS floating in the background. Orange/yellow taco-themed background.
+   - "lil_tree" = A GRAY Lil wearing a TREE COSTUME on a STAGE with RED CURTAINS on each side. Playground visible in background.
+   - "lil_avocado" = A PINK Lil wearing an AVOCADO COSTUME with AVOCADOS in the background. Green avocado-themed background.
+   - "lil_stuck" = A BLUE Lil with its HEAD BURIED IN THE SNOW on the ground, FEET UP IN THE AIR. Blue sky with clouds, igloo in background. You see the penguin's butt and feet sticking up.
+   - "lil_astronaut" = A Lil in an ASTRONAUT COSTUME on the MOON, holding a BLUE FLAG with an IGLOO LOGO. Rocket ship visible in background, starry space sky.
+
+   For ANY of these special Lil variants, set "isSpecialPenguin" to the appropriate value (e.g., "lil_hot_dog") and set all traits to null.
+
 If the penguin matches "left_facing", set "isSpecialPenguin" to "left_facing" and set all traits to null.
 If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_kimono_special" - this will trigger special handling.
 If the penguin matches any "pudgy_knight_*", set "isSpecialPenguin" to the appropriate knight color and set all traits to null.
+If the penguin matches any "lil_*" special variant, set "isSpecialPenguin" to the appropriate value and set all traits to null.
 
 GOLD SKIN DETECTION - CRITICAL (CHECK THE HEAD COLOR):
 To detect gold skin, look at the penguin's HEAD and CHEEKS area (NOT the belly/chest which is always white on all penguins).
