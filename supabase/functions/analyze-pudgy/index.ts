@@ -225,11 +225,29 @@ serve(async (req) => {
 
 SPECIAL PENGUIN DETECTION - CHECK FIRST:
 Before analyzing traits, determine if this is a special penguin type:
-- "left_facing" penguin: The penguin is facing LEFT (looking to the left side of the image) AND has its eyes CLOSED. This is a rare backwards-facing penguin variant.
-- "gold_kimono_special" penguin: A penguin with ALL of these features: Gold/shiny metallic skin, wearing a RED BACKWARDS HAT with blue brim, WINKING (one eye open, one closed), ORANGE background, and wearing a gold-colored shiny garment/kimono that matches the gold skin color. This is the only penguin with both Gold skin AND Kimono Gold.
+
+1. "pudgy_knight_[COLOR]" - PUDGY KNIGHTS (1:1 Lil Pudgy variants):
+   These are EASY to identify by their UNIQUE BACKGROUND: an icy arctic landscape with an IGLOO visible, clouds, and snowy/icy terrain.
+   Pudgy Knights are Lil Pudgys wearing hooded cloaks and holding two weapons (swords, batons, or spoons).
+   If you see this distinctive igloo background, it is a Pudgy Knight. Identify the color variant:
+   - "pudgy_knight_black" = BLACK cloak/hood, holding dark batons
+   - "pudgy_knight_ice" = LIGHT BLUE/ICY cloak, holding silver/ice swords, may have ice sparkle on hood
+   - "pudgy_knight_blue" = DARK BLUE/ROYAL BLUE cloak, holding blue batons
+   - "pudgy_knight_purple" = PURPLE cloak, holding purple batons, may have pink blush
+   - "pudgy_knight_white" = WHITE cloak, holding white batons (zebra-stripe pattern visible)
+   - "pudgy_knight_gray" = GRAY cloak, holding SPOONS (not swords/batons)
+   - "pudgy_knight_gold" = GOLD/YELLOW cloak, holding gold swords, may have sparkle on hood
+   - "pudgy_knight_red" = RED cloak, holding red/pink batons
+   
+   For ANY Pudgy Knight, set "isSpecialPenguin" to the appropriate "pudgy_knight_[color]" value and set all traits to null.
+
+2. "left_facing" penguin: The penguin is facing LEFT (looking to the left side of the image) AND has its eyes CLOSED. This is a rare backwards-facing penguin variant.
+
+3. "gold_kimono_special" penguin: A penguin with ALL of these features: Gold/shiny metallic skin, wearing a RED BACKWARDS HAT with blue brim, WINKING (one eye open, one closed), ORANGE background, and wearing a gold-colored shiny garment/kimono that matches the gold skin color. This is the only penguin with both Gold skin AND Kimono Gold.
 
 If the penguin matches "left_facing", set "isSpecialPenguin" to "left_facing" and set all traits to null.
 If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_kimono_special" - this will trigger special handling.
+If the penguin matches any "pudgy_knight_*", set "isSpecialPenguin" to the appropriate knight color and set all traits to null.
 
 GOLD SKIN DETECTION - CRITICAL (CHECK THE HEAD COLOR):
 To detect gold skin, look at the penguin's HEAD and CHEEKS area (NOT the belly/chest which is always white on all penguins).

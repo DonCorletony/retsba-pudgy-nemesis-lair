@@ -15,6 +15,28 @@ import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
 import Lil_Template from '@/assets/pfp-templates/Lil_Template.png';
 import Lil_Template_Blank from '@/assets/pfp-templates/Lil_Template_Blank.png';
 
+// Pudgy Knight 1:1 output templates
+import Pudgy_Knight_Black_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Black_Output.png';
+import Pudgy_Knight_Ice_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Ice_Output.png';
+import Pudgy_Knight_Blue_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Blue_Output.png';
+import Pudgy_Knight_Purple_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Purple_Output.png';
+import Pudgy_Knight_White_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_White_Output.png';
+import Pudgy_Knight_Gray_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Gray_Output.png';
+import Pudgy_Knight_Gold_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Gold_Output.png';
+import Pudgy_Knight_Red_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Red_Output.png';
+
+// Mapping of Pudgy Knight special penguin types to their output templates
+const PUDGY_KNIGHT_OUTPUT_MAP: Record<string, string> = {
+  pudgy_knight_black: Pudgy_Knight_Black_Output,
+  pudgy_knight_ice: Pudgy_Knight_Ice_Output,
+  pudgy_knight_blue: Pudgy_Knight_Blue_Output,
+  pudgy_knight_purple: Pudgy_Knight_Purple_Output,
+  pudgy_knight_white: Pudgy_Knight_White_Output,
+  pudgy_knight_gray: Pudgy_Knight_Gray_Output,
+  pudgy_knight_gold: Pudgy_Knight_Gold_Output,
+  pudgy_knight_red: Pudgy_Knight_Red_Output,
+};
+
 // Lil face traits that require Lil_Template_Blank (blank eyes) instead of default Lil_Template
 const LIL_BLANK_FACE_TRAITS = [
   'Football',
@@ -391,7 +413,10 @@ const BODY_TRAIT_MAP: Record<string, string> = {
 
 interface DetectedTraits {
   isPudgy: boolean;
-  isSpecialPenguin?: 'left_facing' | 'gold_kimono_special' | null;
+  isSpecialPenguin?: 'left_facing' | 'gold_kimono_special' | 
+    'pudgy_knight_black' | 'pudgy_knight_ice' | 'pudgy_knight_blue' | 
+    'pudgy_knight_purple' | 'pudgy_knight_white' | 'pudgy_knight_gray' | 
+    'pudgy_knight_gold' | 'pudgy_knight_red' | null;
   traits: {
     background: string | null;
     skin: string | null;
@@ -574,6 +599,24 @@ const PFPConverter = () => {
 
     try {
       // Check for special penguins first - these use unique templates with NO trait overlays
+      
+      // Pudgy Knights - 1:1 Lil Pudgy variants with unique output templates
+      if (traits.isSpecialPenguin && traits.isSpecialPenguin.startsWith('pudgy_knight_')) {
+        const knightTemplate = PUDGY_KNIGHT_OUTPUT_MAP[traits.isSpecialPenguin];
+        if (knightTemplate) {
+          console.log(`Special Pudgy Knight detected: ${traits.isSpecialPenguin}. Using dedicated output template.`);
+          const baseImg = await loadImage(knightTemplate);
+          ctx.drawImage(baseImg, 0, 0, 1000, 1000);
+          const dataUrl = canvas.toDataURL('image/png');
+          setRetsbafiedImage(dataUrl);
+          setStep('complete');
+          const knightColor = traits.isSpecialPenguin.replace('pudgy_knight_', '').charAt(0).toUpperCase() + 
+                              traits.isSpecialPenguin.replace('pudgy_knight_', '').slice(1);
+          toast.success(`Pudgy Knight (${knightColor}) detected! Retsbafied with special template.`);
+          return;
+        }
+      }
+      
       if (traits.isSpecialPenguin === 'left_facing') {
         console.log('Special penguin detected: Left-Facing. Using Backwards_Template with no overlays.');
         const baseImg = await loadImage(Backwards_Template);
