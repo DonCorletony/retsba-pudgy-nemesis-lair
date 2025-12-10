@@ -25,8 +25,20 @@ import Pudgy_Knight_Gray_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Gr
 import Pudgy_Knight_Gold_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Gold_Output.png';
 import Pudgy_Knight_Red_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Red_Output.png';
 
-// Mapping of Pudgy Knight special penguin types to their output templates
-const PUDGY_KNIGHT_OUTPUT_MAP: Record<string, string> = {
+// Other 1:1 Lil Pudgy output templates
+import Backward_Output from '@/assets/pfp-templates/lil/Backward_Output.png';
+import Jetpack_Output from '@/assets/pfp-templates/lil/Jetpack_Output.png';
+import Runt_Output from '@/assets/pfp-templates/lil/Runt_Output.png';
+import Taco_Output from '@/assets/pfp-templates/lil/Taco_Output.png';
+import Tree_Output from '@/assets/pfp-templates/lil/Tree_Output.png';
+import Avocado_Output from '@/assets/pfp-templates/lil/Avocado_Output.png';
+import Stuck_Output from '@/assets/pfp-templates/lil/Stuck_Output.png';
+import Astronaut_Output from '@/assets/pfp-templates/lil/Astronaut_Output.png';
+import Hot_Dog_Output from '@/assets/pfp-templates/lil/Hot_Dog_Output.png';
+
+// Mapping of special Lil penguin types to their output templates (1:1 NFTs)
+const LIL_SPECIAL_OUTPUT_MAP: Record<string, string> = {
+  // Pudgy Knights
   pudgy_knight_black: Pudgy_Knight_Black_Output,
   pudgy_knight_ice: Pudgy_Knight_Ice_Output,
   pudgy_knight_blue: Pudgy_Knight_Blue_Output,
@@ -35,6 +47,16 @@ const PUDGY_KNIGHT_OUTPUT_MAP: Record<string, string> = {
   pudgy_knight_gray: Pudgy_Knight_Gray_Output,
   pudgy_knight_gold: Pudgy_Knight_Gold_Output,
   pudgy_knight_red: Pudgy_Knight_Red_Output,
+  // Other 1:1 Lils
+  lil_backward: Backward_Output,
+  lil_jetpack: Jetpack_Output,
+  lil_runt: Runt_Output,
+  lil_taco: Taco_Output,
+  lil_tree: Tree_Output,
+  lil_avocado: Avocado_Output,
+  lil_stuck: Stuck_Output,
+  lil_astronaut: Astronaut_Output,
+  lil_hot_dog: Hot_Dog_Output,
 };
 
 // Lil face traits that require Lil_Template_Blank (blank eyes) instead of default Lil_Template
@@ -600,21 +622,25 @@ const PFPConverter = () => {
     try {
       // Check for special penguins first - these use unique templates with NO trait overlays
       
-      // Pudgy Knights - 1:1 Lil Pudgy variants with unique output templates
-      if (traits.isSpecialPenguin && traits.isSpecialPenguin.startsWith('pudgy_knight_')) {
-        const knightTemplate = PUDGY_KNIGHT_OUTPUT_MAP[traits.isSpecialPenguin];
-        if (knightTemplate) {
-          console.log(`Special Pudgy Knight detected: ${traits.isSpecialPenguin}. Using dedicated output template.`);
-          const baseImg = await loadImage(knightTemplate);
-          ctx.drawImage(baseImg, 0, 0, 1000, 1000);
-          const dataUrl = canvas.toDataURL('image/png');
-          setRetsbafiedImage(dataUrl);
-          setStep('complete');
-          const knightColor = traits.isSpecialPenguin.replace('pudgy_knight_', '').charAt(0).toUpperCase() + 
-                              traits.isSpecialPenguin.replace('pudgy_knight_', '').slice(1);
-          toast.success(`Pudgy Knight (${knightColor}) detected! Retsbafied with special template.`);
-          return;
-        }
+      // Special 1:1 Lil Pudgy variants with unique output templates (Pudgy Knights and others)
+      if (traits.isSpecialPenguin && LIL_SPECIAL_OUTPUT_MAP[traits.isSpecialPenguin]) {
+        const specialTemplate = LIL_SPECIAL_OUTPUT_MAP[traits.isSpecialPenguin];
+        console.log(`Special Lil Pudgy detected: ${traits.isSpecialPenguin}. Using dedicated output template.`);
+        const baseImg = await loadImage(specialTemplate);
+        ctx.drawImage(baseImg, 0, 0, 1000, 1000);
+        const dataUrl = canvas.toDataURL('image/png');
+        setRetsbafiedImage(dataUrl);
+        setStep('complete');
+        
+        // Format the special penguin name for display
+        const displayName = traits.isSpecialPenguin
+          .replace('pudgy_knight_', 'Pudgy Knight ')
+          .replace('lil_', '')
+          .split('_')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        toast.success(`${displayName} detected! Retsbafied with special template.`);
+        return;
       }
       
       if (traits.isSpecialPenguin === 'left_facing') {
