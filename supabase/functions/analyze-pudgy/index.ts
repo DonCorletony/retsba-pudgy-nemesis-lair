@@ -394,48 +394,65 @@ CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the gl
 HEAD TRAIT EXAMPLES:
 
 CRITICAL HAT DISTINCTION - LOOK FOR THE IGLOO LOGO:
-- "Hat_Red" / "Hat_Blue" = Forward-facing cap WITH AN IGLOO LOGO visible on the front. The igloo is a white building design on the cap.
-- "Backwards_Hat_Red" / "Backwards_Hat_Blue" = Backwards cap with NO IGLOO LOGO visible (plain front, logo is hidden at back)
+- "Hat_Red" = A cap with a red base and blue bill, facing to the right WITH AN IGLOO LOGO visible on the front. The igloo is a white building design on the cap.
+- "Hat_Blue" = A cap with a blue base and red bill, facing to the right WITH AN IGLOO LOGO visible on the front.
+- "Backwards_Hat_Red" = A backwards cap with a red base and blue bill, facing backward with NO IGLOO LOGO visible (plain front, logo is hidden at back)
+- "Backwards_Hat_Blue" = A backwards cap with a blue base and red bill, facing backward with NO IGLOO LOGO visible.
 
 THE IGLOO LOGO IS THE KEY:
 - If you see a WHITE IGLOO LOGO on the front of the cap → "Hat_Red" or "Hat_Blue"
 - If there is NO igloo logo visible (plain cap front) → "Backwards_Hat_Red" or "Backwards_Hat_Blue"
 - SIDEWAYS CAP with brim to the side → "Sideways_Blue" or "Sideways_Red"
 
-- A viking helmet → "Viking_Hat"
-- A cowboy hat → "Cowboy_Hat"
-- A crown → "Crown"
-- An ice/frozen crown → "Ice_Crown"
-- A wizard/witch hat → "Wizard_Hat"
-- A pirate hat → "Pirate_Hat"
-- A sombrero → "Sombrero"
-- A top hat → "Top_Hat"
-- A party hat → "Party_Hat"
-- A santa hat → "Santa_Hat"
-- A panda hood/hat → "Panda_Hat"
-- A polar bear hood → "Polar_Bear_Hat"
-- A grizzly bear hood → "Grizzly_Bear_Hat"
-- A shark costume/suit → "Shark_Suit"
-- A banana costume → "Banana_Suit"
-- A ghost costume → "Ghost"
-- Rice/straw hat → "Rice_Hat"
-- Fish on head (any color) → "Fish_Blue", "Fish_Gold", "Fish_Green", or "Fish_Orange"
-- Mohawk hairstyle → "Mohawk_Green" or "Mohawk_Purple"
-- Afro with pick → "Afro_with_Pick"
-- Hippy/long hair → "Hippy_Hair"
-- Durag → "Blue_Durag" or "Red_Durag"
-- Headband → "Headband" or "Ninja_Headband"
-- Bucket hat → "Bucket_Hat_Green" or "Bucket_Hat_Tan"
-- Flat cap → "Flat_Cap_Black", "Flat_Cap_Blue", or "Flat_Cap_Tan"
-- Beanie → "Beanie_Gray", "Beanie_Orange", or "Pink_Beanie"
-- Egg (unhatched) → "Egg" or "Egg_Gold"
-- Hatched egg shell → "Hatched" or "Hatched_Gold"
-- Flower crown → "Flower_Crown"
-- Jester hat → "Jester_Hat"
-- Pineapple → "Pineapple"
-- Macaroni (BRIGHT YELLOW strands fanning outward like a sunburst/explosion from the head - NOT a bowlcut, the strands spike OUT in all directions like uncooked macaroni pasta sticking up and out) → "Macaroni"
-- Biker/motorcycle helmet → "Biker_Helmet"
-- Camo/military helmet → "Camo_Helmet"
+- "Sideways_Red" = A cap with a red body and blue bill, facing to the LEFT with an igloo logo exposed on the front.
+- "Sideways_Blue" = A cap with a blue base and red bill, facing to the LEFT with an igloo logo exposed.
+- "Viking_Hat" = A silver and brown viking helmet with two horns on top.
+- "Cowboy_Hat" = A brown cowboy hat with a darker brown line around the base of the cap.
+- "Crown" → A crown
+- "Ice_Crown" = A light blue ice crown with sparkles and a pointy top.
+- "Wizard_Hat" = A yellow and blue wizard hat.
+- "Pirate_Hat" = A deep dark blue pirate hat with off-whiteish yellow trim, an emblem of an anchor on the front, and feathers sticking out the back.
+- "Sombrero" = A brown sombrero with green and red triangles on it.
+- "Top_Hat" → A top hat
+- "Party_Hat" = A red and green birthday hat with a yellow ball at the top.
+- "Santa_Hat" = A white and red Santa Claus hat.
+- "Panda_Hat" = A dark blue with tan/off-white hat in the shape of a panda head.
+- "Polar_Bear_Hat" = A light, snow white hat in the shape of a polar bear head.
+- "Grizzly_Bear_Hat" = A brown hat in the shape of a bear head.
+- "Shark_Suit" → A shark costume/suit
+- "Banana_Suit" → A banana costume
+- "Ghost" = A 1:1 penguin distinguished by its cartoon style pillowcase ghost appearance, and scary halloween-themed background with a castle, bat, and glowing moon.
+- "Rice_Hat" → Rice/straw hat
+- "Fish_Green" = A dark green fish with lime green fins and lips lying on the Pudgy's head.
+- "Fish_Blue" = A dark blue fish with light blue fins and lips, laying upon the head of the Pudgy.
+- "Fish_Gold" → A gold/yellow fish on head
+- "Fish_Orange" → An orange fish on head
+- "Mohawk_Green" = A green mohawk.
+- "Mohawk_Purple" → A purple mohawk
+- "Afro_with_Pick" → Afro with pick comb
+- "Hippy_Hair" = Also called "bowl cut". A brunette bowl cut style haircut.
+- "Blue_Durag" = A blue durag.
+- "Red_Durag" = A red durag.
+- "Headband" → A regular headband
+- "Ninja_Headband" = A black naruto-style headband with a silver front plate with a "PP" logo on it.
+- "Bucket_Hat_Green" → A green bucket hat
+- "Bucket_Hat_Tan" = A tan bucket hat with a blue fishing lure, a yellow fishing lure, and a red fishing lure attached.
+- "Flat_Cap_Black" = A "flat cap" style hat in black/dark gray.
+- "Flat_Cap_Blue" → A blue flat cap
+- "Flat_Cap_Tan" → A tan flat cap
+- "Beanie_Gray" → A gray beanie
+- "Beanie_Orange" = An orange beanie with a green ball at the top.
+- "Pink_Beanie" = A pink beanie with a blue ball at the top.
+- "Egg" = A regular off-white colored bird egg.
+- "Egg_Gold" → A gold/sparkly egg
+- "Hatched" → A hatched egg shell (regular)
+- "Hatched_Gold" = A gold hatched egg with sparkles and a little gold penguin sticking out the top.
+- "Flower_Crown" → A flower crown
+- "Jester_Hat" → A jester hat
+- "Pineapple" → A pineapple on head
+- "Macaroni" = Yellow strands of hair/feather fanned out with black stripes. BRIGHT YELLOW strands fanning outward like a sunburst/explosion from the head - NOT a bowlcut, the strands spike OUT in all directions like uncooked macaroni pasta sticking up and out.
+- "Biker_Helmet" → A biker/motorcycle helmet
+- "Camo_Helmet" = A camouflage army helmet.
 
 FACE TRAIT EXAMPLES:
 - Red/pink cheeks, blushing → "Blush"
