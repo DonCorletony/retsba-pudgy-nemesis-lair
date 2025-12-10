@@ -422,32 +422,36 @@ THE IGLOO LOGO IS THE KEY:
 - "Shark_Suit" → A shark costume/suit
 - "Banana_Suit" → A banana costume
 - "Ghost" = A 1:1 penguin distinguished by its cartoon style pillowcase ghost appearance, and scary halloween-themed background with a castle, bat, and glowing moon.
-- "Rice_Hat" → Rice/straw hat
+- "Rice_Hat" = A brown asian conical hat.
 - "Fish_Green" = A dark green fish with lime green fins and lips lying on the Pudgy's head.
 - "Fish_Blue" = A dark blue fish with light blue fins and lips, laying upon the head of the Pudgy.
-- "Fish_Gold" → A gold/yellow fish on head
-- "Fish_Orange" → An orange fish on head
+- "Fish_Gold" = A totally gold fish with sparkles lying on the head of the pudgy.
+- "Fish_Orange" = An orange fish with yellow fins and lips laying on the head of the Pudgy.
 - "Mohawk_Green" = A green mohawk.
-- "Mohawk_Purple" → A purple mohawk
-- "Afro_with_Pick" → Afro with pick comb
+- "Mohawk_Purple" = A purple mohawk.
+- "Afro_with_Pick" = A poofy brown afro with a black hair pick sticking out of it.
 - "Hippy_Hair" = Also called "bowl cut". A brunette bowl cut style haircut.
 - "Blue_Durag" = A blue durag.
 - "Red_Durag" = A red durag.
-- "Headband" → A regular headband
+- "Headband" = A red, white, and blue headband.
 - "Ninja_Headband" = A black naruto-style headband with a silver front plate with a "PP" logo on it.
-- "Bucket_Hat_Green" → A green bucket hat
+- "Bucket_Hat_Green" = A green-colored bucket hat with a blue fishing lure, a yellow fishing lure, and a red fishing lure hanging off of it.
 - "Bucket_Hat_Tan" = A tan bucket hat with a blue fishing lure, a yellow fishing lure, and a red fishing lure attached.
 - "Flat_Cap_Black" = A "flat cap" style hat in black/dark gray.
-- "Flat_Cap_Blue" → A blue flat cap
-- "Flat_Cap_Tan" → A tan flat cap
-- "Beanie_Gray" → A gray beanie
+- "Flat_Cap_Blue" = A semi darkish blue "flat cap" style hat.
+- "Flat_Cap_Tan" = A dark/light brown "flat cap" style hat.
+- "Beanie_Gray" = A gray beanie with a dark gray ball at the top.
 - "Beanie_Orange" = An orange beanie with a green ball at the top.
 - "Pink_Beanie" = A pink beanie with a blue ball at the top.
 - "Egg" = A regular off-white colored bird egg.
-- "Egg_Gold" → A gold/sparkly egg
-- "Hatched" → A hatched egg shell (regular)
+- "Egg_Gold" = A golden whole egg with sparkles.
+- "Hatched" = A hatched egg with a little red penguin coming out of it.
 - "Hatched_Gold" = A gold hatched egg with sparkles and a little gold penguin sticking out the top.
-- "Flower_Crown" → A flower crown
+- "Crown" = A golden crown with sparkles and a pointed top.
+- "Flower_Crown" = The same as 'Crown' but with pink flowers on it with green leaves.
+- "Biker_Helmet" = A brown biker helmet with silver spikes and yellow goggles with blue lenses.
+- "Jester_Hat" = A green, blue, and red jester hat with yellow balls at the ends.
+- "Top_Hat" = A black top hat.
 - "Jester_Hat" → A jester hat
 - "Pineapple" → A pineapple on head
 - "Macaroni" = Yellow strands of hair/feather fanned out with black stripes. BRIGHT YELLOW strands fanning outward like a sunburst/explosion from the head - NOT a bowlcut, the strands spike OUT in all directions like uncooked macaroni pasta sticking up and out.
