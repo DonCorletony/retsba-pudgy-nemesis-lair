@@ -462,10 +462,12 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - CRITICAL: Look for a horizontal line/eyelid cutting across the top of the oval eyes
 - This is the KEY distinction from Normal: MAD HAS A HORIZONTAL LINE, NORMAL DOES NOT
 
-"Winking" (ONE EYE CLOSED, NO GLASSES):
+"Winking" (ONE EYE OPEN, ONE EYE CLOSED AS < SHAPE, NO GLASSES):
 - NO glasses
-- One eye is CLOSED (winking)
-- The other eye is open
+- RIGHT eye (left side of image): Regular OVAL BLACK eye, open
+- LEFT eye (right side of image): CLOSED, depicted as a sideways V shape like "<"
+- The winking eye looks like a < symbol (less-than sign rotated)
+- CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
 "Normal" (PLAIN OVULAR EYES WITH NO LINE, NO GLASSES):
 - NO glasses
