@@ -173,6 +173,37 @@ const AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS = [
   "Ice_Cream"
 ];
 
+// Available Lil left flipper trait overlays - these must match exactly to the file names
+const AVAILABLE_LIL_LEFT_FLIPPER_TRAITS = [
+  "Maracas",
+  "Kite_Blue",
+  "Star_Wand",
+  "Juice_Box",
+  "Turkey_Leg",
+  "Ukulele",
+  "Surfboard_Yellow",
+  "Sword_Gold",
+  "Spoon_Gold",
+  "Balloon_Sword_Red",
+  "Balloon_Green",
+  "Butterfly_Net",
+  "Golf_Club",
+  "Spoon",
+  "Kite_Gold",
+  "Balloon_Gold",
+  "Staff_Ice",
+  "Sword_Ice",
+  "Candycane_Red",
+  "Candycane_Green",
+  "Rubber_Duck",
+  "Stick",
+  "Balloon_Red",
+  "Ice_Cream",
+  "Lollipop",
+  "Chop_Sticks",
+  "Popsicle"
+];
+
 // Available body trait overlays - these must match exactly to the file names
 const AVAILABLE_BODY_TRAITS = [
   "Lei_Blue",
@@ -265,6 +296,7 @@ serve(async (req) => {
     const lilFaceTraitsList = AVAILABLE_LIL_FACE_TRAITS.join(", ");
     const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
     const lilRightFlipperTraitsList = AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS.join(", ");
+    const lilLeftFlipperTraitsList = AVAILABLE_LIL_LEFT_FLIPPER_TRAITS.join(", ");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -376,6 +408,9 @@ ${bodyTraitsList}
 IMPORTANT: For the "right_flipper" trait (LIL PUDGY ONLY), you MUST return one of these EXACT values (or null if no right flipper trait):
 ${lilRightFlipperTraitsList}
 
+IMPORTANT: For the "left_flipper" trait (LIL PUDGY ONLY), you MUST return one of these EXACT values (or null if no left flipper trait):
+${lilLeftFlipperTraitsList}
+
 RIGHT FLIPPER TRAITS (LIL PUDGY ONLY):
 Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT side of the image from our viewing perspective, since the Lil faces us).
 - "Chop_Sticks" = Wooden chopsticks held crossed in the flipper
@@ -399,6 +434,35 @@ Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT s
 - "Kite_Green" = A green geometric patterned kite with bows and a curving string (like Kite_Red but green)
 - "Chocolate" = A chocolate bar in red wrapper with "P" logo, chocolate squares visible at top
 
+LEFT FLIPPER TRAITS (LIL PUDGY ONLY):
+Left flipper traits appear in the Lil's LEFT HAND (which appears on the RIGHT side of the image from our viewing perspective, since the Lil faces us).
+- "Maracas" = A colorful maraca with zigzag pattern (green, red, pink, yellow) on a wooden handle
+- "Kite_Blue" = A blue geometric patterned kite with bows and a curving string
+- "Star_Wand" = A pink/white striped wand with a golden star on top
+- "Juice_Box" = A blue juice box with igloo logo and green straw
+- "Turkey_Leg" = A large cooked turkey leg with bone visible
+- "Ukulele" = A wooden ukulele/small guitar with strings
+- "Surfboard_Yellow" = A yellow surfboard held upright
+- "Sword_Gold" = A golden sword with pointed blade and gem in the hilt
+- "Spoon_Gold" = A golden spoon with sparkle effect
+- "Balloon_Sword_Red" = A red balloon animal shaped like a sword with balloon guard/hilt
+- "Balloon_Green" = A green balloon on a string
+- "Butterfly_Net" = A butterfly/bug catching net with wooden handle
+- "Golf_Club" = A silver golf club iron
+- "Spoon" = A regular silver spoon
+- "Kite_Gold" = A gold geometric patterned kite with bows and a curving string
+- "Balloon_Gold" = A gold/yellow sparkling balloon on a string
+- "Staff_Ice" = A wooden twisted staff with blue ice crystal/gem
+- "Sword_Ice" = An ice blue sword with blue blade and ice hilt
+- "Candycane_Red" = A red and white striped candy cane
+- "Candycane_Green" = A green and white striped candy cane
+- "Rubber_Duck" = A yellow rubber duck toy
+- "Stick" = A brown wooden stick/branch with small twigs
+- "Balloon_Red" = A red balloon on a string
+- "Ice_Cream" = A multi-scoop ice cream cone with cherry on top
+- "Lollipop" = A pink and yellow spiral lollipop on a wooden stick
+- "Chop_Sticks" = Wooden chopsticks held crossed in the flipper
+- "Popsicle" = An orange popsicle on a wooden stick
 
 THE KEY DIFFERENCE IS THE BODY VISIBILITY:
 - LIL PUDGY: The ENTIRE BODY is visible, including FEET. You can see the penguin from head to toe.
@@ -897,7 +961,8 @@ Return ONLY valid JSON in this exact format:
     "body": "EXACT_BODY_TRAIT_NAME_FROM_LIST or null",
     "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null (use Lil Pudgy traits if isLilPudgy is true)",
     "head": "EXACT_HEAD_TRAIT_NAME_FROM_LIST or null",
-    "right_flipper": "EXACT_RIGHT_FLIPPER_TRAIT_NAME_FROM_LIST or null (Lil Pudgy only - item held in right flipper/hand)",
+    "right_flipper": "EXACT_RIGHT_FLIPPER_TRAIT_NAME_FROM_LIST or null (Lil Pudgy only - item held in right flipper/hand, appears on LEFT side of image)",
+    "left_flipper": "EXACT_LEFT_FLIPPER_TRAIT_NAME_FROM_LIST or null (Lil Pudgy only - item held in left flipper/hand, appears on RIGHT side of image)",
     "hand": "description or null"
   },
   "confidence": "high/medium/low",
