@@ -319,19 +319,32 @@ If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_ki
 If the penguin matches any "pudgy_knight_*", set "isSpecialPenguin" to the appropriate knight color and set all traits to null.
 If the penguin matches any "lil_*" special variant, set "isSpecialPenguin" to the appropriate value and set all traits to null.
 
-GOLD SKIN DETECTION - CRITICAL (CHECK THE HEAD COLOR):
-To detect gold skin, look at the penguin's HEAD and CHEEKS area (NOT the belly/chest which is always white on all penguins).
-- STANDARD penguins: The HEAD/FACE area is WHITE or CREAM colored (same as the belly)
-- GOLD penguins: The HEAD/FACE area is BRIGHT YELLOW or GOLDEN colored (the belly is still white, but head is yellow/gold)
+GOLD SKIN AND ICE SKIN DETECTION - CRITICAL (LOOK FOR SPARKLES):
 
-If the penguin's HEAD and CHEEKS are YELLOW/GOLD colored, set "skin" to "Gold". 
-The gold color is often bright yellow with possible sparkle/shine effects on the head area.
-Example: A penguin with a yellow/golden head wearing an orange kimono and headband = Gold skin penguin.
+*** THE SPARKLES ARE THE KEY IDENTIFIER ***
+Look for WHITE 4-POINTED STAR SPARKLES (✨) on the penguin's body, flippers, or head.
+If you see ANY white sparkle star effects → This is Gold Skin or Ice Skin, NOT Normal!
+Sparkles appear as small white 4-pointed star shapes (like ✨) scattered on the body.
 
-ICE SKIN DETECTION (CHECK THE HEAD COLOR):
-To detect ice skin, look at the penguin's HEAD and CHEEKS area.
-- ICE penguins: The HEAD/FACE area is LIGHT BLUE or ICY colored (crystalline appearance)
-If the penguin's HEAD is light blue/icy colored, set "skin" to "Ice".
+GOLD SKIN (report "skin": "gold skin"):
+- Body/flippers/head are BRIGHT GOLDEN YELLOW color
+- Has WHITE SPARKLE EFFECTS (✨) visible on the body
+- Yellow + sparkles = "gold skin"
+
+ICE SKIN (report "skin": "ice skin"):
+- Body/flippers/head are LIGHT BLUE/CYAN/ICY color (LIGHTER than normal Lil blue)
+- Has WHITE SPARKLE EFFECTS (✨) visible on the body  
+- Light blue/cyan + sparkles = "ice skin"
+- CRITICAL: Ice skin is PALE CYAN blue, not the standard darker blue
+
+NORMAL (report "skin": "Normal"):
+- Standard blue/gray body, NO sparkles anywhere
+
+DECISION:
+- See white star sparkles + yellow body → "gold skin"
+- See white star sparkles + light blue body → "ice skin"
+- No sparkles → "Normal"
+
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
 ${headTraitsList}
