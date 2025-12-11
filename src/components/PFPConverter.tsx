@@ -107,6 +107,18 @@ import LilNormal from '@/assets/pfp-traits/lil/face/Normal.png';
 import LilReadingCute from '@/assets/pfp-traits/lil/face/Reading_Cute.png';
 import LilWinking from '@/assets/pfp-traits/lil/face/Winking.png';
 
+// Import Lil right flipper trait overlays
+import LilRightFlipper_Chop_Sticks from '@/assets/pfp-traits/lil/right_flipper/Chop_Sticks.png';
+import LilRightFlipper_Kite_Red from '@/assets/pfp-traits/lil/right_flipper/Kite_Red.png';
+import LilRightFlipper_Sunflower from '@/assets/pfp-traits/lil/right_flipper/Sunflower.png';
+import LilRightFlipper_Surfboard_Tan from '@/assets/pfp-traits/lil/right_flipper/Surfboard_Tan.png';
+import LilRightFlipper_Roses from '@/assets/pfp-traits/lil/right_flipper/Roses.png';
+import LilRightFlipper_Carrot from '@/assets/pfp-traits/lil/right_flipper/Carrot.png';
+import LilRightFlipper_Croissant from '@/assets/pfp-traits/lil/right_flipper/Croissant.png';
+import LilRightFlipper_Popsicle from '@/assets/pfp-traits/lil/right_flipper/Popsicle.png';
+import LilRightFlipper_Maraca from '@/assets/pfp-traits/lil/right_flipper/Maraca.png';
+import LilRightFlipper_Football from '@/assets/pfp-traits/lil/right_flipper/Football.png';
+
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
   Reading_Cute_2: LilReadingCute2,
@@ -129,6 +141,20 @@ const LIL_FACE_DIRECT_MAP: Record<string, string> = {
   Normal: LilNormal,
   Reading_Cute: LilReadingCute,
   Winking: LilWinking,
+};
+
+// Mapping of Lil right flipper trait names to imported images
+const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
+  Chop_Sticks: LilRightFlipper_Chop_Sticks,
+  Kite_Red: LilRightFlipper_Kite_Red,
+  Sunflower: LilRightFlipper_Sunflower,
+  Surfboard_Tan: LilRightFlipper_Surfboard_Tan,
+  Roses: LilRightFlipper_Roses,
+  Carrot: LilRightFlipper_Carrot,
+  Croissant: LilRightFlipper_Croissant,
+  Popsicle: LilRightFlipper_Popsicle,
+  Maraca: LilRightFlipper_Maraca,
+  Football: LilRightFlipper_Football,
 };
 
 // Head traits that require Template_2 instead of the default Template
@@ -445,6 +471,7 @@ interface DetectedTraits {
     body: string | null;
     face: string | null;
     head: string | null;
+    right_flipper: string | null;
     hand: string | null;
   };
   confidence: 'high' | 'medium' | 'low';
@@ -786,7 +813,7 @@ const PFPConverter = () => {
         }
       }
 
-      // 3. Apply head trait overlay last (top layer)
+      // 3. Apply head trait overlay (top layer for Big, middle for Lil)
       if (headTrait) {
         if (useLilMode) {
           // TODO: Add LIL_HEAD_TRAIT_MAP when Lil head traits are uploaded
@@ -797,6 +824,18 @@ const PFPConverter = () => {
           ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
         } else {
           console.log(`No overlay found for head trait: ${headTrait}`);
+        }
+      }
+
+      // 4. Apply right flipper trait overlay (Lil Pudgy only - top layer)
+      const rightFlipperTrait = traits.traits.right_flipper;
+      if (rightFlipperTrait && useLilMode) {
+        if (LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]) {
+          console.log(`Applying Lil right flipper trait: ${rightFlipperTrait}`);
+          const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]);
+          ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
+        } else {
+          console.log(`No overlay found for right flipper trait: ${rightFlipperTrait}`);
         }
       }
 
