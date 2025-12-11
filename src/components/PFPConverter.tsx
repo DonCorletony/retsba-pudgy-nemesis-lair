@@ -159,6 +159,31 @@ import LilRightFlipper_Star_Wand from '@/assets/pfp-traits/lil/right_flipper/Sta
 import LilRightFlipper_Kite_Gold from '@/assets/pfp-traits/lil/right_flipper/Kite_Gold.png';
 import LilRightFlipper_Spoon from '@/assets/pfp-traits/lil/right_flipper/Spoon.png';
 import LilRightFlipper_Ice_Cream from '@/assets/pfp-traits/lil/right_flipper/Ice_Cream.png';
+// Import Lil right flipper OUTPUT trait overlays (used in place of regular traits when detected)
+import LilRightFlipper_GM_Sign_Output from '@/assets/pfp-traits/lil/right_flipper/GM_Sign_Output.png';
+import LilRightFlipper_Pickett_Sign_Output from '@/assets/pfp-traits/lil/right_flipper/Pickett_Sign_Output.png';
+import LilRightFlipper_Plushie_Green_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Green_Output.png';
+import LilRightFlipper_Plushie_Pink_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Pink_Output.png';
+import LilRightFlipper_Plushie_Blue_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Blue_Output.png';
+import LilRightFlipper_Plushie_Black_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Black_Output.png';
+import LilRightFlipper_Plushie_Purple_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Purple_Output.png';
+import LilRightFlipper_Plushie_Gold_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Gold_Output.png';
+import LilRightFlipper_Plushie_Ice_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Ice_Output.png';
+import LilRightFlipper_Plushie_Red_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Red_Output.png';
+
+// Mapping for right flipper traits that have special output versions
+const LIL_RIGHT_FLIPPER_OUTPUT_MAP: Record<string, string> = {
+  GM_Sign: LilRightFlipper_GM_Sign_Output,
+  Pickett_Sign: LilRightFlipper_Pickett_Sign_Output,
+  Plushie_Green: LilRightFlipper_Plushie_Green_Output,
+  Plushie_Pink: LilRightFlipper_Plushie_Pink_Output,
+  Plushie_Blue: LilRightFlipper_Plushie_Blue_Output,
+  Plushie_Black: LilRightFlipper_Plushie_Black_Output,
+  Plushie_Purple: LilRightFlipper_Plushie_Purple_Output,
+  Plushie_Gold: LilRightFlipper_Plushie_Gold_Output,
+  Plushie_Ice: LilRightFlipper_Plushie_Ice_Output,
+  Plushie_Red: LilRightFlipper_Plushie_Red_Output,
+};
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -912,7 +937,12 @@ const PFPConverter = () => {
       // 4. Apply right flipper trait overlay (Lil Pudgy only - top layer)
       const rightFlipperTrait = traits.traits.right_flipper;
       if (rightFlipperTrait && useLilMode) {
-        if (LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]) {
+        // Check if this trait has a special output version first
+        if (LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]) {
+          console.log(`Applying Lil right flipper OUTPUT trait: ${rightFlipperTrait}`);
+          const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]);
+          ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
+        } else if (LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]) {
           console.log(`Applying Lil right flipper trait: ${rightFlipperTrait}`);
           const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]);
           ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
