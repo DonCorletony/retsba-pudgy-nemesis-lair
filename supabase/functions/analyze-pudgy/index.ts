@@ -332,16 +332,17 @@ GOLD SKIN (report "skin": "gold skin"):
 - Even if sparkles are covered by clothing, the GOLDEN YELLOW skin color alone = Gold Skin
 
 ICE SKIN (report "skin": "ice skin"):
-- Color: LIGHT CYAN/AQUA/TEAL body - this is a PALE, BRIGHT, SATURATED CYAN color
-- NOT the standard Lil Pudgy dark blue - Ice skin is VISIBLY DIFFERENT
-- Ice skin looks like the color of ICE or FROZEN WATER - pale turquoise/aqua
-- The flippers and head are LIGHT CYAN/AQUA colored (NOT dark blue)
-- Sparkles: WHITE 4-pointed star sparkles (✨) may be visible on body
-- If the penguin's body is CYAN/AQUA/TEAL (lighter, brighter blue) → "ice skin"
+- EXACT COLOR: #77D1F6 - a BRIGHT CYAN/TURQUOISE color
+- This is a LIGHT, BRIGHT, SATURATED CYAN - like turquoise or aqua
+- The flippers and body are THIS specific cyan color (#77D1F6)
+- NOT the standard dark blue of normal Lils - Ice skin is MUCH BRIGHTER and more CYAN
+- Ice skin looks like frozen water or ice - bright turquoise/aqua
+- Sparkles: WHITE 4-pointed star sparkles (✨) may also be visible
+- If body/flippers are BRIGHT CYAN/TURQUOISE (#77D1F6) → "ice skin"
 
 NORMAL (report "skin": "Normal"):
 - Color: DARK BLUE or BLUE-GRAY body (the typical Lil Pudgy blue)
-- Standard Lil blue is DARKER, more MUTED, and LESS saturated
+- Standard Lil blue is DARKER, more MUTED, closer to navy or slate
 - NO sparkles visible
 - If the body is DARK/NAVY BLUE → "Normal"
 
