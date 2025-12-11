@@ -454,22 +454,32 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Eyes looking curious/wondering
 - Simple expression trait
 
-"Mad" (ANGRY EXPRESSION, NO GLASSES):
+"Mad" (ANGRY/SQUINTING EXPRESSION WITH HORIZONTAL LINE, NO GLASSES):
 - NO glasses
-- Eyes showing angry/mad expression
-- Furrowed brow or angry eyes
+- Eyes are OVAL-SHAPED but have a HORIZONTAL LINE cutting through the UPPER HALF
+- This horizontal line gives the appearance of SQUINTING or ANGRY eyes
+- The line makes the eyes look half-closed or narrowed in anger
+- CRITICAL: Look for a horizontal line/eyelid cutting across the top of the oval eyes
+- This is the KEY distinction from Normal: MAD HAS A HORIZONTAL LINE, NORMAL DOES NOT
 
 "Winking" (ONE EYE CLOSED, NO GLASSES):
 - NO glasses
 - One eye is CLOSED (winking)
 - The other eye is open
 
-"Normal" (OVULAR/OVAL SHAPED EYES, NO GLASSES):
+"Normal" (PLAIN OVULAR EYES WITH NO LINE, NO GLASSES):
 - NO glasses
 - Eyes are TWO LARGER, OVAL-SHAPED BLACK MARKS
-- The eyes are OVAL/OVULAR shape - elongated, not round dots
-- Standard neutral expression with larger oval eyes
-- This is the KEY distinction: OVAL/OVULAR shaped eyes (NOT small dots)
+- The eyes are COMPLETELY SOLID black ovals - NO horizontal line or eyelid
+- FULLY OPEN oval eyes with no squinting or partial closure
+- This is the KEY distinction from Mad: NORMAL IS PLAIN SOLID OVALS, NO HORIZONTAL LINE
+- Standard neutral expression with wide open oval eyes
+
+CRITICAL EYE COMPARISON:
+- "Normal" = Plain solid black oval eyes, completely open, no lines
+- "Mad" = Same oval shape but with a HORIZONTAL LINE cutting through upper half (squinting/angry)
+- If you see a line through the eyes making them look squinted → Mad
+- If the eyes are plain solid ovals with no line → Normal
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
@@ -481,8 +491,8 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - TAN frames, rectangular, closed eyes + blush → Nerd_Blushing
 - NO glasses + small beady dot eyes → Cross_Eyed
 - NO glasses + one eye closed → Winking
-- NO glasses + angry expression → Mad
-- NO glasses + larger oval eyes → Normal
+- NO glasses + oval eyes WITH horizontal line (squinting) → Mad
+- NO glasses + plain solid oval eyes (no line) → Normal
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
