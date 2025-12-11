@@ -128,6 +128,16 @@ import LilRightFlipper_Sword_Gold from '@/assets/pfp-traits/lil/right_flipper/Sw
 import LilRightFlipper_Stick from '@/assets/pfp-traits/lil/right_flipper/Stick.png';
 import LilRightFlipper_Kite_Green from '@/assets/pfp-traits/lil/right_flipper/Kite_Green.png';
 import LilRightFlipper_Chocolate from '@/assets/pfp-traits/lil/right_flipper/Chocolate.png';
+import LilRightFlipper_Plushie_Green from '@/assets/pfp-traits/lil/right_flipper/Plushie_Green.png';
+import LilRightFlipper_Plushie_Pink from '@/assets/pfp-traits/lil/right_flipper/Plushie_Pink.png';
+import LilRightFlipper_Plushie_Blue from '@/assets/pfp-traits/lil/right_flipper/Plushie_Blue.png';
+import LilRightFlipper_Plushie_Black from '@/assets/pfp-traits/lil/right_flipper/Plushie_Black.png';
+import LilRightFlipper_Balloon_Sword_Red from '@/assets/pfp-traits/lil/right_flipper/Balloon_Sword_Red.png';
+import LilRightFlipper_Candycane_Green from '@/assets/pfp-traits/lil/right_flipper/Candycane_Green.png';
+import LilRightFlipper_Candycane_Red from '@/assets/pfp-traits/lil/right_flipper/Candycane_Red.png';
+import LilRightFlipper_Bat from '@/assets/pfp-traits/lil/right_flipper/Bat.png';
+import LilRightFlipper_Basketball from '@/assets/pfp-traits/lil/right_flipper/Basketball.png';
+import LilRightFlipper_Cheeseburger from '@/assets/pfp-traits/lil/right_flipper/Cheeseburger.png';
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -175,6 +185,16 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Stick: LilRightFlipper_Stick,
   Kite_Green: LilRightFlipper_Kite_Green,
   Chocolate: LilRightFlipper_Chocolate,
+  Plushie_Green: LilRightFlipper_Plushie_Green,
+  Plushie_Pink: LilRightFlipper_Plushie_Pink,
+  Plushie_Blue: LilRightFlipper_Plushie_Blue,
+  Plushie_Black: LilRightFlipper_Plushie_Black,
+  Balloon_Sword_Red: LilRightFlipper_Balloon_Sword_Red,
+  Candycane_Green: LilRightFlipper_Candycane_Green,
+  Candycane_Red: LilRightFlipper_Candycane_Red,
+  Bat: LilRightFlipper_Bat,
+  Basketball: LilRightFlipper_Basketball,
+  Cheeseburger: LilRightFlipper_Cheeseburger,
 };
 
 // Head traits that require Template_2 instead of the default Template
