@@ -319,31 +319,40 @@ If the penguin matches "gold_kimono_special", set "isSpecialPenguin" to "gold_ki
 If the penguin matches any "pudgy_knight_*", set "isSpecialPenguin" to the appropriate knight color and set all traits to null.
 If the penguin matches any "lil_*" special variant, set "isSpecialPenguin" to the appropriate value and set all traits to null.
 
-GOLD SKIN AND ICE SKIN DETECTION - CRITICAL (LOOK FOR SPARKLES):
+GOLD SKIN AND ICE SKIN DETECTION - CRITICAL:
 
-*** THE SPARKLES ARE THE KEY IDENTIFIER ***
-Look for WHITE 4-POINTED STAR SPARKLES (✨) on the penguin's body, flippers, or head.
-If you see ANY white sparkle star effects → This is Gold Skin or Ice Skin, NOT Normal!
-Sparkles appear as small white 4-pointed star shapes (like ✨) scattered on the body.
+TWO KEY IDENTIFIERS (EITHER ONE = Gold/Ice Skin):
+1. WHITE SPARKLES (✨) - 4-pointed white star shapes on body/flippers
+2. DISTINCTIVE SKIN COLOR - the unique gold or ice blue color
 
 GOLD SKIN (report "skin": "gold skin"):
-- Body/flippers/head are BRIGHT GOLDEN YELLOW color
-- Has WHITE SPARKLE EFFECTS (✨) visible on the body
-- Yellow + sparkles = "gold skin"
+- Color: BRIGHT GOLDEN YELLOW body/flippers/head (warm, metallic yellow like gold)
+- Sparkles: WHITE 4-pointed star sparkles (✨) may be visible
+- EITHER the golden yellow color OR visible sparkles = Gold Skin
+- Even if sparkles are covered by clothing, the GOLDEN YELLOW skin color alone = Gold Skin
 
 ICE SKIN (report "skin": "ice skin"):
-- Body/flippers/head are LIGHT BLUE/CYAN/ICY color (LIGHTER than normal Lil blue)
-- Has WHITE SPARKLE EFFECTS (✨) visible on the body  
-- Light blue/cyan + sparkles = "ice skin"
-- CRITICAL: Ice skin is PALE CYAN blue, not the standard darker blue
+- Color: LIGHT CYAN/ICY BLUE body/flippers/head (pale, cool, sky blue - MUCH LIGHTER than normal Lil blue)
+- Sparkles: WHITE 4-pointed star sparkles (✨) may be visible
+- EITHER the light cyan color OR visible sparkles = Ice Skin
+- Even if sparkles are covered by clothing, the LIGHT CYAN/ICY BLUE skin color alone = Ice Skin
+- CRITICAL DISTINCTION: Ice skin is PALE CYAN (like sky blue/aqua), NOT the standard darker blue of normal Lils
 
 NORMAL (report "skin": "Normal"):
-- Standard blue/gray body, NO sparkles anywhere
+- Color: Standard DARK BLUE or BLUE-GRAY body (the typical Lil Pudgy blue)
+- NO sparkles visible
+- Standard Lil blue is DARKER and more saturated than Ice Skin
+
+COLOR COMPARISON:
+- Normal Lil = DARK/MEDIUM BLUE (like navy or royal blue)
+- Ice Skin = PALE CYAN/SKY BLUE (much lighter, like aqua or ice)
+- Gold Skin = BRIGHT YELLOW/GOLD (metallic warm yellow)
 
 DECISION:
-- See white star sparkles + yellow body → "gold skin"
-- See white star sparkles + light blue body → "ice skin"
-- No sparkles → "Normal"
+- Light cyan/icy pale blue body (with or without sparkles) → "ice skin"
+- Bright golden yellow body (with or without sparkles) → "gold skin"
+- Standard dark blue body + no sparkles → "Normal"
+
 
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
