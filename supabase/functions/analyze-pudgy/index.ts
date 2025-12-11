@@ -129,7 +129,17 @@ const AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS = [
   "Croissant",
   "Popsicle",
   "Maraca",
-  "Football"
+  "Football",
+  "Surfboard_Blue",
+  "Lollipop",
+  "Balloon_Sword_Blue",
+  "Pickett_Sign",
+  "GM_Sign",
+  "Golden_Plunger",
+  "Sword_Gold",
+  "Stick",
+  "Kite_Green",
+  "Chocolate"
 ];
 
 // Available body trait overlays - these must match exactly to the file names
@@ -317,7 +327,16 @@ Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT s
 - "Popsicle" = A green popsicle on a wooden stick
 - "Maraca" = A colorful maraca with zigzag pattern (green, red, pink, yellow) on a wooden handle
 - "Football" = A brown American football with white laces
-
+- "Surfboard_Blue" = A blue surfboard held upright
+- "Lollipop" = A yellow spiral lollipop on a wooden stick
+- "Balloon_Sword_Blue" = A blue balloon animal shaped like a sword with balloon guard/hilt
+- "Pickett_Sign" = A wooden picket sign on a pole with "GM!" written on it
+- "GM_Sign" = A black arrow-shaped marquee sign with lights around the edge and "GM!" in LED lights
+- "Golden_Plunger" = A golden toilet plunger with yellow cup and gold handle
+- "Sword_Gold" = A golden sword with pointed blade and gem in the hilt
+- "Stick" = A brown wooden stick/branch with small twigs
+- "Kite_Green" = A green geometric patterned kite with bows and a curving string (like Kite_Red but green)
+- "Chocolate" = A chocolate bar in red wrapper with "P" logo, chocolate squares visible at top
 
 
 THE KEY DIFFERENCE IS THE BODY VISIBILITY:

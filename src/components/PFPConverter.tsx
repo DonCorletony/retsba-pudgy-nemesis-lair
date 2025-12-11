@@ -118,6 +118,16 @@ import LilRightFlipper_Croissant from '@/assets/pfp-traits/lil/right_flipper/Cro
 import LilRightFlipper_Popsicle from '@/assets/pfp-traits/lil/right_flipper/Popsicle.png';
 import LilRightFlipper_Maraca from '@/assets/pfp-traits/lil/right_flipper/Maraca.png';
 import LilRightFlipper_Football from '@/assets/pfp-traits/lil/right_flipper/Football.png';
+import LilRightFlipper_Surfboard_Blue from '@/assets/pfp-traits/lil/right_flipper/Surfboard_Blue.png';
+import LilRightFlipper_Lollipop from '@/assets/pfp-traits/lil/right_flipper/Lollipop.png';
+import LilRightFlipper_Balloon_Sword_Blue from '@/assets/pfp-traits/lil/right_flipper/Balloon_Sword_Blue.png';
+import LilRightFlipper_Pickett_Sign from '@/assets/pfp-traits/lil/right_flipper/Pickett_Sign.png';
+import LilRightFlipper_GM_Sign from '@/assets/pfp-traits/lil/right_flipper/GM_Sign.png';
+import LilRightFlipper_Golden_Plunger from '@/assets/pfp-traits/lil/right_flipper/Golden_Plunger.png';
+import LilRightFlipper_Sword_Gold from '@/assets/pfp-traits/lil/right_flipper/Sword_Gold.png';
+import LilRightFlipper_Stick from '@/assets/pfp-traits/lil/right_flipper/Stick.png';
+import LilRightFlipper_Kite_Green from '@/assets/pfp-traits/lil/right_flipper/Kite_Green.png';
+import LilRightFlipper_Chocolate from '@/assets/pfp-traits/lil/right_flipper/Chocolate.png';
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -155,6 +165,16 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Popsicle: LilRightFlipper_Popsicle,
   Maraca: LilRightFlipper_Maraca,
   Football: LilRightFlipper_Football,
+  Surfboard_Blue: LilRightFlipper_Surfboard_Blue,
+  Lollipop: LilRightFlipper_Lollipop,
+  Balloon_Sword_Blue: LilRightFlipper_Balloon_Sword_Blue,
+  Pickett_Sign: LilRightFlipper_Pickett_Sign,
+  GM_Sign: LilRightFlipper_GM_Sign,
+  Golden_Plunger: LilRightFlipper_Golden_Plunger,
+  Sword_Gold: LilRightFlipper_Sword_Gold,
+  Stick: LilRightFlipper_Stick,
+  Kite_Green: LilRightFlipper_Kite_Green,
+  Chocolate: LilRightFlipper_Chocolate,
 };
 
 // Head traits that require Template_2 instead of the default Template
