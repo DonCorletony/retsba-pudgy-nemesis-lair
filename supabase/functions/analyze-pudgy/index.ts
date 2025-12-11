@@ -118,6 +118,20 @@ const AVAILABLE_LIL_FACE_TRAITS = [
   "Upsidedown_Purple"
 ];
 
+// Available Lil right flipper trait overlays - these must match exactly to the file names
+const AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS = [
+  "Chop_Sticks",
+  "Kite_Red",
+  "Sunflower",
+  "Surfboard_Tan",
+  "Roses",
+  "Carrot",
+  "Croissant",
+  "Popsicle",
+  "Maraca",
+  "Football"
+];
+
 // Available body trait overlays - these must match exactly to the file names
 const AVAILABLE_BODY_TRAITS = [
   "Lei_Blue",
@@ -209,6 +223,7 @@ serve(async (req) => {
     const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
     const lilFaceTraitsList = AVAILABLE_LIL_FACE_TRAITS.join(", ");
     const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
+    const lilRightFlipperTraitsList = AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS.join(", ");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -287,7 +302,23 @@ IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or n
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
 
-LIL PUDGY vs BIG PUDGY DETECTION - SIMPLE RULE:
+IMPORTANT: For the "right_flipper" trait (LIL PUDGY ONLY), you MUST return one of these EXACT values (or null if no right flipper trait):
+${lilRightFlipperTraitsList}
+
+RIGHT FLIPPER TRAITS (LIL PUDGY ONLY):
+Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT side of the image from our viewing perspective, since the Lil faces us).
+- "Chop_Sticks" = Wooden chopsticks held crossed in the flipper
+- "Kite_Red" = A red geometric patterned kite with bows and a curving string
+- "Sunflower" = A bouquet of sunflowers with green stems
+- "Surfboard_Tan" = A tan/orange surfboard held upright
+- "Roses" = A bouquet of colorful roses (red, blue, yellow) with green stems and leaves
+- "Carrot" = An orange carrot with green leafy top
+- "Croissant" = A golden croissant pastry
+- "Popsicle" = A green popsicle on a wooden stick
+- "Maraca" = A colorful maraca with zigzag pattern (green, red, pink, yellow) on a wooden handle
+- "Football" = A brown American football with white laces
+
+
 
 THE KEY DIFFERENCE IS THE BODY VISIBILITY:
 - LIL PUDGY: The ENTIRE BODY is visible, including FEET. You can see the penguin from head to toe.
@@ -608,6 +639,7 @@ Return ONLY valid JSON in this exact format:
     "body": "EXACT_BODY_TRAIT_NAME_FROM_LIST or null",
     "face": "EXACT_FACE_TRAIT_NAME_FROM_LIST or null (use Lil Pudgy traits if isLilPudgy is true)",
     "head": "EXACT_HEAD_TRAIT_NAME_FROM_LIST or null",
+    "right_flipper": "EXACT_RIGHT_FLIPPER_TRAIT_NAME_FROM_LIST or null (Lil Pudgy only - item held in right flipper/hand)",
     "hand": "description or null"
   },
   "confidence": "high/medium/low",
@@ -780,6 +812,29 @@ Return ONLY valid JSON in this exact format:
         }
       }
     }
+
+    // Validate and normalize the right_flipper trait (Lil Pudgy only)
+    if (traits.traits?.right_flipper && typeof traits.traits.right_flipper === 'string') {
+      const rightFlipperTrait = traits.traits.right_flipper;
+      // Check if it's a valid trait
+      if (!AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS.includes(rightFlipperTrait)) {
+        console.log(`Right flipper trait "${rightFlipperTrait}" not in available list, attempting to match...`);
+        // Try to find a close match
+        const normalizedInput = rightFlipperTrait.toLowerCase().replace(/[\s-]/g, '_');
+        const match = AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS.find(t => 
+          t.toLowerCase() === normalizedInput ||
+          t.toLowerCase().includes(normalizedInput) ||
+          normalizedInput.includes(t.toLowerCase())
+        );
+        if (match) {
+          console.log(`Matched right flipper to: ${match}`);
+          traits.traits.right_flipper = match;
+        } else {
+          console.log(`No match found for right flipper trait "${rightFlipperTrait}", setting to null`);
+          traits.traits.right_flipper = null;
+        }
+      }
+    }
     
     // SPECIAL HANDLING: gold_kimono_special penguin - override traits
     if (traits.isSpecialPenguin === 'gold_kimono_special') {
@@ -790,6 +845,7 @@ Return ONLY valid JSON in this exact format:
         body: 'Kimono_Gold',
         face: null,
         head: 'Backwards_Hat_Red',
+        right_flipper: null,
         hand: null
       };
     }
@@ -814,6 +870,7 @@ Return ONLY valid JSON in this exact format:
     traits.availableHeadTraits = AVAILABLE_HEAD_TRAITS;
     traits.availableFaceTraits = AVAILABLE_FACE_TRAITS;
     traits.availableBodyTraits = AVAILABLE_BODY_TRAITS;
+    traits.availableLilRightFlipperTraits = AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS;
 
     return new Response(
       JSON.stringify(traits),
