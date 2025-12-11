@@ -138,6 +138,16 @@ import LilRightFlipper_Candycane_Red from '@/assets/pfp-traits/lil/right_flipper
 import LilRightFlipper_Bat from '@/assets/pfp-traits/lil/right_flipper/Bat.png';
 import LilRightFlipper_Basketball from '@/assets/pfp-traits/lil/right_flipper/Basketball.png';
 import LilRightFlipper_Cheeseburger from '@/assets/pfp-traits/lil/right_flipper/Cheeseburger.png';
+import LilRightFlipper_Balloon_Red from '@/assets/pfp-traits/lil/right_flipper/Balloon_Red.png';
+import LilRightFlipper_Plushie_Red from '@/assets/pfp-traits/lil/right_flipper/Plushie_Red.png';
+import LilRightFlipper_Balloon_Blue from '@/assets/pfp-traits/lil/right_flipper/Balloon_Blue.png';
+import LilRightFlipper_Plunger from '@/assets/pfp-traits/lil/right_flipper/Plunger.png';
+import LilRightFlipper_Plushie_Purple from '@/assets/pfp-traits/lil/right_flipper/Plushie_Purple.png';
+import LilRightFlipper_Plushie_Gold from '@/assets/pfp-traits/lil/right_flipper/Plushie_Gold.png';
+import LilRightFlipper_Balloon_Sword_Black from '@/assets/pfp-traits/lil/right_flipper/Balloon_Sword_Black.png';
+import LilRightFlipper_Balloon_Sword_Purple from '@/assets/pfp-traits/lil/right_flipper/Balloon_Sword_Purple.png';
+import LilRightFlipper_Sword from '@/assets/pfp-traits/lil/right_flipper/Sword.png';
+import LilRightFlipper_Turkey_Leg from '@/assets/pfp-traits/lil/right_flipper/Turkey_Leg.png';
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -195,6 +205,16 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Bat: LilRightFlipper_Bat,
   Basketball: LilRightFlipper_Basketball,
   Cheeseburger: LilRightFlipper_Cheeseburger,
+  Balloon_Red: LilRightFlipper_Balloon_Red,
+  Plushie_Red: LilRightFlipper_Plushie_Red,
+  Balloon_Blue: LilRightFlipper_Balloon_Blue,
+  Plunger: LilRightFlipper_Plunger,
+  Plushie_Purple: LilRightFlipper_Plushie_Purple,
+  Plushie_Gold: LilRightFlipper_Plushie_Gold,
+  Balloon_Sword_Black: LilRightFlipper_Balloon_Sword_Black,
+  Balloon_Sword_Purple: LilRightFlipper_Balloon_Sword_Purple,
+  Sword: LilRightFlipper_Sword,
+  Turkey_Leg: LilRightFlipper_Turkey_Leg,
 };
 
 // Head traits that require Template_2 instead of the default Template
