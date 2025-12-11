@@ -175,6 +175,35 @@ import LilRightFlipper_Plushie_Gold_Output from '@/assets/pfp-traits/lil/right_f
 import LilRightFlipper_Plushie_Ice_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Ice_Output.png';
 import LilRightFlipper_Plushie_Red_Output from '@/assets/pfp-traits/lil/right_flipper/Plushie_Red_Output.png';
 
+// Import Lil left flipper trait overlays
+import LilLeftFlipper_Maracas from '@/assets/pfp-traits/lil/left_flipper/Maracas.png';
+import LilLeftFlipper_Kite_Blue from '@/assets/pfp-traits/lil/left_flipper/Kite_Blue.png';
+import LilLeftFlipper_Star_Wand from '@/assets/pfp-traits/lil/left_flipper/Star_Wand.png';
+import LilLeftFlipper_Juice_Box from '@/assets/pfp-traits/lil/left_flipper/Juice_Box.png';
+import LilLeftFlipper_Turkey_Leg from '@/assets/pfp-traits/lil/left_flipper/Turkey_Leg.png';
+import LilLeftFlipper_Ukulele from '@/assets/pfp-traits/lil/left_flipper/Ukulele.png';
+import LilLeftFlipper_Surfboard_Yellow from '@/assets/pfp-traits/lil/left_flipper/Surfboard_Yellow.png';
+import LilLeftFlipper_Sword_Gold from '@/assets/pfp-traits/lil/left_flipper/Sword_Gold.png';
+import LilLeftFlipper_Spoon_Gold from '@/assets/pfp-traits/lil/left_flipper/Spoon_Gold.png';
+import LilLeftFlipper_Balloon_Sword_Red from '@/assets/pfp-traits/lil/left_flipper/Balloon_Sword_Red.png';
+import LilLeftFlipper_Balloon_Green from '@/assets/pfp-traits/lil/left_flipper/Balloon_Green.png';
+import LilLeftFlipper_Butterfly_Net from '@/assets/pfp-traits/lil/left_flipper/Butterfly_Net.png';
+import LilLeftFlipper_Golf_Club from '@/assets/pfp-traits/lil/left_flipper/Golf_Club.png';
+import LilLeftFlipper_Spoon from '@/assets/pfp-traits/lil/left_flipper/Spoon.png';
+import LilLeftFlipper_Kite_Gold from '@/assets/pfp-traits/lil/left_flipper/Kite_Gold.png';
+import LilLeftFlipper_Balloon_Gold from '@/assets/pfp-traits/lil/left_flipper/Balloon_Gold.png';
+import LilLeftFlipper_Staff_Ice from '@/assets/pfp-traits/lil/left_flipper/Staff_Ice.png';
+import LilLeftFlipper_Sword_Ice from '@/assets/pfp-traits/lil/left_flipper/Sword_Ice.png';
+import LilLeftFlipper_Candycane_Red from '@/assets/pfp-traits/lil/left_flipper/Candycane_Red.png';
+import LilLeftFlipper_Candycane_Green from '@/assets/pfp-traits/lil/left_flipper/Candycane_Green.png';
+import LilLeftFlipper_Rubber_Duck from '@/assets/pfp-traits/lil/left_flipper/Rubber_Duck.png';
+import LilLeftFlipper_Stick from '@/assets/pfp-traits/lil/left_flipper/Stick.png';
+import LilLeftFlipper_Balloon_Red from '@/assets/pfp-traits/lil/left_flipper/Balloon_Red.png';
+import LilLeftFlipper_Ice_Cream from '@/assets/pfp-traits/lil/left_flipper/Ice_Cream.png';
+import LilLeftFlipper_Lollipop from '@/assets/pfp-traits/lil/left_flipper/Lollipop.png';
+import LilLeftFlipper_Chop_Sticks from '@/assets/pfp-traits/lil/left_flipper/Chop_Sticks.png';
+import LilLeftFlipper_Popsicle from '@/assets/pfp-traits/lil/left_flipper/Popsicle.png';
+
 // Mapping for right flipper traits that have special output versions
 const LIL_RIGHT_FLIPPER_OUTPUT_MAP: Record<string, string> = {
   GM_Sign: LilRightFlipper_GM_Sign_Output,
@@ -266,6 +295,37 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Kite_Gold: LilRightFlipper_Kite_Gold,
   Spoon: LilRightFlipper_Spoon,
   Ice_Cream: LilRightFlipper_Ice_Cream,
+};
+
+// Mapping of Lil left flipper trait names to imported images
+const LIL_LEFT_FLIPPER_TRAIT_MAP: Record<string, string> = {
+  Maracas: LilLeftFlipper_Maracas,
+  Kite_Blue: LilLeftFlipper_Kite_Blue,
+  Star_Wand: LilLeftFlipper_Star_Wand,
+  Juice_Box: LilLeftFlipper_Juice_Box,
+  Turkey_Leg: LilLeftFlipper_Turkey_Leg,
+  Ukulele: LilLeftFlipper_Ukulele,
+  Surfboard_Yellow: LilLeftFlipper_Surfboard_Yellow,
+  Sword_Gold: LilLeftFlipper_Sword_Gold,
+  Spoon_Gold: LilLeftFlipper_Spoon_Gold,
+  Balloon_Sword_Red: LilLeftFlipper_Balloon_Sword_Red,
+  Balloon_Green: LilLeftFlipper_Balloon_Green,
+  Butterfly_Net: LilLeftFlipper_Butterfly_Net,
+  Golf_Club: LilLeftFlipper_Golf_Club,
+  Spoon: LilLeftFlipper_Spoon,
+  Kite_Gold: LilLeftFlipper_Kite_Gold,
+  Balloon_Gold: LilLeftFlipper_Balloon_Gold,
+  Staff_Ice: LilLeftFlipper_Staff_Ice,
+  Sword_Ice: LilLeftFlipper_Sword_Ice,
+  Candycane_Red: LilLeftFlipper_Candycane_Red,
+  Candycane_Green: LilLeftFlipper_Candycane_Green,
+  Rubber_Duck: LilLeftFlipper_Rubber_Duck,
+  Stick: LilLeftFlipper_Stick,
+  Balloon_Red: LilLeftFlipper_Balloon_Red,
+  Ice_Cream: LilLeftFlipper_Ice_Cream,
+  Lollipop: LilLeftFlipper_Lollipop,
+  Chop_Sticks: LilLeftFlipper_Chop_Sticks,
+  Popsicle: LilLeftFlipper_Popsicle,
 };
 
 // Head traits that require Template_2 instead of the default Template
@@ -583,6 +643,7 @@ interface DetectedTraits {
     face: string | null;
     head: string | null;
     right_flipper: string | null;
+    left_flipper: string | null;
     hand: string | null;
   };
   confidence: 'high' | 'medium' | 'low';
@@ -952,7 +1013,7 @@ const PFPConverter = () => {
         }
       }
 
-      // 4. Apply right flipper trait overlay (Lil Pudgy only - top layer)
+      // 4. Apply right flipper trait overlay (Lil Pudgy only)
       const rightFlipperTrait = traits.traits.right_flipper;
       if (rightFlipperTrait && useLilMode) {
         // Check if this trait has a special output version first
@@ -966,6 +1027,18 @@ const PFPConverter = () => {
           ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
         } else {
           console.log(`No overlay found for right flipper trait: ${rightFlipperTrait}`);
+        }
+      }
+
+      // 5. Apply left flipper trait overlay (Lil Pudgy only - topmost layer)
+      const leftFlipperTrait = traits.traits.left_flipper;
+      if (leftFlipperTrait && useLilMode) {
+        if (LIL_LEFT_FLIPPER_TRAIT_MAP[leftFlipperTrait]) {
+          console.log(`Applying Lil left flipper trait: ${leftFlipperTrait}`);
+          const leftFlipperOverlay = await loadImage(LIL_LEFT_FLIPPER_TRAIT_MAP[leftFlipperTrait]);
+          ctx.drawImage(leftFlipperOverlay, 0, 0, 1000, 1000);
+        } else {
+          console.log(`No overlay found for left flipper trait: ${leftFlipperTrait}`);
         }
       }
 
