@@ -164,7 +164,13 @@ const AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS = [
   "Sword_Ice",
   "Plushie_Ice",
   "Balloon_Gold",
-  "Spoon_Gold"
+  "Spoon_Gold",
+  "Staff_Gold",
+  "Rubber_Duck",
+  "Star_Wand",
+  "Kite_Gold",
+  "Spoon",
+  "Ice_Cream"
 ];
 
 // Available body trait overlays - these must match exactly to the file names

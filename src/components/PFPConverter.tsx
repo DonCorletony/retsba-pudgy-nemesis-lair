@@ -153,6 +153,12 @@ import LilRightFlipper_Sword_Ice from '@/assets/pfp-traits/lil/right_flipper/Swo
 import LilRightFlipper_Plushie_Ice from '@/assets/pfp-traits/lil/right_flipper/Plushie_Ice.png';
 import LilRightFlipper_Balloon_Gold from '@/assets/pfp-traits/lil/right_flipper/Balloon_Gold.png';
 import LilRightFlipper_Spoon_Gold from '@/assets/pfp-traits/lil/right_flipper/Spoon_Gold.png';
+import LilRightFlipper_Staff_Gold from '@/assets/pfp-traits/lil/right_flipper/Staff_Gold.png';
+import LilRightFlipper_Rubber_Duck from '@/assets/pfp-traits/lil/right_flipper/Rubber_Duck.png';
+import LilRightFlipper_Star_Wand from '@/assets/pfp-traits/lil/right_flipper/Star_Wand.png';
+import LilRightFlipper_Kite_Gold from '@/assets/pfp-traits/lil/right_flipper/Kite_Gold.png';
+import LilRightFlipper_Spoon from '@/assets/pfp-traits/lil/right_flipper/Spoon.png';
+import LilRightFlipper_Ice_Cream from '@/assets/pfp-traits/lil/right_flipper/Ice_Cream.png';
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -225,6 +231,12 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Plushie_Ice: LilRightFlipper_Plushie_Ice,
   Balloon_Gold: LilRightFlipper_Balloon_Gold,
   Spoon_Gold: LilRightFlipper_Spoon_Gold,
+  Staff_Gold: LilRightFlipper_Staff_Gold,
+  Rubber_Duck: LilRightFlipper_Rubber_Duck,
+  Star_Wand: LilRightFlipper_Star_Wand,
+  Kite_Gold: LilRightFlipper_Kite_Gold,
+  Spoon: LilRightFlipper_Spoon,
+  Ice_Cream: LilRightFlipper_Ice_Cream,
 };
 
 // Head traits that require Template_2 instead of the default Template
