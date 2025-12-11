@@ -14,6 +14,8 @@ import Ice_Template from '@/assets/pfp-templates/Ice_Template.png';
 import Ice_Template_2 from '@/assets/pfp-templates/Ice_Template_2.png';
 import Lil_Template from '@/assets/pfp-templates/Lil_Template.png';
 import Lil_Template_Blank from '@/assets/pfp-templates/Lil_Template_Blank.png';
+import Lil_Template_Gold from '@/assets/pfp-templates/Lil_Template_Gold.png';
+import Lil_Template_Ice from '@/assets/pfp-templates/Lil_Template_Ice.png';
 
 // Pudgy Knight 1:1 output templates
 import Pudgy_Knight_Black_Output from '@/assets/pfp-templates/lil/Pudgy_Knight_Black_Output.png';
@@ -836,7 +838,14 @@ const PFPConverter = () => {
         // Check if face trait requires blank template (no eyes on base)
         const needsBlankTemplate = faceTrait && LIL_BLANK_FACE_TRAITS.includes(faceTrait);
         
-        if (needsBlankTemplate) {
+        // Lil skin templates: Gold and Ice skins get special templates
+        if (isGoldSkin) {
+          templateSrc = Lil_Template_Gold;
+          templateName = 'Lil_Template_Gold';
+        } else if (isIceSkin) {
+          templateSrc = Lil_Template_Ice;
+          templateName = 'Lil_Template_Ice';
+        } else if (needsBlankTemplate) {
           templateSrc = Lil_Template_Blank;
           templateName = 'Lil_Template_Blank';
         } else {
