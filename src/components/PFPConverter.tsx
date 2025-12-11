@@ -148,6 +148,11 @@ import LilRightFlipper_Balloon_Sword_Black from '@/assets/pfp-traits/lil/right_f
 import LilRightFlipper_Balloon_Sword_Purple from '@/assets/pfp-traits/lil/right_flipper/Balloon_Sword_Purple.png';
 import LilRightFlipper_Sword from '@/assets/pfp-traits/lil/right_flipper/Sword.png';
 import LilRightFlipper_Turkey_Leg from '@/assets/pfp-traits/lil/right_flipper/Turkey_Leg.png';
+import LilRightFlipper_Juice_Box from '@/assets/pfp-traits/lil/right_flipper/Juice_Box.png';
+import LilRightFlipper_Sword_Ice from '@/assets/pfp-traits/lil/right_flipper/Sword_Ice.png';
+import LilRightFlipper_Plushie_Ice from '@/assets/pfp-traits/lil/right_flipper/Plushie_Ice.png';
+import LilRightFlipper_Balloon_Gold from '@/assets/pfp-traits/lil/right_flipper/Balloon_Gold.png';
+import LilRightFlipper_Spoon_Gold from '@/assets/pfp-traits/lil/right_flipper/Spoon_Gold.png';
 
 // Mapping of remapped Lil face trait names (_2 versions) to imported images
 const LIL_FACE_REMAP_IMAGE_MAP: Record<string, string> = {
@@ -215,6 +220,11 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Balloon_Sword_Purple: LilRightFlipper_Balloon_Sword_Purple,
   Sword: LilRightFlipper_Sword,
   Turkey_Leg: LilRightFlipper_Turkey_Leg,
+  Juice_Box: LilRightFlipper_Juice_Box,
+  Sword_Ice: LilRightFlipper_Sword_Ice,
+  Plushie_Ice: LilRightFlipper_Plushie_Ice,
+  Balloon_Gold: LilRightFlipper_Balloon_Gold,
+  Spoon_Gold: LilRightFlipper_Spoon_Gold,
 };
 
 // Head traits that require Template_2 instead of the default Template
