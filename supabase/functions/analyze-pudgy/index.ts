@@ -438,61 +438,180 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Round/circular glasses with BLUE colored lenses
 - BLACK frames with BLUE lenses
 
-"Circle_Glasses" (BLACK/DARK LENSES):
-- Round/circular glasses with BLACK or DARK colored lenses
-- BLACK frames with BLACK/DARK lenses
+"Nerd_Cute" (TAN RECTANGULAR GLASSES WITH BANDAGE):
+- TAN/beige rectangular frames with LIGHT BLUE lenses
+- WHITE BANDAGE on the glasses' bridge (center between lenses)
+- Eyes visible through lenses as regular open eyes
 
-"Cross_Eyed" (SMALL BEADY DOT EYES, NO GLASSES):
-- NO glasses at all
-- Eyes are TWO SMALL, ROUND, BEADY BLACK DOTS
-- The dots are SMALL and CIRCULAR - like little points
-- Very simple, minimal eye shape - just tiny black circles
-- This is the KEY distinction: SMALL DOT eyes
+"Aviators" (BLACK AVIATOR GLASSES, GRADIENT LENSES):
+- BLACK aviator-style frames
+- Lenses are BLACK on top, fading to LIGHT BLUE toward the bottom
+- Classic aviator teardrop shape
 
-"Curious" (CURIOUS EXPRESSION, NO GLASSES):
+"Goggles_Pink" (PINK CLOUT GOGGLES):
+- PINK frames in clout goggle style
+- OVAL-shaped LIGHT BLUE lenses
+- Distinct pink color frames
+
+"Goggles_Yellow" (YELLOW CLOUT GOGGLES):
+- YELLOW frames in clout goggle style
+- OVAL-shaped LIGHT BLUE lenses
+- Distinct yellow color frames
+
+"Football" (BLACK RECTANGLES UNDER EYES):
+- Simple OVAL BLACK eyes (no glasses)
+- BLACK RECTANGLES painted beneath each eye
+- Like football players' eye black to reduce sun glare
+- NO glasses, just the black paint marks under eyes
+
+"Reading_Normal" (BLACK CIRCULAR GLASSES):
+- BLACK frames with CIRCULAR shape
+- LIGHT BLUE lenses
+- Simple round reading glasses
+
+"Squad" (BLACK FRAMELESS TRIANGULAR GLASSES):
+- BLACK, FRAMELESS glasses
+- Appears as TWO TRIANGLES bound together
+- WHITE REFLECT visible on the lenses
+- Key distinction: completely FRAMELESS design
+
+"Nerd_Blushing" (TAN GLASSES WITH CLOSED HAPPY EYES):
+- TAN/beige rectangular frames with WHITE BANDAGE in the middle
+- PARTIAL RED OVALS in each lens (blush marks)
+- CLOSED EYES that look cheerful/happy
+- Closed eyes appear as ( symbol rotated 90 degrees, sitting in center of each lens
+- CRITICAL: Closed happy eyes + blush marks = Nerd_Blushing
+
+"Goofy_Glasses" (RED GLASSES + CLOWN NOSE + MUSTACHE):
+- RED rectangular frames with LIGHT BLUE lenses
+- RED CLOWN NOSE
+- WHITE MUSTACHE
+- All three elements together: glasses + nose + mustache
+
+"Upsidedown_Orange" (UPSIDE DOWN ORANGE GLASSES):
+- ORANGE frames with BLACK lenses
+- Glasses are FLIPPED UPSIDE DOWN on the face
+- Frames appear inverted/reversed
+
+"Goggles" (BLUE CLOUT GOGGLES):
+- BLUE frames in clout goggle style
+- OVAL-shaped LIGHT BLUE lenses
+- Standard blue clout goggles
+
+"Shades_Blue" (BLUE SUNGLASSES):
+- BLUE frames, generic sunglasses shape
+- BLACK lenses
+- Simple blue-framed shades
+
+"Star_Glasses" (STAR-SHAPED FRAMES):
+- GOLD/YELLOW frames
+- REDDISH-PURPLE star-shaped frame design
+- Distinctive star shape around each lens
+
+"Scouter" (PURPLE RECTANGLE OVER ONE EYE):
+- BLACK OVAL eyes visible
+- PURPLE RECTANGLE device over the LEFT eye (right side of image)
+- Like a Dragon Ball Z scouter device
+
+"Upsidedown_Purple" (UPSIDE DOWN PURPLE GLASSES):
+- PURPLE frames with BLACK lenses
+- Glasses are FLIPPED UPSIDE DOWN on the face
+
+"Nerd_Normal" (RED RECTANGULAR GLASSES WITH BANDAGE):
+- RED rectangular frames with WHITE BANDAGE over bridge
+- LIGHT BLUE lenses
+- BLACK OVAL eyes visible through the lenses
+- CRITICAL: Distinguished from Goofy_Glasses by NO red clown nose and NO mustache
+
+"Shades_Yellow" (YELLOW SUNGLASSES):
+- YELLOW frames
+- BLACK lenses
+- Simple yellow-framed shades
+
+"Clout_Goggles" (WHITE CLOUT GOGGLES):
+- WHITE frames in clout goggle style
+- ROUND BLACK lenses
+- Distinct white frame color
+
+"Ski_Goggles" (SKI GOGGLES):
+- GRAY band across head
+- BLUE frame
+- YELLOWISH-ORANGE lens
+- Ski/snow goggle style
+
+"Reading_Cross_eyed" (BLUE CIRCULAR GLASSES WITH CROSSED EYES):
+- BLUE frames with CIRCULAR shape
+- LIGHT BLUE lenses
+- TWO CIRCULAR BLACK DOTS visible through lenses (crossed eyes)
+- The dots are small and centered, depicting crossed eyes
+
+"Reading_Cute" (BLUE CIRCULAR GLASSES WITH BIG GLISTENING EYES):
+- BLUE frames with CIRCULAR shape
+- LIGHT BLUE lenses
+- BIG BLACK eyes with TWO WHITE CIRCLES in them (glistening cartoon eyes)
+- CRITICAL: Large eyes with white reflection dots = Reading_Cute
+
+"Circle_Glasses" (THIN BLACK CIRCULAR GLASSES):
+- THIN BLACK frames with CIRCULAR shape
+- BLACK lenses (completely dark)
+- Simple thin-framed round glasses
+
+"Curious" (ASYMMETRICAL IRREGULAR EYES):
 - NO glasses
-- Eyes looking curious/wondering
-- Simple expression trait
+- Eyes are ASYMMETRICAL - each eye has a DIFFERENT irregular shape
+- The two eyes do NOT match each other
+- Unique expression with mismatched eye shapes
 
-"Mad" (ANGRY/SQUINTING EXPRESSION WITH HORIZONTAL LINE, NO GLASSES):
+"Blushing" (RED OVAL BLUSH MARKS):
 - NO glasses
-- Eyes are OVAL-SHAPED but have a HORIZONTAL LINE cutting through the UPPER HALF
+- TWO RED OVALS on cheeks (blush marks)
+- Simple blushing expression
+
+"Mad" (ANGRY/SQUINTING EXPRESSION WITH HORIZONTAL LINE):
+- NO glasses
+- OVAL-SHAPED eyes with a HORIZONTAL LINE cutting through the UPPER HALF
 - This horizontal line gives the appearance of SQUINTING or ANGRY eyes
-- The line makes the eyes look half-closed or narrowed in anger
-- CRITICAL: Look for a horizontal line/eyelid cutting across the top of the oval eyes
-- This is the KEY distinction from Normal: MAD HAS A HORIZONTAL LINE, NORMAL DOES NOT
+- CRITICAL: The line makes the eyes look half-closed or narrowed in anger
 
-"Winking" (ONE EYE OPEN, ONE EYE CLOSED AS < SHAPE, NO GLASSES):
+"Winking" (ONE EYE OPEN, ONE EYE CLOSED AS < SHAPE):
 - NO glasses
 - RIGHT eye (left side of image): Regular OVAL BLACK eye, open
-- LEFT eye (right side of image): CLOSED, depicted as a sideways V shape like "<"
-- The winking eye looks like a < symbol (less-than sign rotated)
+- LEFT eye (right side of image): CLOSED, depicted as a < shape (sideways V)
 - CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
-"Normal" (PLAIN OVULAR EYES WITH NO LINE, NO GLASSES):
+"Normal" (PLAIN OVAL BLACK EYES):
 - NO glasses
-- Eyes are TWO LARGER, OVAL-SHAPED BLACK MARKS
-- The eyes are COMPLETELY SOLID black ovals - NO horizontal line or eyelid
+- TWO LARGER OVAL-SHAPED BLACK MARKS
+- COMPLETELY SOLID black ovals - NO horizontal line or eyelid
 - FULLY OPEN oval eyes with no squinting or partial closure
-- This is the KEY distinction from Mad: NORMAL IS PLAIN SOLID OVALS, NO HORIZONTAL LINE
-- Standard neutral expression with wide open oval eyes
-
-CRITICAL EYE COMPARISON:
-- "Normal" = Plain solid black oval eyes, completely open, no lines
-- "Mad" = Same oval shape but with a HORIZONTAL LINE cutting through upper half (squinting/angry)
-- If you see a line through the eyes making them look squinted → Mad
-- If the eyes are plain solid ovals with no line → Normal
+- CRITICAL: Plain solid ovals with no lines = Normal
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
-- RED frames (any shape) + WHITE BANDAGE on bridge → Nerd_Normal
-- RED frames (square/rectangular) with bandage → Nerd_Normal
-- BLUE frames, circular, no dots → Reading_Cute
-- BLUE frames, circular, with black dots → Reading_Cross_eyed
-- TAN frames, rectangular, open eyes → Nerd_Cute
-- TAN frames, rectangular, closed eyes + blush → Nerd_Blushing
-- NO glasses + small beady dot eyes → Cross_Eyed
-- NO glasses + one eye closed → Winking
+- RED rectangular frames + WHITE BANDAGE (no nose/mustache) → Nerd_Normal
+- TAN rectangular frames + WHITE BANDAGE + open eyes → Nerd_Cute
+- TAN rectangular frames + WHITE BANDAGE + closed happy eyes + blush → Nerd_Blushing
+- BLUE circular frames + big glistening eyes (white dots) → Reading_Cute
+- BLUE circular frames + crossed eye dots → Reading_Cross_eyed
+- BLACK circular frames + thin + black lenses → Circle_Glasses
+- BLACK circular frames + light blue lenses → Reading_Normal
+- BLACK aviators with gradient lenses → Aviators
+- BLACK frameless triangles → Squad
+- PINK clout goggles → Goggles_Pink
+- YELLOW clout goggles → Goggles_Yellow
+- BLUE clout goggles → Goggles
+- WHITE clout goggles with black lenses → Clout_Goggles
+- BLUE sunglasses with black lenses → Shades_Blue
+- YELLOW sunglasses with black lenses → Shades_Yellow
+- ORANGE glasses upside down → Upsidedown_Orange
+- PURPLE glasses upside down → Upsidedown_Purple
+- STAR-shaped gold frames → Star_Glasses
+- SKI goggles (gray band, blue frame, orange lens) → Ski_Goggles
+- Purple scouter device over one eye → Scouter
+- NO glasses + black rectangles under eyes → Football
+- NO glasses + asymmetrical mismatched eyes → Curious
+- NO glasses + red oval blush marks → Blushing
+- NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
 - NO glasses + plain solid oval eyes (no line) → Normal
 
