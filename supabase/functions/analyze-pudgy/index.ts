@@ -332,26 +332,33 @@ GOLD SKIN (report "skin": "gold skin"):
 - Even if sparkles are covered by clothing, the GOLDEN YELLOW skin color alone = Gold Skin
 
 ICE SKIN (report "skin": "ice skin"):
-- Color: LIGHT CYAN/ICY BLUE body/flippers/head (pale, cool, sky blue - MUCH LIGHTER than normal Lil blue)
-- Sparkles: WHITE 4-pointed star sparkles (✨) may be visible
-- EITHER the light cyan color OR visible sparkles = Ice Skin
-- Even if sparkles are covered by clothing, the LIGHT CYAN/ICY BLUE skin color alone = Ice Skin
-- CRITICAL DISTINCTION: Ice skin is PALE CYAN (like sky blue/aqua), NOT the standard darker blue of normal Lils
+- Color: LIGHT CYAN/AQUA/TEAL body - this is a PALE, BRIGHT, SATURATED CYAN color
+- NOT the standard Lil Pudgy dark blue - Ice skin is VISIBLY DIFFERENT
+- Ice skin looks like the color of ICE or FROZEN WATER - pale turquoise/aqua
+- The flippers and head are LIGHT CYAN/AQUA colored (NOT dark blue)
+- Sparkles: WHITE 4-pointed star sparkles (✨) may be visible on body
+- If the penguin's body is CYAN/AQUA/TEAL (lighter, brighter blue) → "ice skin"
 
 NORMAL (report "skin": "Normal"):
-- Color: Standard DARK BLUE or BLUE-GRAY body (the typical Lil Pudgy blue)
+- Color: DARK BLUE or BLUE-GRAY body (the typical Lil Pudgy blue)
+- Standard Lil blue is DARKER, more MUTED, and LESS saturated
 - NO sparkles visible
-- Standard Lil blue is DARKER and more saturated than Ice Skin
+- If the body is DARK/NAVY BLUE → "Normal"
 
-COLOR COMPARISON:
-- Normal Lil = DARK/MEDIUM BLUE (like navy or royal blue)
-- Ice Skin = PALE CYAN/SKY BLUE (much lighter, like aqua or ice)
-- Gold Skin = BRIGHT YELLOW/GOLD (metallic warm yellow)
+*** CRITICAL ICE VS NORMAL DISTINCTION ***
+Look at the FLIPPER/BODY color:
+- NORMAL = Dark blue, muted, like navy blue or slate blue
+- ICE = Light cyan, bright, like aqua or turquoise or teal
+
+The Ice Skin Lil in front of you has CYAN/AQUA colored flippers and body - NOT dark blue.
+If the flippers look LIGHT BLUE/CYAN/AQUA/TEAL → Report "ice skin"
+If the flippers look DARK BLUE/NAVY → Report "Normal"
 
 DECISION:
-- Light cyan/icy pale blue body (with or without sparkles) → "ice skin"
-- Bright golden yellow body (with or without sparkles) → "gold skin"
-- Standard dark blue body + no sparkles → "Normal"
+- Cyan/aqua/teal/light blue body → "ice skin"
+- Bright golden yellow body → "gold skin"
+- Dark blue/navy body → "Normal"
+
 
 
 
