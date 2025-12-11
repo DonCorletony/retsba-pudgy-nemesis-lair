@@ -1031,25 +1031,7 @@ const PFPConverter = () => {
           {showMobileResult ? 'Your Retsba' : isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}
         </p>
 
-        {/* Coming Soon Overlay for Lil Mode - Mobile */}
-        {isLilMode ? (
-          <div className="relative border-2 border-black/20 dark:border-white/20 rounded-xl p-6 min-h-[320px] flex items-center justify-center bg-black/5 dark:bg-white/5">
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
-              <div className="text-center">
-                <p className="text-white text-2xl font-bold">Coming Soon</p>
-                <p className="text-white/70 text-sm mt-1">Lil Pudgy support is under development</p>
-              </div>
-            </div>
-            <div className="blur-sm pointer-events-none text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
-                <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
-              </div>
-              <p className="text-black dark:text-white font-medium mb-2">Drop your Lil here</p>
-              <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
-            </div>
-          </div>
-        ) : (
-          <div 
+        <div
             className={`relative border-2 rounded-xl p-6 transition-all duration-300 min-h-[320px] flex items-center justify-center ${
               showMobileResult 
                 ? 'border-black/10 dark:border-white/20 bg-gradient-to-br from-primary/5 to-transparent'
@@ -1156,7 +1138,6 @@ const PFPConverter = () => {
               )}
             </AnimatePresence>
           </div>
-        )}
 
         {/* Mobile Download Button */}
         <Button
@@ -1200,18 +1181,9 @@ const PFPConverter = () => {
 
         {/* Content grid */}
         <div className="grid grid-cols-2 gap-6 relative">
-        {/* Coming Soon Overlay for Lil Mode - Desktop */}
-        {isLilMode && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
-            <div className="text-center">
-              <p className="text-white text-3xl font-bold">Coming Soon</p>
-              <p className="text-white/70 text-sm mt-2">Lil Pudgy support is under development</p>
-            </div>
-          </div>
-        )}
         
         {/* Left Side - Upload & Original */}
-        <div className={`space-y-4 ${isLilMode ? 'blur-sm pointer-events-none' : ''}`}>
+        <div className="space-y-4">
 
           <motion.div
             className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 cursor-pointer min-h-[320px] flex items-center justify-center ${
@@ -1219,12 +1191,12 @@ const PFPConverter = () => {
                 ? 'border-primary bg-primary/10' 
                 : 'border-black/20 dark:border-white/20 hover:border-black/40 dark:hover:border-white/40 bg-black/5 dark:bg-white/5'
             }`}
-            onDragOver={!isLilMode ? handleDragOver : undefined}
-            onDragLeave={!isLilMode ? handleDragLeave : undefined}
-            onDrop={!isLilMode ? handleDrop : undefined}
-            onClick={!isLilMode ? () => fileInputRef.current?.click() : undefined}
-            whileHover={!isLilMode ? { scale: 1.01 } : undefined}
-            whileTap={!isLilMode ? { scale: 0.99 } : undefined}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             <input
               type="file"
