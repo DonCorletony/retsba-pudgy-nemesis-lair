@@ -396,6 +396,28 @@ IMPORTANT: The user expects this to be a Big Pudgy. Focus on analyzing Big Pudgy
 If the image shows only the upper body without feet visible, this is definitely a Big Pudgy.
 ` : ''}
 
+CRITICAL - SKIN TYPE DETECTION (CHECK EARLY - VERY IMPORTANT):
+Look at the penguin's SKIN COLOR (body, flippers, head) FIRST before analyzing other traits:
+
+"Gold Skin" → Report in skin field as "gold skin":
+- Body/flippers/head are GOLDEN YELLOW color (bright warm yellow, not blue)
+- WHITE SPARKLE EFFECTS (✨) - small 4-pointed white stars on body/flippers
+- The sparkles are the KEY identifier - look for white star shapes on the yellow body
+
+"Ice Skin" → Report in skin field as "ice skin":
+- Body/flippers/head are LIGHT BLUE/CYAN/ICY color (cool light blue, not standard dark blue)
+- WHITE SPARKLE EFFECTS (✨) - small 4-pointed white stars on body/flippers
+- The sparkles are the KEY identifier - look for white star shapes on the light blue body
+- Ice Skin is LIGHTER blue than regular Lil Pudgy blue - more like cyan/sky blue
+
+"Normal" → Regular blue/gray body with NO sparkles
+
+SPARKLE DETECTION IS KEY:
+- If you see ANY white 4-pointed star sparkles (✨) on the body → It's Gold or Ice skin
+- Gold = yellow/golden body + sparkles
+- Ice = light blue/cyan body + sparkles
+- No sparkles = Normal skin
+
 CRITICAL - LIL PUDGY FACE TRAIT DISTINCTION:
 For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits:
 
