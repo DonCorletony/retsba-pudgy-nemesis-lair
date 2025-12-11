@@ -1296,7 +1296,7 @@ const PFPConverter = () => {
         </div>
 
         {/* Right Side - Retsbafied Result */}
-        <div className={`space-y-4 ${isLilMode ? 'blur-sm pointer-events-none' : ''}`}>
+        <div className="space-y-4">
 
           <div className="relative border-2 border-black/10 dark:border-white/20 rounded-xl p-6 bg-gradient-to-br from-primary/5 to-transparent min-h-[320px] flex items-center justify-center">
             <AnimatePresence mode="wait">
