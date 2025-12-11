@@ -808,6 +808,31 @@ EXAMPLES:
 - Gold skin penguin wearing a CREAM-colored soft robe = "Bathrobe" (garment is cream, NOT gold)
 - The garment color determines the trait, NOT the skin color!
 
+CRITICAL - GOLD SKIN AND ICE SKIN DETECTION (LIL PUDGY SKIN TYPES):
+For Lil Pudgys, look carefully at the skin/body color:
+
+"Gold Skin" (GOLD/YELLOW SKIN):
+- The penguin's body, flippers, and head are GOLDEN YELLOW color
+- Has WHITE SPARKLE EFFECTS (✨) on the body - small 4-pointed star shapes
+- The sparkles appear on the flippers, head, and body areas
+- The skin is a bright, warm GOLD/YELLOW color (not blue)
+- If sparkles are covered by clothing, still look for the distinctive GOLD YELLOW color of the skin
+- REPORT IN "skin" field: "gold skin" or "golden skin"
+
+"Ice Skin" (ICE BLUE SKIN):
+- The penguin's body, flippers, and head are LIGHT BLUE/ICY color
+- Has WHITE SPARKLE EFFECTS (✨) on the body - small 4-pointed star shapes
+- The sparkles appear on the flippers, head, and body areas
+- The skin is a cool, light CYAN/ICE BLUE color (not golden)
+- If sparkles are covered by clothing, still look for the distinctive ICE BLUE color of the skin
+- REPORT IN "skin" field: "ice skin" or "icy skin"
+
+SKIN DETECTION RULES:
+- Sparkles (✨) are the EASIEST identifier - if you see white 4-pointed star sparkles on the body, it's Gold or Ice skin
+- Gold Skin = YELLOW/GOLD colored body + sparkles
+- Ice Skin = LIGHT BLUE/CYAN colored body + sparkles
+- Regular Lil = Blue/gray body with NO sparkles
+
 Return ONLY valid JSON in this exact format:
 {
   "isPudgy": true/false,
