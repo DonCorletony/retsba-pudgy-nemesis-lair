@@ -204,6 +204,112 @@ import LilLeftFlipper_Lollipop from '@/assets/pfp-traits/lil/left_flipper/Lollip
 import LilLeftFlipper_Chop_Sticks from '@/assets/pfp-traits/lil/left_flipper/Chop_Sticks.png';
 import LilLeftFlipper_Popsicle from '@/assets/pfp-traits/lil/left_flipper/Popsicle.png';
 
+// Import Lil head trait overlays
+import LilHead_Afro from '@/assets/pfp-traits/lil/head/Afro.png';
+import LilHead_Afro_Gold_Pick from '@/assets/pfp-traits/lil/head/Afro_Gold_Pick.png';
+import LilHead_Backwards_Blue from '@/assets/pfp-traits/lil/head/Backwards_Blue.png';
+import LilHead_Backwards_Green from '@/assets/pfp-traits/lil/head/Backwards_Green.png';
+import LilHead_Backwards_Hat_Black from '@/assets/pfp-traits/lil/head/Backwards_Hat_Black.png';
+import LilHead_Backwards_Red from '@/assets/pfp-traits/lil/head/Backwards_Red.png';
+import LilHead_Beanie_Black from '@/assets/pfp-traits/lil/head/Beanie_Black.png';
+import LilHead_Beanie_Blue from '@/assets/pfp-traits/lil/head/Beanie_Blue.png';
+import LilHead_Beanie_Gray from '@/assets/pfp-traits/lil/head/Beanie_Gray.png';
+import LilHead_Beanie_Orange from '@/assets/pfp-traits/lil/head/Beanie_Orange.png';
+import LilHead_Beanie_Pink from '@/assets/pfp-traits/lil/head/Beanie_Pink.png';
+import LilHead_Beanie_Tan from '@/assets/pfp-traits/lil/head/Beanie_Tan.png';
+import LilHead_Beanie_White from '@/assets/pfp-traits/lil/head/Beanie_White.png';
+import LilHead_Biker_Helmet from '@/assets/pfp-traits/lil/head/Biker_Helmet.png';
+import LilHead_Biker_Helmet_Black from '@/assets/pfp-traits/lil/head/Biker_Helmet_Black.png';
+import LilHead_Blue_Durag from '@/assets/pfp-traits/lil/head/Blue_Durag.png';
+import LilHead_Bow_Blue from '@/assets/pfp-traits/lil/head/Bow_Blue.png';
+import LilHead_Bow_Purple from '@/assets/pfp-traits/lil/head/Bow_Purple.png';
+import LilHead_Bow_Red from '@/assets/pfp-traits/lil/head/Bow_Red.png';
+import LilHead_Bowl_Cut from '@/assets/pfp-traits/lil/head/Bowl_Cut.png';
+import LilHead_Bowl_Cut_Blonde from '@/assets/pfp-traits/lil/head/Bowl_Cut_Blonde.png';
+import LilHead_Bowl_Cut_Red from '@/assets/pfp-traits/lil/head/Bowl_Cut_Red.png';
+import LilHead_Bucket_Hat_Black from '@/assets/pfp-traits/lil/head/Bucket_Hat_Black.png';
+import LilHead_Bucket_Hat_Blue from '@/assets/pfp-traits/lil/head/Bucket_Hat_Blue.png';
+import LilHead_Bucket_Hat_Green from '@/assets/pfp-traits/lil/head/Bucket_Hat_Green.png';
+import LilHead_Bucket_Hat_Red from '@/assets/pfp-traits/lil/head/Bucket_Hat_Red.png';
+import LilHead_Bucket_Hat_Tan from '@/assets/pfp-traits/lil/head/Bucket_Hat_Tan.png';
+import LilHead_Chefs_Hat from '@/assets/pfp-traits/lil/head/Chefs_Hat.png';
+import LilHead_Construction_Helmet from '@/assets/pfp-traits/lil/head/Construction_Helmet.png';
+import LilHead_Cowboy_Hat from '@/assets/pfp-traits/lil/head/Cowboy_Hat.png';
+import LilHead_Cowboy_Hat_Tall from '@/assets/pfp-traits/lil/head/Cowboy_Hat_Tall.png';
+import LilHead_Crown from '@/assets/pfp-traits/lil/head/Crown.png';
+import LilHead_Durag_Leopard from '@/assets/pfp-traits/lil/head/Durag_Leopard.png';
+import LilHead_Durag_Purple from '@/assets/pfp-traits/lil/head/Durag_Purple.png';
+import LilHead_Ear_Muffs from '@/assets/pfp-traits/lil/head/Ear_Muffs.png';
+import LilHead_Egg_Shell from '@/assets/pfp-traits/lil/head/Egg_Shell.png';
+import LilHead_Egg_Shell_Gold from '@/assets/pfp-traits/lil/head/Egg_Shell_Gold.png';
+import LilHead_Elf_Hat from '@/assets/pfp-traits/lil/head/Elf_Hat.png';
+import LilHead_Fireman_Helmet from '@/assets/pfp-traits/lil/head/Fireman_Helmet.png';
+import LilHead_Fish_Blue from '@/assets/pfp-traits/lil/head/Fish_Blue.png';
+import LilHead_Fish_Gold from '@/assets/pfp-traits/lil/head/Fish_Gold.png';
+import LilHead_Fish_Gray from '@/assets/pfp-traits/lil/head/Fish_Gray.png';
+import LilHead_Fish_Green from '@/assets/pfp-traits/lil/head/Fish_Green.png';
+import LilHead_Fish_Orange from '@/assets/pfp-traits/lil/head/Fish_Orange.png';
+import LilHead_Fish_Red from '@/assets/pfp-traits/lil/head/Fish_Red.png';
+import LilHead_Flat_Cap_Black from '@/assets/pfp-traits/lil/head/Flat_Cap_Black.png';
+import LilHead_Flat_Cap_Blue from '@/assets/pfp-traits/lil/head/Flat_Cap_Blue.png';
+import LilHead_Flat_Cap_Green from '@/assets/pfp-traits/lil/head/Flat_Cap_Green.png';
+import LilHead_Flat_Cap_Tan from '@/assets/pfp-traits/lil/head/Flat_Cap_Tan.png';
+import LilHead_Flower_Blue from '@/assets/pfp-traits/lil/head/Flower_Blue.png';
+import LilHead_Flower_Crown from '@/assets/pfp-traits/lil/head/Flower_Crown.png';
+import LilHead_Flower_Pink from '@/assets/pfp-traits/lil/head/Flower_Pink.png';
+import LilHead_Flower_Purple from '@/assets/pfp-traits/lil/head/Flower_Purple.png';
+import LilHead_Flower_Red from '@/assets/pfp-traits/lil/head/Flower_Red.png';
+import LilHead_Flower_White from '@/assets/pfp-traits/lil/head/Flower_White.png';
+import LilHead_Flower_Yellow from '@/assets/pfp-traits/lil/head/Flower_Yellow.png';
+import LilHead_Grizzly_Bear_Hat from '@/assets/pfp-traits/lil/head/Grizzly_Bear_Hat.png';
+import LilHead_Hammerhead from '@/assets/pfp-traits/lil/head/Hammerhead.png';
+import LilHead_Hat_Black from '@/assets/pfp-traits/lil/head/Hat_Black.png';
+import LilHead_Hat_Blue from '@/assets/pfp-traits/lil/head/Hat_Blue.png';
+import LilHead_Hat_Green from '@/assets/pfp-traits/lil/head/Hat_Green.png';
+import LilHead_Hat_Red from '@/assets/pfp-traits/lil/head/Hat_Red.png';
+import LilHead_Headband from '@/assets/pfp-traits/lil/head/Headband.png';
+import LilHead_Headphones_Blue from '@/assets/pfp-traits/lil/head/Headphones_Blue.png';
+import LilHead_Headphones_Gold from '@/assets/pfp-traits/lil/head/Headphones_Gold.png';
+import LilHead_Ice_Crown from '@/assets/pfp-traits/lil/head/Ice_Crown.png';
+import LilHead_Jester_Hat from '@/assets/pfp-traits/lil/head/Jester_Hat.png';
+import LilHead_Kite_Red from '@/assets/pfp-traits/lil/head/Kite_Red.png';
+import LilHead_Leaf_Crown from '@/assets/pfp-traits/lil/head/Leaf_Crown.png';
+import LilHead_Leaf_Crown_Gold from '@/assets/pfp-traits/lil/head/Leaf_Crown_Gold.png';
+import LilHead_Lucky_Hat from '@/assets/pfp-traits/lil/head/Lucky_Hat.png';
+import LilHead_Macaroni from '@/assets/pfp-traits/lil/head/Macaroni.png';
+import LilHead_Mohawk_Green from '@/assets/pfp-traits/lil/head/Mohawk_Green.png';
+import LilHead_Mohawk_Orange from '@/assets/pfp-traits/lil/head/Mohawk_Orange.png';
+import LilHead_Mohawk_Purple from '@/assets/pfp-traits/lil/head/Mohawk_Purple.png';
+import LilHead_Mohawk_Red from '@/assets/pfp-traits/lil/head/Mohawk_Red.png';
+import LilHead_Ninja_Headband from '@/assets/pfp-traits/lil/head/Ninja_Headband.png';
+import LilHead_Panda_Hat from '@/assets/pfp-traits/lil/head/Panda_Hat.png';
+import LilHead_Party_Hat from '@/assets/pfp-traits/lil/head/Party_Hat.png';
+import LilHead_Party_Hat_Orange from '@/assets/pfp-traits/lil/head/Party_Hat_Orange.png';
+import LilHead_Party_Hat_Purple from '@/assets/pfp-traits/lil/head/Party_Hat_Purple.png';
+import LilHead_Pirate_Hat from '@/assets/pfp-traits/lil/head/Pirate_Hat.png';
+import LilHead_Polar_Bear_Hat from '@/assets/pfp-traits/lil/head/Polar_Bear_Hat.png';
+import LilHead_Red_Durag from '@/assets/pfp-traits/lil/head/Red_Durag.png';
+import LilHead_Rice_Hat from '@/assets/pfp-traits/lil/head/Rice_Hat.png';
+import LilHead_Sailors_Cap from '@/assets/pfp-traits/lil/head/Sailors_Cap.png';
+import LilHead_Santa_Hat from '@/assets/pfp-traits/lil/head/Santa_Hat.png';
+import LilHead_Shark from '@/assets/pfp-traits/lil/head/Shark.png';
+import LilHead_Shark_Albino from '@/assets/pfp-traits/lil/head/Shark_Albino.png';
+import LilHead_Sideways_Black from '@/assets/pfp-traits/lil/head/Sideways_Black.png';
+import LilHead_Sideways_Blue from '@/assets/pfp-traits/lil/head/Sideways_Blue.png';
+import LilHead_Sideways_Green from '@/assets/pfp-traits/lil/head/Sideways_Green.png';
+import LilHead_Sideways_Red from '@/assets/pfp-traits/lil/head/Sideways_Red.png';
+import LilHead_Sombrero from '@/assets/pfp-traits/lil/head/Sombrero.png';
+import LilHead_Sombrero_Black from '@/assets/pfp-traits/lil/head/Sombrero_Black.png';
+import LilHead_Top_Hat_Black from '@/assets/pfp-traits/lil/head/Top_Hat_Black.png';
+import LilHead_Top_Hat_Gold from '@/assets/pfp-traits/lil/head/Top_Hat_Gold.png';
+import LilHead_Top_Hat_Gold_Tall from '@/assets/pfp-traits/lil/head/Top_Hat_Gold_Tall.png';
+import LilHead_Top_Hat_Tall from '@/assets/pfp-traits/lil/head/Top_Hat_Tall.png';
+import LilHead_Viking_Helmet from '@/assets/pfp-traits/lil/head/Viking_Helmet.png';
+import LilHead_Viking_Helmet_Black from '@/assets/pfp-traits/lil/head/Viking_Helmet_Black.png';
+import LilHead_Visor_Blue from '@/assets/pfp-traits/lil/head/Visor_Blue.png';
+import LilHead_Visor_Green from '@/assets/pfp-traits/lil/head/Visor_Green.png';
+import LilHead_Wizard_Hat from '@/assets/pfp-traits/lil/head/Wizard_Hat.png';
+
 // Mapping for right flipper traits that have special output versions
 const LIL_RIGHT_FLIPPER_OUTPUT_MAP: Record<string, string> = {
   GM_Sign: LilRightFlipper_GM_Sign_Output,
@@ -326,6 +432,114 @@ const LIL_LEFT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Lollipop: LilLeftFlipper_Lollipop,
   Chop_Sticks: LilLeftFlipper_Chop_Sticks,
   Popsicle: LilLeftFlipper_Popsicle,
+};
+
+// Mapping of Lil head trait names to imported images
+const LIL_HEAD_TRAIT_MAP: Record<string, string> = {
+  Afro: LilHead_Afro,
+  Afro_Gold_Pick: LilHead_Afro_Gold_Pick,
+  Backwards_Blue: LilHead_Backwards_Blue,
+  Backwards_Green: LilHead_Backwards_Green,
+  Backwards_Hat_Black: LilHead_Backwards_Hat_Black,
+  Backwards_Red: LilHead_Backwards_Red,
+  Beanie_Black: LilHead_Beanie_Black,
+  Beanie_Blue: LilHead_Beanie_Blue,
+  Beanie_Gray: LilHead_Beanie_Gray,
+  Beanie_Orange: LilHead_Beanie_Orange,
+  Beanie_Pink: LilHead_Beanie_Pink,
+  Beanie_Tan: LilHead_Beanie_Tan,
+  Beanie_White: LilHead_Beanie_White,
+  Biker_Helmet: LilHead_Biker_Helmet,
+  Biker_Helmet_Black: LilHead_Biker_Helmet_Black,
+  Blue_Durag: LilHead_Blue_Durag,
+  Bow_Blue: LilHead_Bow_Blue,
+  Bow_Purple: LilHead_Bow_Purple,
+  Bow_Red: LilHead_Bow_Red,
+  Bowl_Cut: LilHead_Bowl_Cut,
+  Bowl_Cut_Blonde: LilHead_Bowl_Cut_Blonde,
+  Bowl_Cut_Red: LilHead_Bowl_Cut_Red,
+  Bucket_Hat_Black: LilHead_Bucket_Hat_Black,
+  Bucket_Hat_Blue: LilHead_Bucket_Hat_Blue,
+  Bucket_Hat_Green: LilHead_Bucket_Hat_Green,
+  Bucket_Hat_Red: LilHead_Bucket_Hat_Red,
+  Bucket_Hat_Tan: LilHead_Bucket_Hat_Tan,
+  Chefs_Hat: LilHead_Chefs_Hat,
+  Construction_Helmet: LilHead_Construction_Helmet,
+  Cowboy_Hat: LilHead_Cowboy_Hat,
+  Cowboy_Hat_Tall: LilHead_Cowboy_Hat_Tall,
+  Crown: LilHead_Crown,
+  Durag_Leopard: LilHead_Durag_Leopard,
+  Durag_Purple: LilHead_Durag_Purple,
+  Ear_Muffs: LilHead_Ear_Muffs,
+  Egg_Shell: LilHead_Egg_Shell,
+  Egg_Shell_Gold: LilHead_Egg_Shell_Gold,
+  Elf_Hat: LilHead_Elf_Hat,
+  Fireman_Helmet: LilHead_Fireman_Helmet,
+  Fish_Blue: LilHead_Fish_Blue,
+  Fish_Gold: LilHead_Fish_Gold,
+  Fish_Gray: LilHead_Fish_Gray,
+  Fish_Green: LilHead_Fish_Green,
+  Fish_Orange: LilHead_Fish_Orange,
+  Fish_Red: LilHead_Fish_Red,
+  Flat_Cap_Black: LilHead_Flat_Cap_Black,
+  Flat_Cap_Blue: LilHead_Flat_Cap_Blue,
+  Flat_Cap_Green: LilHead_Flat_Cap_Green,
+  Flat_Cap_Tan: LilHead_Flat_Cap_Tan,
+  Flower_Blue: LilHead_Flower_Blue,
+  Flower_Crown: LilHead_Flower_Crown,
+  Flower_Pink: LilHead_Flower_Pink,
+  Flower_Purple: LilHead_Flower_Purple,
+  Flower_Red: LilHead_Flower_Red,
+  Flower_White: LilHead_Flower_White,
+  Flower_Yellow: LilHead_Flower_Yellow,
+  Grizzly_Bear_Hat: LilHead_Grizzly_Bear_Hat,
+  Hammerhead: LilHead_Hammerhead,
+  Hat_Black: LilHead_Hat_Black,
+  Hat_Blue: LilHead_Hat_Blue,
+  Hat_Green: LilHead_Hat_Green,
+  Hat_Red: LilHead_Hat_Red,
+  Headband: LilHead_Headband,
+  Headphones_Blue: LilHead_Headphones_Blue,
+  Headphones_Gold: LilHead_Headphones_Gold,
+  Ice_Crown: LilHead_Ice_Crown,
+  Jester_Hat: LilHead_Jester_Hat,
+  Kite_Red: LilHead_Kite_Red,
+  Leaf_Crown: LilHead_Leaf_Crown,
+  Leaf_Crown_Gold: LilHead_Leaf_Crown_Gold,
+  Lucky_Hat: LilHead_Lucky_Hat,
+  Macaroni: LilHead_Macaroni,
+  Mohawk_Green: LilHead_Mohawk_Green,
+  Mohawk_Orange: LilHead_Mohawk_Orange,
+  Mohawk_Purple: LilHead_Mohawk_Purple,
+  Mohawk_Red: LilHead_Mohawk_Red,
+  Ninja_Headband: LilHead_Ninja_Headband,
+  Panda_Hat: LilHead_Panda_Hat,
+  Party_Hat: LilHead_Party_Hat,
+  Party_Hat_Orange: LilHead_Party_Hat_Orange,
+  Party_Hat_Purple: LilHead_Party_Hat_Purple,
+  Pirate_Hat: LilHead_Pirate_Hat,
+  Polar_Bear_Hat: LilHead_Polar_Bear_Hat,
+  Red_Durag: LilHead_Red_Durag,
+  Rice_Hat: LilHead_Rice_Hat,
+  Sailors_Cap: LilHead_Sailors_Cap,
+  Santa_Hat: LilHead_Santa_Hat,
+  Shark: LilHead_Shark,
+  Shark_Albino: LilHead_Shark_Albino,
+  Sideways_Black: LilHead_Sideways_Black,
+  Sideways_Blue: LilHead_Sideways_Blue,
+  Sideways_Green: LilHead_Sideways_Green,
+  Sideways_Red: LilHead_Sideways_Red,
+  Sombrero: LilHead_Sombrero,
+  Sombrero_Black: LilHead_Sombrero_Black,
+  Top_Hat_Black: LilHead_Top_Hat_Black,
+  Top_Hat_Gold: LilHead_Top_Hat_Gold,
+  Top_Hat_Gold_Tall: LilHead_Top_Hat_Gold_Tall,
+  Top_Hat_Tall: LilHead_Top_Hat_Tall,
+  Viking_Helmet: LilHead_Viking_Helmet,
+  Viking_Helmet_Black: LilHead_Viking_Helmet_Black,
+  Visor_Blue: LilHead_Visor_Blue,
+  Visor_Green: LilHead_Visor_Green,
+  Wizard_Hat: LilHead_Wizard_Hat,
 };
 
 // Head traits that require Template_2 instead of the default Template
@@ -1001,9 +1215,12 @@ const PFPConverter = () => {
 
       // 3. Apply head trait overlay (top layer for Big, middle for Lil)
       if (headTrait) {
-        if (useLilMode) {
-          // TODO: Add LIL_HEAD_TRAIT_MAP when Lil head traits are uploaded
-          console.log(`Lil mode: No Lil head overlay available for: ${headTrait}`);
+        if (useLilMode && LIL_HEAD_TRAIT_MAP[headTrait]) {
+          console.log(`Applying Lil head trait: ${headTrait}`);
+          const headOverlay = await loadImage(LIL_HEAD_TRAIT_MAP[headTrait]);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        } else if (useLilMode) {
+          console.log(`No Lil overlay found for head trait: ${headTrait}`);
         } else if (HEAD_TRAIT_MAP[headTrait]) {
           console.log(`Applying head trait: ${headTrait}`);
           const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
