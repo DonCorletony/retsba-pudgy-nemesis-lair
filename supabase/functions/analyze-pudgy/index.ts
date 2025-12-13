@@ -950,24 +950,24 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - LEFT eye (right side of image): CLOSED, depicted as a < shape (sideways V)
 - CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
-"Cross_Eyed" (TWO PERFECTLY CIRCULAR BLACK DOTS CLOSE TOGETHER):
+"Cross_Eyed" (TINY CIRCULAR BEADY EYES CLOSE TOGETHER - NO OVALS):
 - NO glasses
-- TWO PERFECTLY CIRCULAR BLACK DOTS (not ovals - CIRCLES)
-- The dots are positioned CLOSE TOGETHER toward the center of the face
-- Much smaller and rounder than Normal oval eyes
-- CRITICAL: CIRCULAR shape (not oval) + positioned close together = Cross_Eyed
-- CRITICAL: This is DIFFERENT from Normal which has OVAL-shaped eyes spaced apart
+- TWO SMALL, PERFECTLY CIRCULAR BLACK DOTS (NOT ovals)
+- The dots are positioned VERY CLOSE TOGETHER near the center of the face
+- Much smaller and rounder than Normal eyes
+- NO eyelid line, NO white highlights, just solid black circles
+- IMPORTANT: On Lil Pudgys this trait is drawn as simple beady circular eyes; they do NOT visibly "cross"
+- CRITICAL: If you see TINY CIRCULAR beady dots instead of oval eyes → choose Cross_Eyed, NEVER Normal
 
-"Normal" (PLAIN OVAL BLACK EYES - SAME SIZE):
+"Normal" (LARGER OVAL EYES, SPACED APART):
 - NO glasses
-- TWO OVAL-SHAPED BLACK MARKS of the SAME SIZE
-- Both eyes are IDENTICAL in size and shape - symmetrical
-- COMPLETELY SOLID black ovals - NO horizontal line or eyelid
-- FULLY OPEN oval eyes with no squinting or partial closure
-- Eyes are OVAL shaped and spaced apart normally
-- CRITICAL: OVAL shape + normal spacing = Normal
-- CRITICAL: CIRCULAR dots close together = Cross_Eyed (not Normal)
+- TWO OVAL-SHAPED BLACK EYES of the SAME SIZE
+- Eyes are noticeably LARGER than Cross_Eyed dots and clearly OVAL (longer than they are wide)
+- Eyes are spaced APART at a normal distance across the face
+- COMPLETELY SOLID black ovals - NO horizontal line or eyelid, NO highlights
+- CRITICAL: If you see REGULAR-SIZED OVAL eyes spaced apart → choose Normal, NEVER Cross_Eyed
 - CRITICAL: If eyes are DIFFERENT SIZES → Curious (not Normal)
+- CRITICAL: If you see TINY CIRCULAR dots close together → Cross_Eyed (not Normal)
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
@@ -996,8 +996,12 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - NO glasses + red oval blush marks → Blushing
 - NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
-- NO glasses + TWO PERFECTLY CIRCULAR SMALL BLACK DOTS positioned CLOSE TOGETHER toward center → Cross_Eyed
-- NO glasses + TWO OVAL-SHAPED BLACK EYES spaced apart normally (no line, no white dots) → Normal
+- NO glasses + TWO TINY, PERFECTLY CIRCULAR BLACK DOTS close together near center → Cross_Eyed
+- NO glasses + TWO LARGER OVAL BLACK EYES spaced apart normally (no line, no highlights) → Normal
+
+FINAL LIL NO-GLASSES RULE (NO GLASSES VISIBLE):
+- If the eyes are TINY CIRCULAR BEADY DOTS close together → face = "Cross_Eyed" (even if they don't look traditionally "crossed")
+- If the eyes are LARGER OVALS spaced apart → face = "Normal"
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
