@@ -227,6 +227,7 @@ const AVAILABLE_LIL_BODY_TRAITS = [
   "Christmas_Sweater_Red",
   "Christmas_Sweater_Tan",
   "Electric_Coat",
+  "Ice_Coat",
   "Fish_Lover",
   "Fish_Lover_Blue",
   "Flannel_Blue",

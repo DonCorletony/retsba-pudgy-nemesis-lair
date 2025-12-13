@@ -226,6 +226,7 @@ import LilBody_Christmas_Sweater_Purple from '@/assets/pfp-traits/lil/body/Chris
 import LilBody_Christmas_Sweater_Red from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Red.png';
 import LilBody_Christmas_Sweater_Tan from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Tan.png';
 import LilBody_Electric_Coat from '@/assets/pfp-traits/lil/body/Electric_Coat.png';
+import LilBody_Ice_Coat from '@/assets/pfp-traits/lil/body/Ice_Coat.png';
 import LilBody_Fish_Lover from '@/assets/pfp-traits/lil/body/Fish_Lover.png';
 import LilBody_Fish_Lover_Blue from '@/assets/pfp-traits/lil/body/Fish_Lover_Blue.png';
 import LilBody_Flannel_Blue from '@/assets/pfp-traits/lil/body/Flannel_Blue.png';
@@ -559,6 +560,7 @@ const LIL_BODY_TRAIT_MAP: Record<string, string> = {
   Christmas_Sweater_Red: LilBody_Christmas_Sweater_Red,
   Christmas_Sweater_Tan: LilBody_Christmas_Sweater_Tan,
   Electric_Coat: LilBody_Electric_Coat,
+  Ice_Coat: LilBody_Ice_Coat,
   Fish_Lover: LilBody_Fish_Lover,
   Fish_Lover_Blue: LilBody_Fish_Lover_Blue,
   Flannel_Blue: LilBody_Flannel_Blue,
