@@ -918,20 +918,24 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - BLACK lenses (completely dark)
 - Simple thin-framed round glasses
 
-"Curious" (ASYMMETRICAL IRREGULAR EYES - ONE EYE BIGGER):
+"Curious" (ASYMMETRICAL EYES - DIFFERENT SHAPES):
 - NO glasses
-- Eyes are CLEARLY ASYMMETRICAL - one eye is LARGER/TALLER than the other
-- LEFT eye (right side of image): SMALLER, more circular/narrow oval
-- RIGHT eye (left side of image): LARGER, taller oval shape
-- The size DIFFERENCE between eyes is the KEY identifier
-- Both eyes are solid black ovals, but one is NOTICEABLY BIGGER than the other
-- This gives a curious/inquisitive expression
-- CRITICAL: If the two eyes are DIFFERENT SIZES → Curious (not Normal)
+- NO red blush marks on cheeks
+- Eyes are TWO DIFFERENT SHAPES (not just different sizes):
+- RIGHT eye (left side of image from viewer): An IRREGULARLY SHAPED OVAL - elongated, slightly tilted
+- LEFT eye (right side of image from viewer): A ROUNDED TRIANGLE shape - pointed at bottom, rounded at top
+- The two eyes are COMPLETELY DIFFERENT SHAPES from each other
+- Both eyes are solid BLACK - no red marks anywhere
+- CRITICAL: Different EYE SHAPES (oval + triangle) → Curious
+- CRITICAL: NO red marks on face → Curious (Blushing has RED cheek marks)
 
-"Blushing" (RED OVAL BLUSH MARKS):
+"Blushing" (RED OVAL BLUSH MARKS ON CHEEKS):
 - NO glasses
-- TWO RED OVALS on cheeks (blush marks)
-- Simple blushing expression
+- Has TWO RED OVALS on the CHEEKS (below/beside the eyes)
+- The red marks are BLUSH MARKS - they are RED colored, not black
+- Eyes themselves are normal black ovals
+- CRITICAL: If you see RED MARKS on cheeks → Blushing
+- CRITICAL: If NO red marks and eyes are different shapes → Curious (not Blushing)
 
 "Mad" (ANGRY/SQUINTING EXPRESSION WITH HORIZONTAL LINE):
 - NO glasses
