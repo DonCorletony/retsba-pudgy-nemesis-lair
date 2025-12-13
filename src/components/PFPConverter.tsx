@@ -1622,7 +1622,7 @@ const PFPConverter = () => {
         {/* Mobile Toggle */}
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-black dark:text-white">
-            {showMobileResult ? 'Retsbafied' : isLilMode ? 'Your Lil' : 'Your Pudgy'}
+            {showMobileResult ? 'Retsbafied' : isLilMode ? 'Your Lil (Beta)' : 'Your Pudgy'}
           </h2>
           <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 rounded-full px-3 py-1.5">
             <span className={`text-xs font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
@@ -1634,7 +1634,7 @@ const PFPConverter = () => {
               className="data-[state=checked]:bg-primary scale-90"
             />
             <span className={`text-xs font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-              Lil
+              Lil (Beta)
             </span>
           </div>
         </div>
@@ -1766,7 +1766,7 @@ const PFPConverter = () => {
         {/* Headers row with toggle in center */}
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="text-left">
-            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? 'Your Lil' : 'Your Pudgy'}</h2>
+            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? 'Your Lil (Beta)' : 'Your Pudgy'}</h2>
             <p className="text-black/60 dark:text-white/60 text-sm">{isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}</p>
           </div>
           <div className="flex items-start justify-between">
@@ -1784,7 +1784,7 @@ const PFPConverter = () => {
                 className="data-[state=checked]:bg-primary"
               />
               <span className={`text-sm font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-                Lil
+                Lil (Beta)
               </span>
             </div>
           </div>
