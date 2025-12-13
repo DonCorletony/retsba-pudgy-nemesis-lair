@@ -1117,7 +1117,7 @@ LIL HEAD TRAIT EXAMPLES:
 - "Backwards_Red" = A RED cap with a blue bill, facing BACKWARD.
 - "Backwards_Green" = A GREEN cap with a red bill, facing BACKWARDS.
 - "Backwards_Hat_Black" = A standard BLACK ballcap, facing BACKWARD.
-- "Leaf_Crown_Gold" = A GOLDEN "crown" composed ONLY of gold leaf shapes on the head, with some sparkles. NO pink flowers, NO colored petals.
+- "Leaf_Crown_Gold" = A GOLDEN "crown" composed of MULTIPLE CONNECTED GOLDEN LEAF SHAPES forming a band/crown across the head, with sparkles. NOT a single flower - it's a STRING OF GOLDEN LEAVES. NO pink flowers, NO colored petals, NO single flower.
 - "Leaf_Crown" = A "crown" of GREEN leaves on the head. NO gold metal structure, just green leaf shapes.
 - "Durag_Purple" = A PURPLE durag. Features both dark and lighter purple.
 - "Durag_Leopard" = A BROWN durag with BLACK leopard spots.
@@ -1129,10 +1129,14 @@ LIL HEAD TRAIT EXAMPLES:
 - "Polar_Bear_Hat" = A WHITE hat in the shape of a polar bear head.
 - "Grizzly_Bear_Hat" = A BROWN hat in the shape of a grizzly bear head.
 - "Panda_Hat" = A blue and off-white hat in the shape of a panda head.
-- "Flower_White" = A single WHITE flower on the head with a yellow center.
-- "Flower_Yellow" = A single YELLOW flower on the head.
-- "Flower_Pink" = A single PINK flower on the head with yellow center.
-- "Flower_Red" = A single RED flower with yellow center on the head.
+- "Flower_White" = A SINGLE WHITE flower on the head with a yellow center. ONE flower only.
+- "Flower_Yellow" = A SINGLE YELLOW flower on the head. ONE flower only, NOT multiple leaves forming a crown.
+- "Flower_Pink" = A SINGLE PINK flower on the head with yellow center. ONE flower only.
+- "Flower_Red" = A SINGLE RED flower with yellow center on the head. ONE flower only.
+
+FLOWER vs LEAF CROWN DECISION RULES:
+- If you see ONE SINGLE FLOWER on the head → head = "Flower_Yellow", "Flower_Pink", etc. (based on color)
+- If you see MULTIPLE CONNECTED GOLDEN LEAF SHAPES forming a band/crown → head = "Leaf_Crown_Gold" (NOT Flower_Yellow)
 - "Flower_Purple" = A single PURPLE flower on the head with yellow center.
 - "Flower_Blue" = A single BLUE flower on the head with yellow center.
 - "Flower_Crown" = A golden crown with a pointy top, with sparkle and a ROW OF PINK FLOWERS with GREEN LEAVES in the center.
@@ -2044,6 +2048,22 @@ Return ONLY valid JSON in this exact format:
     if (traits.isLilPudgy === true && traits.isPudgy === false) {
       console.log('POST-PROCESSING: Fixed contradiction - isLilPudgy=true implies isPudgy=true');
       traits.isPudgy = true;
+    }
+
+    // POST-PROCESSING: Fix Flower_Yellow vs Leaf_Crown_Gold misidentification
+    // If description mentions "crown", "leaves", "band", "multiple" → it's Leaf_Crown_Gold, not Flower_Yellow
+    if (traits.traits?.head === 'Flower_Yellow') {
+      const descLower = description.toLowerCase();
+      const hasLeafCrownIndicators = descLower.includes('crown') || 
+                                      descLower.includes('leaves') || 
+                                      descLower.includes('leaf') ||
+                                      descLower.includes('band') ||
+                                      descLower.includes('golden leaves') ||
+                                      descLower.includes('gold leaves');
+      if (hasLeafCrownIndicators) {
+        console.log('POST-PROCESSING: Flower_Yellow → Leaf_Crown_Gold (description mentions crown/leaves/band)');
+        traits.traits.head = 'Leaf_Crown_Gold';
+      }
     }
 
     // Add metadata about available traits for the frontend
