@@ -1831,6 +1831,17 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // Additional body recovery for black igloo t-shirt (Shirt_Black)
+    if ((!traits.traits?.body || traits.traits.body === null) && description.includes("igloo") && description.includes("logo")) {
+      const hasShirtWord = description.includes("shirt") || description.includes("t-shirt") || description.includes("t shirt") || description.includes("tee");
+      const hasBlack = description.includes("black");
+      
+      if (hasShirtWord && hasBlack) {
+        console.log("BODY RECOVERY: Detected black t-shirt with igloo logo → Shirt_Black");
+        traits.traits.body = "Shirt_Black";
+      }
+    }
+    
     // If AI returned null for body but description mentions a known body trait, recover it
     if (!traits.traits?.body || traits.traits.body === null) {
       const bodyTraitKeywords: Record<string, string> = {

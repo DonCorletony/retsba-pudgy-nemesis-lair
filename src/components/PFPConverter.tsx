@@ -722,6 +722,8 @@ const LIL_HEAD_TRAIT_MAP: Record<string, string> = {
   Backwards_Green: LilHead_Backwards_Green,
   Backwards_Hat_Black: LilHead_Backwards_Hat_Black,
   Backwards_Red: LilHead_Backwards_Red,
+  Backwards_Hat_Red: LilHead_Backwards_Red,
+  Backwards_Hat_Blue: LilHead_Backwards_Blue,
   Beanie_Black: LilHead_Beanie_Black,
   Beanie_Blue: LilHead_Beanie_Blue,
   Beanie_Gray: LilHead_Beanie_Gray,
