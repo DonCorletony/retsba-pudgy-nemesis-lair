@@ -536,11 +536,26 @@ serve(async (req) => {
 
     console.log("Analyzing Pudgy Penguin image for traits...");
 
-    const headTraitsList = AVAILABLE_HEAD_TRAITS.join(", ");
-    const lilHeadTraitsList = AVAILABLE_LIL_HEAD_TRAITS.join(", ");
-    const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
-    const lilFaceTraitsList = AVAILABLE_LIL_FACE_TRAITS.join(", ");
-    const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
+    // Only include trait lists relevant to the expected mode
+    const isLilMode = expectedMode === 'lil';
+    const isBigMode = expectedMode === 'big';
+    
+    // Head traits - mode specific
+    const headTraitsList = isBigMode ? AVAILABLE_HEAD_TRAITS.join(", ") : 
+                           isLilMode ? AVAILABLE_LIL_HEAD_TRAITS.join(", ") : 
+                           [...AVAILABLE_HEAD_TRAITS, ...AVAILABLE_LIL_HEAD_TRAITS].join(", ");
+    
+    // Face traits - mode specific
+    const faceTraitsList = isBigMode ? AVAILABLE_FACE_TRAITS.join(", ") : 
+                           isLilMode ? AVAILABLE_LIL_FACE_TRAITS.join(", ") : 
+                           [...AVAILABLE_FACE_TRAITS, ...AVAILABLE_LIL_FACE_TRAITS].join(", ");
+    
+    // Body traits - mode specific
+    const bodyTraitsList = isBigMode ? AVAILABLE_BODY_TRAITS.join(", ") : 
+                           isLilMode ? AVAILABLE_LIL_BODY_TRAITS.join(", ") : 
+                           [...AVAILABLE_BODY_TRAITS, ...AVAILABLE_LIL_BODY_TRAITS].join(", ");
+    
+    // Flipper traits (Lil only)
     const lilRightFlipperTraitsList = AVAILABLE_LIL_RIGHT_FLIPPER_TRAITS.join(", ");
     const lilLeftFlipperTraitsList = AVAILABLE_LIL_LEFT_FLIPPER_TRAITS.join(", ");
 
@@ -642,12 +657,10 @@ DECISION:
 
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
-- For BIG PUDGY: ${headTraitsList}
-- For LIL PUDGY: ${lilHeadTraitsList}
+${headTraitsList}
 
 IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or null if no face trait):
-- For BIG PUDGY (larger, rounder penguin with bigger body proportions): ${faceTraitsList}
-- For LIL PUDGY (smaller, cuter baby penguin with smaller proportions): ${lilFaceTraitsList}
+${faceTraitsList}
 
 IMPORTANT: For the "body" trait, you MUST return one of these EXACT values (or null if no body trait):
 ${bodyTraitsList}
