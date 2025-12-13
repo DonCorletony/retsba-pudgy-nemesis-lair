@@ -1214,11 +1214,13 @@ BODY TRAIT EXAMPLES:
 - "Lei_Blue" = A string of BLUE flowers around the neck with yellow centers.
 - "Lei_Purple" = A string of PURPLE flowers around the neck with yellow centers.
 - "Lei_Pink" = A string of PINK flowers with yellow centers around the neck.
-- "Lei_Assorted" = A string of flowers around the neck with blue, purple, and pink petals with yellow centers.
+- "Lei_Assorted" = A single string of PINK, PURPLE, and BLUE flowers around the neck with yellow centers.
 - "Hoodie_Black" = A black hoodie with a white igloo on the front.
-- "Hoodie_Pink" = A pink hoodie with white igloo logo on the front.
+- "Hoodie_Pink" = A PINK hoodie with WHITE igloo logo on the front.
 - "Hoodie_Red" = A RED hoodie with white igloo logo on the front.
 - "Hoodie_GM" = A BLUE hoodie with ORANGE burst coloration in the center, with "GM" written on the front in BLACK.
+- "Hoodie_Orange" = An ORANGE hoodie with WHITE igloo logo on the front.
+- "Hoodie_Purple" = A PURPLE hoodie with WHITE igloo logo on the front.
 - "Puffer_Orange" = An ORANGE sleeveless puffer jacket. Distinguished from Puffer_Red by its orange color.
 - "Puffer_Blue" = A BLUE sleeveless puffer jacket.
 - "Puffer_Green" = A GREEN sleeveless puffer jacket.
@@ -1234,7 +1236,7 @@ BODY TRAIT EXAMPLES:
 - "Bronze_Medal" = A BRONZE medal on a red, white, and blue necklace/band.
 - "Silver_Medal" = A SILVER medal on a red, white, and blue band.
 - "Gold_Medal" = A gold medal with a red/white/blue band.
-- "Hawaiian_Shirt" = A turquoise blue hawaiian shirt with purple palm trees on it.
+- "Hawaiian_Shirt" = A BLUE/TEAL hawaiian shirt with PURPLE palm trees on it.
 - "Hawaiian_Shirt_Flower" = A BLUE hawaiian shirt with some lighter BLUE FLOWERS on it.
 - "Scarf_Pink" = A PINK scarf.
 - "Scarf_Blue" = A BLUE scarf.
@@ -1245,11 +1247,11 @@ BODY TRAIT EXAMPLES:
 - "Poncho_Black" = A BLACK poncho with large SILVER triangle design on it.
 - "Poncho_Blue" = A BLUE poncho with large YELLOW triangle design on it.
 - "Poncho_Pink" = A light PINK poncho with darker pink large triangle design on it.
-- "Surfboard_Necklace" = A blue surfboard pendant on a black string necklace.
+- "Surfboard_Necklace" = A BLACK string necklace with a BLUE surfboard pendant on it.
 - "Christmas_Lights" = A string of RED and WHITE christmas lights around the neck.
 - "Ice_Coat" = A BLACK akatsuki-style cloak from naruto, with a blue zipper down the center and blue designs on the sleeves.
 - "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW designs on it and YELLOW zipper down the center.
-- "Tribal_Necklace" = A string necklace with big off-white triangles hanging off of it.
+- "Tribal_Necklace" = A BLACK string necklace with multiple OFF-WHITE triangle shapes hanging off of it.
 - "Heart" = A lone heart on the Pudgy's chest.
 - "Birthmark" = A single RED HEART on the belly.
 - "Crop_Top" = A red croptop-style shirt, exposing the belly. PLAIN with no logo.
@@ -1258,9 +1260,11 @@ BODY TRAIT EXAMPLES:
 - "Small_T_Red" = A crop-top style RED tshirt, cut short to expose the belly.
 - "Biker_Jacket" = A black leather jacket with gray spikes on the shoulders.
 - "Swordman" = An orange kimono with black triangles, with the hilt of a sword showing on the back.
+- "Caveman" = An ORANGE caveman outfit with BROWN spots.
 - "Suit_White" = An all WHITE suit, complete with white jacket and white bowtie.
-- "Suit_Blue" = A black suit with a white button up undershirt and blue bowtie.
+- "Suit_Blue" = A BLUE suit jacket with BLUE bowtie and WHITE undershirt.
 - "Suit_Red" = A RED suit jacket with red bowtie and WHITE undershirt.
+- "Suit_Black" = A BLACK suit jacket with BLACK bowtie and WHITE undershirt.
 - "Pudgy_Man" = A blue superman-style outfit with a red cape and PM logo on the front.
 - "I_Love_Fish" = A white shirt with green collar and green sleeves which reads "I (heart) fish".
 - "Fish_Lover_Blue" = A BLUE tshirt that says "Fish Lover" on the front in BLACK text.
@@ -1270,19 +1274,19 @@ BODY TRAIT EXAMPLES:
 - "Gold_Chain" = A gold metal chainlink necklace.
 - "Christmas_Sweater_Blue" = A BLUE christmas sweater with WHITE snowflakes on it.
 - "Christmas_Sweater_Red" = A red sweater with white snowflakes.
-- "Christmas_Sweater_Green" = A green christmas sweater with white snowflakes.
-- "Christmas_Sweater_Purple" = A purple christmas sweater with white snowflakes.
-- "Christmas_Sweater_Tan" = A tan christmas sweater with white snowflakes.
+- "Christmas_Sweater_Green" = A GREEN christmas sweater with WHITE snowflakes on it.
+- "Christmas_Sweater_Purple" = A PURPLE sweater with WHITE snowflakes on it.
+- "Christmas_Sweater_Tan" = A LIGHT BROWN sweater with ORANGE and WHITE snowflakes on it.
 - "The_Huddle" = A pink shirt with "the Huddle" written on the front in dark pink.
 - "Huddle" = A PURPLE shirt that says "huddle" on the front.
 - "Huddle_Lime" = A GREEN tshirt with "Huddle" written on the front in green.
 - "Tank_Top_White" = A sleeveless WHITE tank top with white surfboard logo on the front.
-- "Tank_Top_Blue" = A blue tanktop with a white surfboard on the front.
-- "Tank_Top_Yellow" = A yellow tanktop with a blue surfboard on the front.
+- "Tank_Top_Blue" = A BLUE tank top with WHITE collar and WHITE surfboard on the front.
+- "Tank_Top_Yellow" = A YELLOW tank top with BLUE collar and BLUE surfboard on the front.
 - "Tank_Top_Red" = A red sleeveless tank top.
 - "Vote_4_Pudgy" = A WHITE t shirt with red collar and "Vote 4 Pudgy" on the front in RED text.
 - "Labcoat" = A white labcoat with blue undershirt.
-- "Apron" = A green chef's apron which reads "Pudge" in white letters.
+- "Apron" = A GREEN apron that says "Pudgy" on the front in WHITE text.
 - "Shirt_Red" = A MAROON t shirt with white igloo logo on the front. MUST have visible white logo.
 - "Shirt_Blue" = A LIGHT BLUE shirt with white igloo logo on front.
 - "Shirt_Green" = A GREEN t shirt with white igloo logo on the front.
@@ -1315,9 +1319,9 @@ BODY TRAIT EXAMPLES:
 - "PJs_Dots_Orange" = An ORANGE pajama style outfit with lighter orange polka dots.
 - "PJs_Dots_Yellow" = A DARK BLUE pajama style outfit with YELLOW polkadots.
 - "Football_Jersey_Green" = A GREEN/TURQUOISE color jersey with pink accents and a white "1" on the front.
-- "Football_Jersey_Navy" = A navy football jersey.
-- "Football_Jersey_Purple" = A purple football jersey.
-- "Football_Jersey_Red" = A red football jersey.
+- "Football_Jersey_Navy" = A DARK NAVY BLUE football jersey with "6" on the front.
+- "Football_Jersey_Purple" = A PURPLE jersey with YELLOW collar and "7" on the front.
+- "Football_Jersey_Red" = A RED football jersey with BLACK collar and "2" on the front.
 - "Basketball_Jersey_Blue" = A BLUE sleeveless basketball jersey with "1" on the front.
 - "Basketball_Jersey_Black" = A BLACK sleeveless basketball jersey with red collar and "1" on the front.
 - "Basketball_Jersey_Pink" = A PINK sleeveless basketball jersey with blue collar and "23" on the front.
@@ -1329,13 +1333,13 @@ CRITICAL - KIMONO DISTINCTION (LOOK AT THE PATTERN):
 - "Kimono_Orange" = An ORANGE kimono with WHITE TRIANGLES on it.
 - "Kimono_Gray" = A GRAY kimono with white stripe down the lapels.
 - "Kimono_Abstract" = A kimono, PURPLE in color on the right side, with a GREEN/YELLOW geometrical design on the opposite left side, and white stripe down the lapels.
-- "Kimono_Red" = A solid orange-red kimono with a white stripe around the lapels.
+- "Kimono_Red" = A RED kimono with BLACK TRIANGLE pattern and WHITE stripe down the lapels.
 - "Kimono_White" = A white kimono with black triangles on it.
 - "Kimono_Pink" = A pink Kimono with dark pink flowers.
-- "Kimono_Black" = A black kimono.
+- "Kimono_Black" = A BLACK kimono with RED TRIANGLE pattern and RED stripe down the lapels.
 - "Kimono_Flower_Pink" = A pink kimono with flower designs.
-- "Kimono_Flower_Purple" = A purple kimono with flower designs.
-KEY: If the kimono is RED with simple WHITE EDGE TRIM → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange".
+- "Kimono_Flower_Purple" = A LIGHT PURPLE kimono with DARKER PURPLE flowers on it and WHITE stripe down the lapels.
+KEY: If the kimono is RED with BLACK TRIANGLES → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange". If BLACK with RED TRIANGULAR pattern → "Kimono_Black".
 - "Bathrobe" = An off-white bathrobe. Similar to a Kimono, but the two lapels meet together at the bottom of the image to form a 'V' shape, while Kimonos have a completely open front.
 
 CRITICAL - CROP_TOP vs SHIRT_RED (YOU MUST GET THIS RIGHT):
