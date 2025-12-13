@@ -964,6 +964,7 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - OVAL-SHAPED eyes with a HORIZONTAL LINE cutting through the UPPER HALF
 - This horizontal line gives the appearance of SQUINTING or ANGRY eyes
 - CRITICAL: The line makes the eyes look half-closed or narrowed in anger
+- In your natural-language description, explicitly mention that the eyes look "angry", "mad", or "squinting" whenever you choose this trait.
 
 "Winking" (ONE EYE OPEN, ONE EYE CLOSED AS < SHAPE):
 - NO glasses
@@ -1752,6 +1753,31 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // ----- FACE RECOVERY FROM DESCRIPTION WHEN FACE IS NULL -----
+    // Sometimes the model omits the face trait but clearly describes angry/squinting eyes.
+    if ((!traits.traits?.face || traits.traits.face === null) && description) {
+      const hasMadKeywords =
+        description.includes("angry") ||
+        description.includes("mad") ||
+        description.includes("furrowed brow") ||
+        description.includes("furrowed eyebrows") ||
+        description.includes("scowl");
+      const hasSquintKeywords =
+        description.includes("squint") ||
+        description.includes("squinting") ||
+        description.includes("narrowed eyes") ||
+        description.includes("half-closed eyes") ||
+        description.includes("horizontal line through the eyes") ||
+        description.includes("horizontal line across the eyes");
+
+      if (hasMadKeywords || hasSquintKeywords) {
+        console.log("FACE RECOVERY: null → Mad (description indicates angry/squinting eyes)");
+        traits.traits.face = "Mad";
+      }
+    }
+    
+    // ----- FACE OVERRIDE: "Normal" on Lil Pudgys should be null (base eyes) -----
+
     // ----- FACE OVERRIDE: "Normal" on Lil Pudgys should be null (base eyes) -----
     // The base Lil eyes (black ovals with white highlights) are the default and should have no face trait
     if (traits.isLilPudgy === true && traits.traits?.face === "Normal") {
