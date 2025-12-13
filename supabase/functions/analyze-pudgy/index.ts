@@ -62,6 +62,114 @@ const AVAILABLE_HEAD_TRAITS = [
   "Wizard_Hat"
 ];
 
+// Available head trait overlays for Lil Pudgys - these must match exactly to the file names
+const AVAILABLE_LIL_HEAD_TRAITS = [
+  "Afro",
+  "Afro_Gold_Pick",
+  "Backwards_Blue",
+  "Backwards_Green",
+  "Backwards_Hat_Black",
+  "Backwards_Red",
+  "Beanie_Black",
+  "Beanie_Blue",
+  "Beanie_Gray",
+  "Beanie_Orange",
+  "Beanie_Pink",
+  "Beanie_Tan",
+  "Beanie_White",
+  "Biker_Helmet",
+  "Biker_Helmet_Black",
+  "Blue_Durag",
+  "Bow_Blue",
+  "Bow_Purple",
+  "Bow_Red",
+  "Bowl_Cut",
+  "Bowl_Cut_Blonde",
+  "Bowl_Cut_Red",
+  "Bucket_Hat_Black",
+  "Bucket_Hat_Blue",
+  "Bucket_Hat_Green",
+  "Bucket_Hat_Red",
+  "Bucket_Hat_Tan",
+  "Chefs_Hat",
+  "Construction_Helmet",
+  "Cowboy_Hat",
+  "Cowboy_Hat_Tall",
+  "Crown",
+  "Durag_Leopard",
+  "Durag_Purple",
+  "Ear_Muffs",
+  "Egg_Shell",
+  "Egg_Shell_Gold",
+  "Elf_Hat",
+  "Fireman_Helmet",
+  "Fish_Blue",
+  "Fish_Gold",
+  "Fish_Gray",
+  "Fish_Green",
+  "Fish_Orange",
+  "Fish_Red",
+  "Flat_Cap_Black",
+  "Flat_Cap_Blue",
+  "Flat_Cap_Green",
+  "Flat_Cap_Tan",
+  "Flower_Blue",
+  "Flower_Crown",
+  "Flower_Pink",
+  "Flower_Purple",
+  "Flower_Red",
+  "Flower_White",
+  "Flower_Yellow",
+  "Grizzly_Bear_Hat",
+  "Hammerhead",
+  "Hat_Black",
+  "Hat_Blue",
+  "Hat_Green",
+  "Hat_Red",
+  "Headband",
+  "Headphones_Blue",
+  "Headphones_Gold",
+  "Ice_Crown",
+  "Jester_Hat",
+  "Kite_Red",
+  "Leaf_Crown",
+  "Leaf_Crown_Gold",
+  "Lucky_Hat",
+  "Macaroni",
+  "Mohawk_Green",
+  "Mohawk_Orange",
+  "Mohawk_Purple",
+  "Mohawk_Red",
+  "Ninja_Headband",
+  "Panda_Hat",
+  "Party_Hat",
+  "Party_Hat_Orange",
+  "Party_Hat_Purple",
+  "Pirate_Hat",
+  "Polar_Bear_Hat",
+  "Red_Durag",
+  "Rice_Hat",
+  "Sailors_Cap",
+  "Santa_Hat",
+  "Shark",
+  "Shark_Albino",
+  "Sideways_Black",
+  "Sideways_Blue",
+  "Sideways_Green",
+  "Sideways_Red",
+  "Sombrero",
+  "Sombrero_Black",
+  "Top_Hat_Black",
+  "Top_Hat_Gold",
+  "Top_Hat_Gold_Tall",
+  "Top_Hat_Tall",
+  "Viking_Helmet",
+  "Viking_Helmet_Black",
+  "Visor_Blue",
+  "Visor_Green",
+  "Wizard_Hat"
+];
+
 // Available face trait overlays for Big Pudgys - these must match exactly to the file names
 const AVAILABLE_FACE_TRAITS = [
   "Handlebar_Bear",
@@ -428,6 +536,7 @@ serve(async (req) => {
     console.log("Analyzing Pudgy Penguin image for traits...");
 
     const headTraitsList = AVAILABLE_HEAD_TRAITS.join(", ");
+    const lilHeadTraitsList = AVAILABLE_LIL_HEAD_TRAITS.join(", ");
     const faceTraitsList = AVAILABLE_FACE_TRAITS.join(", ");
     const lilFaceTraitsList = AVAILABLE_LIL_FACE_TRAITS.join(", ");
     const bodyTraitsList = AVAILABLE_BODY_TRAITS.join(", ");
@@ -532,7 +641,8 @@ DECISION:
 
 
 IMPORTANT: For the "head" trait, you MUST return one of these EXACT values (or null if no head trait):
-${headTraitsList}
+- For BIG PUDGY: ${headTraitsList}
+- For LIL PUDGY: ${lilHeadTraitsList}
 
 IMPORTANT: For the "face" trait, you MUST return one of these EXACT values (or null if no face trait):
 - For BIG PUDGY (larger, rounder penguin with bigger body proportions): ${faceTraitsList}
@@ -808,11 +918,15 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - BLACK lenses (completely dark)
 - Simple thin-framed round glasses
 
-"Curious" (ASYMMETRICAL IRREGULAR EYES):
+"Curious" (ASYMMETRICAL IRREGULAR EYES - ONE EYE BIGGER):
 - NO glasses
-- Eyes are ASYMMETRICAL - each eye has a DIFFERENT irregular shape
-- The two eyes do NOT match each other
-- Unique expression with mismatched eye shapes
+- Eyes are CLEARLY ASYMMETRICAL - one eye is LARGER/TALLER than the other
+- LEFT eye (right side of image): SMALLER, more circular/narrow oval
+- RIGHT eye (left side of image): LARGER, taller oval shape
+- The size DIFFERENCE between eyes is the KEY identifier
+- Both eyes are solid black ovals, but one is NOTICEABLY BIGGER than the other
+- This gives a curious/inquisitive expression
+- CRITICAL: If the two eyes are DIFFERENT SIZES → Curious (not Normal)
 
 "Blushing" (RED OVAL BLUSH MARKS):
 - NO glasses
@@ -831,12 +945,14 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - LEFT eye (right side of image): CLOSED, depicted as a < shape (sideways V)
 - CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
-"Normal" (PLAIN OVAL BLACK EYES):
+"Normal" (PLAIN OVAL BLACK EYES - SAME SIZE):
 - NO glasses
-- TWO LARGER OVAL-SHAPED BLACK MARKS
+- TWO OVAL-SHAPED BLACK MARKS of the SAME SIZE
+- Both eyes are IDENTICAL in size and shape - symmetrical
 - COMPLETELY SOLID black ovals - NO horizontal line or eyelid
 - FULLY OPEN oval eyes with no squinting or partial closure
-- CRITICAL: Plain solid ovals with no lines = Normal
+- CRITICAL: If both eyes are the SAME SIZE → Normal
+- CRITICAL: If eyes are DIFFERENT SIZES → Curious (not Normal)
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
@@ -909,8 +1025,9 @@ THE IGLOO LOGO IS THE KEY:
 - "Mohawk_Purple" = A purple mohawk.
 - "Afro_with_Pick" = A poofy brown afro with a black hair pick sticking out of it.
 - "Hippy_Hair" = Also called "bowl cut". A brunette bowl cut style haircut.
-- "Blue_Durag" = A blue durag.
-- "Red_Durag" = A red durag.
+- "Blue_Durag" = A solid blue durag (head wrap).
+- "Red_Durag" = A solid red durag (head wrap).
+- "Durag_Leopard" = A TAN/BROWN durag with BLACK LEOPARD PRINT SPOTS. The fabric is tan/brown colored with black leopard spots pattern. NOT solid colored like Blue or Red durags.
 - "Headband" = A red, white, and blue headband.
 - "Ninja_Headband" = A black naruto-style headband with a silver front plate with a "PP" logo on it.
 - "Bucket_Hat_Green" = A green-colored bucket hat with a blue fishing lure, a yellow fishing lure, and a red fishing lure hanging off of it.
@@ -1194,21 +1311,33 @@ Return ONLY valid JSON in this exact format:
     // Validate and normalize the head trait
     if (traits.traits?.head) {
       const headTrait = traits.traits.head;
-      // Check if it's a valid trait
-      if (!AVAILABLE_HEAD_TRAITS.includes(headTrait)) {
+      const isLilPudgy = traits.isLilPudgy === true;
+      
+      // Check against appropriate list based on penguin type
+      const headTraitList = isLilPudgy ? AVAILABLE_LIL_HEAD_TRAITS : AVAILABLE_HEAD_TRAITS;
+      const allHeadTraits = [...AVAILABLE_HEAD_TRAITS, ...AVAILABLE_LIL_HEAD_TRAITS];
+      
+      // First check if it's in the appropriate list
+      if (headTraitList.includes(headTrait)) {
+        // Valid trait for this penguin type, keep it
+        console.log(`Valid ${isLilPudgy ? 'Lil' : 'Big'} head trait: ${headTrait}`);
+      } else if (allHeadTraits.includes(headTrait)) {
+        // Valid trait but for the other penguin type - still keep it
+        console.log(`Head trait "${headTrait}" is for ${isLilPudgy ? 'Big' : 'Lil'} Pudgy but keeping it`);
+      } else {
         console.log(`Head trait "${headTrait}" not in available list, attempting to match...`);
-        // Try to find a close match
+        // Try to find a close match in the combined list
         const normalizedInput = headTrait.toLowerCase().replace(/[\s-]/g, '_');
-        const match = AVAILABLE_HEAD_TRAITS.find(t => 
+        const match = allHeadTraits.find(t => 
           t.toLowerCase() === normalizedInput ||
           t.toLowerCase().includes(normalizedInput) ||
           normalizedInput.includes(t.toLowerCase())
         );
         if (match) {
-          console.log(`Matched to: ${match}`);
+          console.log(`Matched head to: ${match}`);
           traits.traits.head = match;
         } else {
-          console.log(`No match found for "${headTrait}", setting to null`);
+          console.log(`No match found for head trait "${headTrait}", setting to null`);
           traits.traits.head = null;
         }
       }
