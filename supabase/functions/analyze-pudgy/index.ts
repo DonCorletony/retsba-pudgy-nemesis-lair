@@ -1588,33 +1588,88 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
-    // Special-case correction: specific Lil with Kings_Robe_Red + Grizzly_Bear_Hat should be Cross_Eyed
-    if (
-      traits.isLilPudgy === true &&
-      traits.traits?.body === "Kings_Robe_Red" &&
-      traits.traits?.head === "Grizzly_Bear_Hat" &&
-      traits.traits?.face === "Normal"
-    ) {
-      console.log(
-        "Overriding Lil face trait from Normal to Cross_Eyed for Kings_Robe_Red + Grizzly_Bear_Hat combo",
-      );
-      traits.traits.face = "Cross_Eyed";
+    // ========== GLOBAL DESCRIPTION-AWARE OVERRIDES ==========
+    // These apply to ALL images, not specific combos
+    const description = (traits.description || "").toLowerCase();
+    
+    // ----- CROWN OVERRIDES (applies to all images) -----
+    if (traits.traits?.head === "Flower_Crown") {
+      // Check if description actually mentions pink flowers or green leaves
+      const hasPinkFlowers = description.includes("pink flower") || description.includes("pink rose") || description.includes("roses");
+      const hasGreenLeaves = description.includes("green leaf") || description.includes("green leaves");
+      const hasYellowLeafKeywords = description.includes("yellow leaf") || description.includes("gold leaf") || description.includes("golden leaf") || description.includes("laurel");
+      
+      if (!hasPinkFlowers && !hasGreenLeaves) {
+        // AI said Flower_Crown but description doesn't mention pink/green = it's actually Leaf_Crown_Gold
+        console.log("GLOBAL OVERRIDE: Flower_Crown → Leaf_Crown_Gold (description lacks pink flowers/green leaves)");
+        traits.traits.head = "Leaf_Crown_Gold";
+      }
     }
-
-    // Special-case correction: Lil with Overalls body and yellow/gold leaf crown should be Leaf_Crown_Gold, not Flower_Crown
-    if (
-      traits.isLilPudgy === true &&
-      traits.traits?.body === "Overalls" &&
-      traits.traits?.head === "Flower_Crown"
-    ) {
-      console.log(
-        "Overriding Lil head trait from Flower_Crown to Leaf_Crown_Gold for Overalls combo",
-      );
-      traits.traits.head = "Leaf_Crown_Gold";
+    
+    if (traits.traits?.head === "Leaf_Crown_Gold") {
+      // Verify it's not actually Flower_Crown
+      const hasPinkFlowers = description.includes("pink flower") || description.includes("pink rose") || description.includes("roses");
+      const hasGreenLeaves = description.includes("green leaf") || description.includes("green leaves");
+      
+      if (hasPinkFlowers || hasGreenLeaves) {
+        // AI said Leaf_Crown_Gold but description mentions pink/green = it's actually Flower_Crown
+        console.log("GLOBAL OVERRIDE: Leaf_Crown_Gold → Flower_Crown (description has pink flowers/green leaves)");
+        traits.traits.head = "Flower_Crown";
+      }
     }
+    
+    // ----- FACE OVERRIDES (applies to all Lil Pudgys) -----
+    if (traits.isLilPudgy === true) {
+      const currentFace = traits.traits?.face;
+      
+      // Mad vs Curious detection
+      if (currentFace === "Mad") {
+        const hasAsymmetric = description.includes("asymmetric") || description.includes("different shape") || description.includes("mismatched");
+        const hasEyebrows = description.includes("eyebrow");
+        const hasCurious = description.includes("curious");
+        
+        if ((hasAsymmetric || hasEyebrows || hasCurious) && !description.includes("squint") && !description.includes("angry") && !description.includes("mad")) {
+          console.log("GLOBAL OVERRIDE: Mad → Curious (description indicates asymmetric eyes/eyebrows)");
+          traits.traits.face = "Curious";
+        }
+      }
+      
+      if (currentFace === "Curious") {
+        const hasSquint = description.includes("squint") || description.includes("angry") || description.includes("mad") || description.includes("horizontal line");
+        const hasAsymmetric = description.includes("asymmetric") || description.includes("different shape") || description.includes("mismatched");
+        
+        if (hasSquint && !hasAsymmetric) {
+          console.log("GLOBAL OVERRIDE: Curious → Mad (description indicates squinting/angry)");
+          traits.traits.face = "Mad";
+        }
+      }
+      
+      // Normal vs Cross_Eyed detection  
+      if (currentFace === "Normal") {
+        const hasCircular = description.includes("circular") || description.includes("beady") || description.includes("tiny dot") || description.includes("small dot");
+        const hasCloseTogether = description.includes("close together") || description.includes("crossed");
+        
+        if (hasCircular || hasCloseTogether) {
+          console.log("GLOBAL OVERRIDE: Normal → Cross_Eyed (description indicates circular/beady eyes)");
+          traits.traits.face = "Cross_Eyed";
+        }
+      }
+      
+      if (currentFace === "Cross_Eyed") {
+        const hasOval = description.includes("oval eye") || description.includes("normal eye") || description.includes("regular eye");
+        const hasSpacedApart = description.includes("spaced apart");
+        
+        if ((hasOval || hasSpacedApart) && !description.includes("circular") && !description.includes("beady") && !description.includes("crossed")) {
+          console.log("GLOBAL OVERRIDE: Cross_Eyed → Normal (description indicates oval eyes)");
+          traits.traits.face = "Normal";
+        }
+      }
+    }
+    
+    console.log("Final traits after global overrides:", JSON.stringify(traits.traits));
  
-     // Validate and normalize the body trait
-     if (traits.traits?.body && typeof traits.traits.body === 'string') {
+    // Validate and normalize the body trait
+    if (traits.traits?.body && typeof traits.traits.body === 'string') {
       const bodyTrait = traits.traits.body;
       const isLilPudgy = traits.isLilPudgy === true;
       
