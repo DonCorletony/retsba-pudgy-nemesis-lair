@@ -204,6 +204,139 @@ import LilLeftFlipper_Lollipop from '@/assets/pfp-traits/lil/left_flipper/Lollip
 import LilLeftFlipper_Chop_Sticks from '@/assets/pfp-traits/lil/left_flipper/Chop_Sticks.png';
 import LilLeftFlipper_Popsicle from '@/assets/pfp-traits/lil/left_flipper/Popsicle.png';
 
+// Import Lil body trait overlays
+import LilBody_Apron from '@/assets/pfp-traits/lil/body/Apron.png';
+import LilBody_Basketball_Jersey_Black from '@/assets/pfp-traits/lil/body/Basketball_Jersey_Black.png';
+import LilBody_Basketball_Jersey_Blue from '@/assets/pfp-traits/lil/body/Basketball_Jersey_Blue.png';
+import LilBody_Basketball_Jersey_Pink from '@/assets/pfp-traits/lil/body/Basketball_Jersey_Pink.png';
+import LilBody_Bib_Pengu from '@/assets/pfp-traits/lil/body/Bib_Pengu.png';
+import LilBody_Bib_Pudgy from '@/assets/pfp-traits/lil/body/Bib_Pudgy.png';
+import LilBody_Big_P from '@/assets/pfp-traits/lil/body/Big_P.png';
+import LilBody_Birthmark from '@/assets/pfp-traits/lil/body/Birthmark.png';
+import LilBody_Black_Belt from '@/assets/pfp-traits/lil/body/Black_Belt.png';
+import LilBody_Bow_Tie_Black from '@/assets/pfp-traits/lil/body/Bow_Tie_Black.png';
+import LilBody_Bow_Tie_Blue from '@/assets/pfp-traits/lil/body/Bow_Tie_Blue.png';
+import LilBody_Bow_Tie_Pink from '@/assets/pfp-traits/lil/body/Bow_Tie_Pink.png';
+import LilBody_Bronze_Medal from '@/assets/pfp-traits/lil/body/Bronze_Medal.png';
+import LilBody_Caveman from '@/assets/pfp-traits/lil/body/Caveman.png';
+import LilBody_Christmas_Lights from '@/assets/pfp-traits/lil/body/Christmas_Lights.png';
+import LilBody_Christmas_Sweater_Blue from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Blue.png';
+import LilBody_Christmas_Sweater_Green from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Green.png';
+import LilBody_Christmas_Sweater_Purple from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Purple.png';
+import LilBody_Christmas_Sweater_Red from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Red.png';
+import LilBody_Christmas_Sweater_Tan from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Tan.png';
+import LilBody_Electric_Coat from '@/assets/pfp-traits/lil/body/Electric_Coat.png';
+import LilBody_Fish_Lover from '@/assets/pfp-traits/lil/body/Fish_Lover.png';
+import LilBody_Fish_Lover_Blue from '@/assets/pfp-traits/lil/body/Fish_Lover_Blue.png';
+import LilBody_Flannel_Blue from '@/assets/pfp-traits/lil/body/Flannel_Blue.png';
+import LilBody_Flannel_Green from '@/assets/pfp-traits/lil/body/Flannel_Green.png';
+import LilBody_Flannel_Pink from '@/assets/pfp-traits/lil/body/Flannel_Pink.png';
+import LilBody_Flannel_Red from '@/assets/pfp-traits/lil/body/Flannel_Red.png';
+import LilBody_Football_Jersey_Green from '@/assets/pfp-traits/lil/body/Football_Jersey_Green.png';
+import LilBody_Football_Jersey_Navy from '@/assets/pfp-traits/lil/body/Football_Jersey_Navy.png';
+import LilBody_Football_Jersey_Purple from '@/assets/pfp-traits/lil/body/Football_Jersey_Purple.png';
+import LilBody_Football_Jersey_Red from '@/assets/pfp-traits/lil/body/Football_Jersey_Red.png';
+import LilBody_Gold_Chain from '@/assets/pfp-traits/lil/body/Gold_Chain.png';
+import LilBody_Gold_Medal from '@/assets/pfp-traits/lil/body/Gold_Medal.png';
+import LilBody_Hawaiian_Shirt from '@/assets/pfp-traits/lil/body/Hawaiian_Shirt.png';
+import LilBody_Hawaiian_Shirt_Flower from '@/assets/pfp-traits/lil/body/Hawaiian_Shirt_Flower.png';
+import LilBody_Hoodie_Black from '@/assets/pfp-traits/lil/body/Hoodie_Black.png';
+import LilBody_Hoodie_GM from '@/assets/pfp-traits/lil/body/Hoodie_GM.png';
+import LilBody_Hoodie_Orange from '@/assets/pfp-traits/lil/body/Hoodie_Orange.png';
+import LilBody_Hoodie_Pink from '@/assets/pfp-traits/lil/body/Hoodie_Pink.png';
+import LilBody_Hoodie_Purple from '@/assets/pfp-traits/lil/body/Hoodie_Purple.png';
+import LilBody_Hoodie_Red from '@/assets/pfp-traits/lil/body/Hoodie_Red.png';
+import LilBody_Huddle from '@/assets/pfp-traits/lil/body/Huddle.png';
+import LilBody_Huddle_Lime from '@/assets/pfp-traits/lil/body/Huddle_Lime.png';
+import LilBody_Hula_Coconut from '@/assets/pfp-traits/lil/body/Hula_Coconut.png';
+import LilBody_Hula_Green from '@/assets/pfp-traits/lil/body/Hula_Green.png';
+import LilBody_Hula_Tan from '@/assets/pfp-traits/lil/body/Hula_Tan.png';
+import LilBody_Kimono_Abstract from '@/assets/pfp-traits/lil/body/Kimono_Abstract.png';
+import LilBody_Kimono_Black from '@/assets/pfp-traits/lil/body/Kimono_Black.png';
+import LilBody_Kimono_Blue from '@/assets/pfp-traits/lil/body/Kimono_Blue.png';
+import LilBody_Kimono_Brown from '@/assets/pfp-traits/lil/body/Kimono_Brown.png';
+import LilBody_Kimono_Flower_Pink from '@/assets/pfp-traits/lil/body/Kimono_Flower_Pink.png';
+import LilBody_Kimono_Flower_Purple from '@/assets/pfp-traits/lil/body/Kimono_Flower_Purple.png';
+import LilBody_Kimono_Gold from '@/assets/pfp-traits/lil/body/Kimono_Gold.png';
+import LilBody_Kimono_Gray from '@/assets/pfp-traits/lil/body/Kimono_Gray.png';
+import LilBody_Kimono_Ice from '@/assets/pfp-traits/lil/body/Kimono_Ice.png';
+import LilBody_Kimono_Orange from '@/assets/pfp-traits/lil/body/Kimono_Orange.png';
+import LilBody_Kimono_Red from '@/assets/pfp-traits/lil/body/Kimono_Red.png';
+import LilBody_Kimono_White from '@/assets/pfp-traits/lil/body/Kimono_White.png';
+import LilBody_Kings_Robe_Blue from '@/assets/pfp-traits/lil/body/Kings_Robe_Blue.png';
+import LilBody_Kings_Robe_Red from '@/assets/pfp-traits/lil/body/Kings_Robe_Red.png';
+import LilBody_Lei_Assorted from '@/assets/pfp-traits/lil/body/Lei_Assorted.png';
+import LilBody_Lei_Blue from '@/assets/pfp-traits/lil/body/Lei_Blue.png';
+import LilBody_Lei_Pink from '@/assets/pfp-traits/lil/body/Lei_Pink.png';
+import LilBody_Lei_Purple from '@/assets/pfp-traits/lil/body/Lei_Purple.png';
+import LilBody_Overalls from '@/assets/pfp-traits/lil/body/Overalls.png';
+import LilBody_PJs_Dots_Blue from '@/assets/pfp-traits/lil/body/PJs_Dots_Blue.png';
+import LilBody_PJs_Dots_Orange from '@/assets/pfp-traits/lil/body/PJs_Dots_Orange.png';
+import LilBody_PJs_Dots_Purple from '@/assets/pfp-traits/lil/body/PJs_Dots_Purple.png';
+import LilBody_PJs_Dots_Yellow from '@/assets/pfp-traits/lil/body/PJs_Dots_Yellow.png';
+import LilBody_PJs_Stripes_Christmas from '@/assets/pfp-traits/lil/body/PJs_Stripes_Christmas.png';
+import LilBody_PJs_Stripes_Lime from '@/assets/pfp-traits/lil/body/PJs_Stripes_Lime.png';
+import LilBody_PJs_Stripes_Maroon from '@/assets/pfp-traits/lil/body/PJs_Stripes_Maroon.png';
+import LilBody_PJs_Stripes_Pink from '@/assets/pfp-traits/lil/body/PJs_Stripes_Pink.png';
+import LilBody_Poncho_Black from '@/assets/pfp-traits/lil/body/Poncho_Black.png';
+import LilBody_Poncho_Blue from '@/assets/pfp-traits/lil/body/Poncho_Blue.png';
+import LilBody_Poncho_Pink from '@/assets/pfp-traits/lil/body/Poncho_Pink.png';
+import LilBody_Pudgy_Boy_Green from '@/assets/pfp-traits/lil/body/Pudgy_Boy_Green.png';
+import LilBody_Pudgy_Boy_Purple from '@/assets/pfp-traits/lil/body/Pudgy_Boy_Purple.png';
+import LilBody_Pudgy_Boy_White from '@/assets/pfp-traits/lil/body/Pudgy_Boy_White.png';
+import LilBody_Puffer_Black from '@/assets/pfp-traits/lil/body/Puffer_Black.png';
+import LilBody_Puffer_Blue from '@/assets/pfp-traits/lil/body/Puffer_Blue.png';
+import LilBody_Puffer_Green from '@/assets/pfp-traits/lil/body/Puffer_Green.png';
+import LilBody_Puffer_Orange from '@/assets/pfp-traits/lil/body/Puffer_Orange.png';
+import LilBody_Puffer_Red from '@/assets/pfp-traits/lil/body/Puffer_Red.png';
+import LilBody_Red_Belt from '@/assets/pfp-traits/lil/body/Red_Belt.png';
+import LilBody_Scarf_Blue from '@/assets/pfp-traits/lil/body/Scarf_Blue.png';
+import LilBody_Scarf_Gray from '@/assets/pfp-traits/lil/body/Scarf_Gray.png';
+import LilBody_Scarf_Green from '@/assets/pfp-traits/lil/body/Scarf_Green.png';
+import LilBody_Scarf_Pink from '@/assets/pfp-traits/lil/body/Scarf_Pink.png';
+import LilBody_Scarf_Purple from '@/assets/pfp-traits/lil/body/Scarf_Purple.png';
+import LilBody_Sharktooth_Necklace from '@/assets/pfp-traits/lil/body/Sharktooth_Necklace.png';
+import LilBody_Shirt_Black from '@/assets/pfp-traits/lil/body/Shirt_Black.png';
+import LilBody_Shirt_Blue from '@/assets/pfp-traits/lil/body/Shirt_Blue.png';
+import LilBody_Shirt_Green from '@/assets/pfp-traits/lil/body/Shirt_Green.png';
+import LilBody_Shirt_Red from '@/assets/pfp-traits/lil/body/Shirt_Red.png';
+import LilBody_Silver_Chain from '@/assets/pfp-traits/lil/body/Silver_Chain.png';
+import LilBody_Silver_Medal from '@/assets/pfp-traits/lil/body/Silver_Medal.png';
+import LilBody_Small_T_Blue from '@/assets/pfp-traits/lil/body/Small_T_Blue.png';
+import LilBody_Small_T_Red from '@/assets/pfp-traits/lil/body/Small_T_Red.png';
+import LilBody_Small_T_White from '@/assets/pfp-traits/lil/body/Small_T_White.png';
+import LilBody_Suit_Black from '@/assets/pfp-traits/lil/body/Suit_Black.png';
+import LilBody_Suit_Blue from '@/assets/pfp-traits/lil/body/Suit_Blue.png';
+import LilBody_Suit_Red from '@/assets/pfp-traits/lil/body/Suit_Red.png';
+import LilBody_Suit_White from '@/assets/pfp-traits/lil/body/Suit_White.png';
+import LilBody_Surfboard_Necklace from '@/assets/pfp-traits/lil/body/Surfboard_Necklace.png';
+import LilBody_Tank_Top_Blue from '@/assets/pfp-traits/lil/body/Tank_Top_Blue.png';
+import LilBody_Tank_Top_Red from '@/assets/pfp-traits/lil/body/Tank_Top_Red.png';
+import LilBody_Tank_Top_White from '@/assets/pfp-traits/lil/body/Tank_Top_White.png';
+import LilBody_Tank_Top_Yellow from '@/assets/pfp-traits/lil/body/Tank_Top_Yellow.png';
+import LilBody_Toga from '@/assets/pfp-traits/lil/body/Toga.png';
+import LilBody_Toolbelt from '@/assets/pfp-traits/lil/body/Toolbelt.png';
+import LilBody_Tribal_Necklace from '@/assets/pfp-traits/lil/body/Tribal_Necklace.png';
+import LilBody_Tube_Black from '@/assets/pfp-traits/lil/body/Tube_Black.png';
+import LilBody_Tube_Blue from '@/assets/pfp-traits/lil/body/Tube_Blue.png';
+import LilBody_Tube_Dino_Blue from '@/assets/pfp-traits/lil/body/Tube_Dino_Blue.png';
+import LilBody_Tube_Dino_Green from '@/assets/pfp-traits/lil/body/Tube_Dino_Green.png';
+import LilBody_Tube_Dino_Orange from '@/assets/pfp-traits/lil/body/Tube_Dino_Orange.png';
+import LilBody_Tube_Donut from '@/assets/pfp-traits/lil/body/Tube_Donut.png';
+import LilBody_Tube_Flamingo from '@/assets/pfp-traits/lil/body/Tube_Flamingo.png';
+import LilBody_Tube_Orange from '@/assets/pfp-traits/lil/body/Tube_Orange.png';
+import LilBody_Tube_Pink from '@/assets/pfp-traits/lil/body/Tube_Pink.png';
+import LilBody_Tube_Swan from '@/assets/pfp-traits/lil/body/Tube_Swan.png';
+import LilBody_Tube_Unicorn from '@/assets/pfp-traits/lil/body/Tube_Unicorn.png';
+import LilBody_Tube_Yellow from '@/assets/pfp-traits/lil/body/Tube_Yellow.png';
+import LilBody_Turtleneck_Blue from '@/assets/pfp-traits/lil/body/Turtleneck_Blue.png';
+import LilBody_Turtleneck_Gray from '@/assets/pfp-traits/lil/body/Turtleneck_Gray.png';
+import LilBody_Turtleneck_Green from '@/assets/pfp-traits/lil/body/Turtleneck_Green.png';
+import LilBody_Turtleneck_Pink from '@/assets/pfp-traits/lil/body/Turtleneck_Pink.png';
+import LilBody_Vote_4_Pudgy from '@/assets/pfp-traits/lil/body/Vote_4_Pudgy.png';
+import LilBody_White_Belt from '@/assets/pfp-traits/lil/body/White_Belt.png';
+import LilBody_Yellow_Belt from '@/assets/pfp-traits/lil/body/Yellow_Belt.png';
+
 // Import Lil head trait overlays
 import LilHead_Afro from '@/assets/pfp-traits/lil/head/Afro.png';
 import LilHead_Afro_Gold_Pick from '@/assets/pfp-traits/lil/head/Afro_Gold_Pick.png';
@@ -401,6 +534,141 @@ const LIL_RIGHT_FLIPPER_TRAIT_MAP: Record<string, string> = {
   Kite_Gold: LilRightFlipper_Kite_Gold,
   Spoon: LilRightFlipper_Spoon,
   Ice_Cream: LilRightFlipper_Ice_Cream,
+};
+
+// Mapping of Lil body trait names to imported images
+const LIL_BODY_TRAIT_MAP: Record<string, string> = {
+  Apron: LilBody_Apron,
+  Basketball_Jersey_Black: LilBody_Basketball_Jersey_Black,
+  Basketball_Jersey_Blue: LilBody_Basketball_Jersey_Blue,
+  Basketball_Jersey_Pink: LilBody_Basketball_Jersey_Pink,
+  Bib_Pengu: LilBody_Bib_Pengu,
+  Bib_Pudgy: LilBody_Bib_Pudgy,
+  Big_P: LilBody_Big_P,
+  Birthmark: LilBody_Birthmark,
+  Black_Belt: LilBody_Black_Belt,
+  Bow_Tie_Black: LilBody_Bow_Tie_Black,
+  Bow_Tie_Blue: LilBody_Bow_Tie_Blue,
+  Bow_Tie_Pink: LilBody_Bow_Tie_Pink,
+  Bronze_Medal: LilBody_Bronze_Medal,
+  Caveman: LilBody_Caveman,
+  Christmas_Lights: LilBody_Christmas_Lights,
+  Christmas_Sweater_Blue: LilBody_Christmas_Sweater_Blue,
+  Christmas_Sweater_Green: LilBody_Christmas_Sweater_Green,
+  Christmas_Sweater_Purple: LilBody_Christmas_Sweater_Purple,
+  Christmas_Sweater_Red: LilBody_Christmas_Sweater_Red,
+  Christmas_Sweater_Tan: LilBody_Christmas_Sweater_Tan,
+  Electric_Coat: LilBody_Electric_Coat,
+  Fish_Lover: LilBody_Fish_Lover,
+  Fish_Lover_Blue: LilBody_Fish_Lover_Blue,
+  Flannel_Blue: LilBody_Flannel_Blue,
+  Flannel_Green: LilBody_Flannel_Green,
+  Flannel_Pink: LilBody_Flannel_Pink,
+  Flannel_Red: LilBody_Flannel_Red,
+  Football_Jersey_Green: LilBody_Football_Jersey_Green,
+  Football_Jersey_Navy: LilBody_Football_Jersey_Navy,
+  Football_Jersey_Purple: LilBody_Football_Jersey_Purple,
+  Football_Jersey_Red: LilBody_Football_Jersey_Red,
+  Gold_Chain: LilBody_Gold_Chain,
+  Gold_Medal: LilBody_Gold_Medal,
+  Hawaiian_Shirt: LilBody_Hawaiian_Shirt,
+  Hawaiian_Shirt_Flower: LilBody_Hawaiian_Shirt_Flower,
+  Hoodie_Black: LilBody_Hoodie_Black,
+  Hoodie_GM: LilBody_Hoodie_GM,
+  Hoodie_Orange: LilBody_Hoodie_Orange,
+  Hoodie_Pink: LilBody_Hoodie_Pink,
+  Hoodie_Purple: LilBody_Hoodie_Purple,
+  Hoodie_Red: LilBody_Hoodie_Red,
+  Huddle: LilBody_Huddle,
+  Huddle_Lime: LilBody_Huddle_Lime,
+  Hula_Coconut: LilBody_Hula_Coconut,
+  Hula_Green: LilBody_Hula_Green,
+  Hula_Tan: LilBody_Hula_Tan,
+  Kimono_Abstract: LilBody_Kimono_Abstract,
+  Kimono_Black: LilBody_Kimono_Black,
+  Kimono_Blue: LilBody_Kimono_Blue,
+  Kimono_Brown: LilBody_Kimono_Brown,
+  Kimono_Flower_Pink: LilBody_Kimono_Flower_Pink,
+  Kimono_Flower_Purple: LilBody_Kimono_Flower_Purple,
+  Kimono_Gold: LilBody_Kimono_Gold,
+  Kimono_Gray: LilBody_Kimono_Gray,
+  Kimono_Ice: LilBody_Kimono_Ice,
+  Kimono_Orange: LilBody_Kimono_Orange,
+  Kimono_Red: LilBody_Kimono_Red,
+  Kimono_White: LilBody_Kimono_White,
+  Kings_Robe_Blue: LilBody_Kings_Robe_Blue,
+  Kings_Robe_Red: LilBody_Kings_Robe_Red,
+  Lei_Assorted: LilBody_Lei_Assorted,
+  Lei_Blue: LilBody_Lei_Blue,
+  Lei_Pink: LilBody_Lei_Pink,
+  Lei_Purple: LilBody_Lei_Purple,
+  Overalls: LilBody_Overalls,
+  PJs_Dots_Blue: LilBody_PJs_Dots_Blue,
+  PJs_Dots_Orange: LilBody_PJs_Dots_Orange,
+  PJs_Dots_Purple: LilBody_PJs_Dots_Purple,
+  PJs_Dots_Yellow: LilBody_PJs_Dots_Yellow,
+  PJs_Stripes_Christmas: LilBody_PJs_Stripes_Christmas,
+  PJs_Stripes_Lime: LilBody_PJs_Stripes_Lime,
+  PJs_Stripes_Maroon: LilBody_PJs_Stripes_Maroon,
+  PJs_Stripes_Pink: LilBody_PJs_Stripes_Pink,
+  Poncho_Black: LilBody_Poncho_Black,
+  Poncho_Blue: LilBody_Poncho_Blue,
+  Poncho_Pink: LilBody_Poncho_Pink,
+  Pudgy_Boy_Green: LilBody_Pudgy_Boy_Green,
+  Pudgy_Boy_Purple: LilBody_Pudgy_Boy_Purple,
+  Pudgy_Boy_White: LilBody_Pudgy_Boy_White,
+  Puffer_Black: LilBody_Puffer_Black,
+  Puffer_Blue: LilBody_Puffer_Blue,
+  Puffer_Green: LilBody_Puffer_Green,
+  Puffer_Orange: LilBody_Puffer_Orange,
+  Puffer_Red: LilBody_Puffer_Red,
+  Red_Belt: LilBody_Red_Belt,
+  Scarf_Blue: LilBody_Scarf_Blue,
+  Scarf_Gray: LilBody_Scarf_Gray,
+  Scarf_Green: LilBody_Scarf_Green,
+  Scarf_Pink: LilBody_Scarf_Pink,
+  Scarf_Purple: LilBody_Scarf_Purple,
+  Sharktooth_Necklace: LilBody_Sharktooth_Necklace,
+  Shirt_Black: LilBody_Shirt_Black,
+  Shirt_Blue: LilBody_Shirt_Blue,
+  Shirt_Green: LilBody_Shirt_Green,
+  Shirt_Red: LilBody_Shirt_Red,
+  Silver_Chain: LilBody_Silver_Chain,
+  Silver_Medal: LilBody_Silver_Medal,
+  Small_T_Blue: LilBody_Small_T_Blue,
+  Small_T_Red: LilBody_Small_T_Red,
+  Small_T_White: LilBody_Small_T_White,
+  Suit_Black: LilBody_Suit_Black,
+  Suit_Blue: LilBody_Suit_Blue,
+  Suit_Red: LilBody_Suit_Red,
+  Suit_White: LilBody_Suit_White,
+  Surfboard_Necklace: LilBody_Surfboard_Necklace,
+  Tank_Top_Blue: LilBody_Tank_Top_Blue,
+  Tank_Top_Red: LilBody_Tank_Top_Red,
+  Tank_Top_White: LilBody_Tank_Top_White,
+  Tank_Top_Yellow: LilBody_Tank_Top_Yellow,
+  Toga: LilBody_Toga,
+  Toolbelt: LilBody_Toolbelt,
+  Tribal_Necklace: LilBody_Tribal_Necklace,
+  Tube_Black: LilBody_Tube_Black,
+  Tube_Blue: LilBody_Tube_Blue,
+  Tube_Dino_Blue: LilBody_Tube_Dino_Blue,
+  Tube_Dino_Green: LilBody_Tube_Dino_Green,
+  Tube_Dino_Orange: LilBody_Tube_Dino_Orange,
+  Tube_Donut: LilBody_Tube_Donut,
+  Tube_Flamingo: LilBody_Tube_Flamingo,
+  Tube_Orange: LilBody_Tube_Orange,
+  Tube_Pink: LilBody_Tube_Pink,
+  Tube_Swan: LilBody_Tube_Swan,
+  Tube_Unicorn: LilBody_Tube_Unicorn,
+  Tube_Yellow: LilBody_Tube_Yellow,
+  Turtleneck_Blue: LilBody_Turtleneck_Blue,
+  Turtleneck_Gray: LilBody_Turtleneck_Gray,
+  Turtleneck_Green: LilBody_Turtleneck_Green,
+  Turtleneck_Pink: LilBody_Turtleneck_Pink,
+  Vote_4_Pudgy: LilBody_Vote_4_Pudgy,
+  White_Belt: LilBody_White_Belt,
+  Yellow_Belt: LilBody_Yellow_Belt,
 };
 
 // Mapping of Lil left flipper trait names to imported images
@@ -1164,29 +1432,21 @@ const PFPConverter = () => {
       const baseImg = await loadImage(templateSrc);
       ctx.drawImage(baseImg, 0, 0, 1000, 1000);
 
-      // LAYERING ORDER: body (bottom) → face → head (top)
+      // LAYERING ORDER:
+      // Big Pudgy: Template → Body → Face → Head
+      // Lil Pudgy: Template → Face → Left Flipper → Head → Body → Right Flipper
       
       // In Lil mode, only use Lil-specific trait overlays (never fall back to Big traits)
       // In Big mode, only use Big-specific trait overlays
       
-      // 1. Apply body trait overlay first (bottom layer)
-      if (bodyTrait) {
-        if (useLilMode) {
-          // TODO: Add LIL_BODY_TRAIT_MAP when Lil body traits are uploaded
-          console.log(`Lil mode: No Lil body overlay available for: ${bodyTrait}`);
-        } else if (BODY_TRAIT_MAP[bodyTrait]) {
-          console.log(`Applying body trait: ${bodyTrait}`);
-          const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
-          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
-        } else {
-          console.log(`No overlay found for body trait: ${bodyTrait}`);
-        }
-      }
-
-      // 2. Apply face trait overlay (middle layer)
-      if (faceTrait) {
-        if (useLilMode) {
-          // In Lil mode, first check if the trait should be remapped to a different overlay
+      const rightFlipperTrait = traits.traits.right_flipper;
+      const leftFlipperTrait = traits.traits.left_flipper;
+      
+      if (useLilMode) {
+        // LIL PUDGY LAYERING: Face → Left Flipper → Head → Body → Right Flipper
+        
+        // 1. Apply face trait overlay (bottom layer for Lil)
+        if (faceTrait) {
           if (LIL_FACE_TRAIT_REMAP[faceTrait]) {
             const remappedTrait = LIL_FACE_TRAIT_REMAP[faceTrait];
             if (LIL_FACE_REMAP_IMAGE_MAP[remappedTrait]) {
@@ -1197,65 +1457,83 @@ const PFPConverter = () => {
               console.log(`Lil mode: No Lil overlay found for remapped face trait: ${remappedTrait}`);
             }
           } else if (LIL_FACE_DIRECT_MAP[faceTrait]) {
-            // Direct 1:1 mapping for Lil face traits
             console.log(`Applying Lil face trait (direct): ${faceTrait}`);
             const faceOverlay = await loadImage(LIL_FACE_DIRECT_MAP[faceTrait]);
             ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
           } else {
             console.log(`Lil mode: No Lil face overlay available for: ${faceTrait}`);
           }
-        } else if (FACE_TRAIT_MAP[faceTrait]) {
-          console.log(`Applying face trait: ${faceTrait}`);
-          const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
-          ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
-        } else {
-          console.log(`No overlay found for face trait: ${faceTrait}`);
         }
-      }
-
-      // 3. Apply head trait overlay (top layer for Big, middle for Lil)
-      if (headTrait) {
-        if (useLilMode && LIL_HEAD_TRAIT_MAP[headTrait]) {
-          console.log(`Applying Lil head trait: ${headTrait}`);
-          const headOverlay = await loadImage(LIL_HEAD_TRAIT_MAP[headTrait]);
-          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
-        } else if (useLilMode) {
-          console.log(`No Lil overlay found for head trait: ${headTrait}`);
-        } else if (HEAD_TRAIT_MAP[headTrait]) {
-          console.log(`Applying head trait: ${headTrait}`);
-          const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
-          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
-        } else {
-          console.log(`No overlay found for head trait: ${headTrait}`);
-        }
-      }
-
-      // 4. Apply right flipper trait overlay (Lil Pudgy only)
-      const rightFlipperTrait = traits.traits.right_flipper;
-      if (rightFlipperTrait && useLilMode) {
-        // Check if this trait has a special output version first
-        if (LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]) {
-          console.log(`Applying Lil right flipper OUTPUT trait: ${rightFlipperTrait}`);
-          const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]);
-          ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
-        } else if (LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]) {
-          console.log(`Applying Lil right flipper trait: ${rightFlipperTrait}`);
-          const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]);
-          ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
-        } else {
-          console.log(`No overlay found for right flipper trait: ${rightFlipperTrait}`);
-        }
-      }
-
-      // 5. Apply left flipper trait overlay (Lil Pudgy only - topmost layer)
-      const leftFlipperTrait = traits.traits.left_flipper;
-      if (leftFlipperTrait && useLilMode) {
-        if (LIL_LEFT_FLIPPER_TRAIT_MAP[leftFlipperTrait]) {
+        
+        // 2. Apply left flipper trait overlay
+        if (leftFlipperTrait && LIL_LEFT_FLIPPER_TRAIT_MAP[leftFlipperTrait]) {
           console.log(`Applying Lil left flipper trait: ${leftFlipperTrait}`);
           const leftFlipperOverlay = await loadImage(LIL_LEFT_FLIPPER_TRAIT_MAP[leftFlipperTrait]);
           ctx.drawImage(leftFlipperOverlay, 0, 0, 1000, 1000);
-        } else {
+        } else if (leftFlipperTrait) {
           console.log(`No overlay found for left flipper trait: ${leftFlipperTrait}`);
+        }
+        
+        // 3. Apply head trait overlay
+        if (headTrait && LIL_HEAD_TRAIT_MAP[headTrait]) {
+          console.log(`Applying Lil head trait: ${headTrait}`);
+          const headOverlay = await loadImage(LIL_HEAD_TRAIT_MAP[headTrait]);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        } else if (headTrait) {
+          console.log(`No Lil overlay found for head trait: ${headTrait}`);
+        }
+        
+        // 4. Apply body trait overlay
+        if (bodyTrait && LIL_BODY_TRAIT_MAP[bodyTrait]) {
+          console.log(`Applying Lil body trait: ${bodyTrait}`);
+          const bodyOverlay = await loadImage(LIL_BODY_TRAIT_MAP[bodyTrait]);
+          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+        } else if (bodyTrait) {
+          console.log(`No Lil overlay found for body trait: ${bodyTrait}`);
+        }
+        
+        // 5. Apply right flipper trait overlay (topmost layer for Lil)
+        if (rightFlipperTrait) {
+          if (LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]) {
+            console.log(`Applying Lil right flipper OUTPUT trait: ${rightFlipperTrait}`);
+            const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_OUTPUT_MAP[rightFlipperTrait]);
+            ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
+          } else if (LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]) {
+            console.log(`Applying Lil right flipper trait: ${rightFlipperTrait}`);
+            const rightFlipperOverlay = await loadImage(LIL_RIGHT_FLIPPER_TRAIT_MAP[rightFlipperTrait]);
+            ctx.drawImage(rightFlipperOverlay, 0, 0, 1000, 1000);
+          } else {
+            console.log(`No overlay found for right flipper trait: ${rightFlipperTrait}`);
+          }
+        }
+      } else {
+        // BIG PUDGY LAYERING: Body → Face → Head
+        
+        // 1. Apply body trait overlay first (bottom layer)
+        if (bodyTrait && BODY_TRAIT_MAP[bodyTrait]) {
+          console.log(`Applying body trait: ${bodyTrait}`);
+          const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
+          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+        } else if (bodyTrait) {
+          console.log(`No overlay found for body trait: ${bodyTrait}`);
+        }
+        
+        // 2. Apply face trait overlay (middle layer)
+        if (faceTrait && FACE_TRAIT_MAP[faceTrait]) {
+          console.log(`Applying face trait: ${faceTrait}`);
+          const faceOverlay = await loadImage(FACE_TRAIT_MAP[faceTrait]);
+          ctx.drawImage(faceOverlay, 0, 0, 1000, 1000);
+        } else if (faceTrait) {
+          console.log(`No overlay found for face trait: ${faceTrait}`);
+        }
+        
+        // 3. Apply head trait overlay (top layer)
+        if (headTrait && HEAD_TRAIT_MAP[headTrait]) {
+          console.log(`Applying head trait: ${headTrait}`);
+          const headOverlay = await loadImage(HEAD_TRAIT_MAP[headTrait]);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        } else if (headTrait) {
+          console.log(`No overlay found for head trait: ${headTrait}`);
         }
       }
 
