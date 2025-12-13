@@ -683,16 +683,16 @@ Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT s
 
 LEFT FLIPPER TRAITS (LIL PUDGY ONLY):
 Left flipper traits appear in the Lil's LEFT HAND (which appears on the RIGHT side of the image from our viewing perspective, since the Lil faces us).
-- "Maracas" = A colorful maraca with zigzag pattern (green, red, pink, yellow) on a wooden handle
-- "Kite_Blue" = A blue geometric patterned kite with bows and a curving string
-- "Star_Wand" = A pink/white striped wand with a golden star on top
-- "Juice_Box" = A blue juice box with igloo logo and green straw
-- "Turkey_Leg" = A large cooked turkey leg with bone visible
-- "Ukulele" = A wooden ukulele/small guitar with strings
-- "Surfboard_Yellow" = A yellow surfboard held upright
-- "Sword_Gold" = A golden sword with pointed blade and gem in the hilt
-- "Spoon_Gold" = A golden spoon with sparkle effect
-- "Balloon_Sword_Red" = A red balloon animal shaped like a sword with balloon guard/hilt
+- "Maracas" = A maraca with a GREEN, RED, and YELLOW zigzag pattern on a wooden handle
+- "Kite_Blue" = A BLUE kite with a triangle pattern in varying shades of blue, with a blue ribbon hanging off of it, and white/blue bows on the kite string
+- "Star_Wand" = A wand with a RED and WHITE striped handle and YELLOW star on top
+- "Juice_Box" = A BLUE box of juice with a GREEN straw
+- "Turkey_Leg" = A BROWN turkey leg with WHITE bone
+- "Ukulele" = A BROWN ukulele guitar with a BLACK neck
+- "Surfboard_Yellow" = A YELLOW surfboard held upright
+- "Sword_Gold" = A GOLD sword with pointed blade and gem in the hilt
+- "Spoon_Gold" = A GOLDEN spoon with sparkle effect
+- "Balloon_Sword_Red" = A RED balloon sword shaped like a sword
 - "Balloon_Green" = A green balloon on a string
 - "Butterfly_Net" = A butterfly/bug catching net with wooden handle
 - "Golf_Club" = A silver golf club iron
