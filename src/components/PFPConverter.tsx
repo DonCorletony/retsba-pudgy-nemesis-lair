@@ -110,6 +110,25 @@ import LilMad from '@/assets/pfp-traits/lil/face/Mad.png';
 import LilNormal from '@/assets/pfp-traits/lil/face/Normal.png';
 import LilReadingCute from '@/assets/pfp-traits/lil/face/Reading_Cute.png';
 import LilWinking from '@/assets/pfp-traits/lil/face/Winking.png';
+import LilFootball from '@/assets/pfp-traits/lil/face/Football.png';
+import LilGoggles from '@/assets/pfp-traits/lil/face/Goggles.png';
+import LilGoggles_Pink from '@/assets/pfp-traits/lil/face/Goggles_Pink.png';
+import LilGoggles_Yellow from '@/assets/pfp-traits/lil/face/Goggles_Yellow.png';
+import LilGoofy_Glasses from '@/assets/pfp-traits/lil/face/Goofy_Glasses.png';
+import LilNerd_Blushing from '@/assets/pfp-traits/lil/face/Nerd_Blushing.png';
+import LilNerd_Cute from '@/assets/pfp-traits/lil/face/Nerd_Cute.png';
+import LilNerd_Normal from '@/assets/pfp-traits/lil/face/Nerd_Normal.png';
+import LilReading_Cross_eyed from '@/assets/pfp-traits/lil/face/Reading_Cross_eyed.png';
+import LilReading_Normal from '@/assets/pfp-traits/lil/face/Reading_Normal.png';
+import LilScouter from '@/assets/pfp-traits/lil/face/Scouter.png';
+import LilShades_Blue from '@/assets/pfp-traits/lil/face/Shades_Blue.png';
+import LilShades_Yellow from '@/assets/pfp-traits/lil/face/Shades_Yellow.png';
+import LilSki_Goggles from '@/assets/pfp-traits/lil/face/Ski_Goggles.png';
+import LilSquad from '@/assets/pfp-traits/lil/face/Squad.png';
+import LilStar_Glasses from '@/assets/pfp-traits/lil/face/Star_Glasses.png';
+import LilUpsidedown_Orange from '@/assets/pfp-traits/lil/face/Upsidedown_Orange.png';
+import LilUpsidedown_Purple from '@/assets/pfp-traits/lil/face/Upsidedown_Purple.png';
+import LilClout_Goggles from '@/assets/pfp-traits/lil/face/Clout_Goggles.png';
 
 // Import Lil right flipper trait overlays
 import LilRightFlipper_Chop_Sticks from '@/assets/pfp-traits/lil/right_flipper/Chop_Sticks.png';
@@ -484,6 +503,25 @@ const LIL_FACE_DIRECT_MAP: Record<string, string> = {
   Reading_Cute: LilReadingCute,
   Winking: LilWinking,
   Aviators: LilFace_Aviators,
+  Football: LilFootball,
+  Goggles: LilGoggles,
+  Goggles_Pink: LilGoggles_Pink,
+  Goggles_Yellow: LilGoggles_Yellow,
+  Goofy_Glasses: LilGoofy_Glasses,
+  Nerd_Blushing: LilNerd_Blushing,
+  Nerd_Cute: LilNerd_Cute,
+  Nerd_Normal: LilNerd_Normal,
+  Reading_Cross_eyed: LilReading_Cross_eyed,
+  Reading_Normal: LilReading_Normal,
+  Scouter: LilScouter,
+  Shades_Blue: LilShades_Blue,
+  Shades_Yellow: LilShades_Yellow,
+  Ski_Goggles: LilSki_Goggles,
+  Squad: LilSquad,
+  Star_Glasses: LilStar_Glasses,
+  Upsidedown_Orange: LilUpsidedown_Orange,
+  Upsidedown_Purple: LilUpsidedown_Purple,
+  Clout_Goggles: LilClout_Goggles,
 };
 
 // Mapping of Lil right flipper trait names to imported images
