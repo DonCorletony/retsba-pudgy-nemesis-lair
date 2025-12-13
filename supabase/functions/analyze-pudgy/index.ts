@@ -1692,19 +1692,19 @@ Return ONLY valid JSON in this exact format:
     // The color alone is sufficient since sparkles may be hidden by accessories
     if (traits.traits?.skin === "ice skin") {
       const hasSparkles = description.includes("sparkle") || description.includes("sparkles") || description.includes("✨");
-      const hasIcyColor = description.includes("icy") || description.includes("ice blue") || description.includes("ice skin") || description.includes("ice-skin") || description.includes("cyan") || description.includes("turquoise") || description.includes("aqua") || description.includes("#77d1f6") || description.includes("light blue body") || description.includes("light blue flipper");
+      const hasIcyColor = description.includes("icy") || description.includes("ice blue") || description.includes("icy blue") || description.includes("cyan") || description.includes("turquoise") || description.includes("aqua") || description.includes("#77d1f6") || description.includes("light blue body") || description.includes("light blue flipper") || description.includes("ice-blue skin");
       
-      // Accept if EITHER sparkles OR distinctive icy color is mentioned
+      // Accept if EITHER sparkles OR distinctive icy color is mentioned (but do NOT trust the phrase "ice skin" alone)
       if (!hasSparkles && !hasIcyColor) {
         console.log("SKIN OVERRIDE: ice skin → Normal (description lacks sparkles AND icy color cues)");
         traits.traits.skin = "Normal";
       }
     }
     
-    // Gold Skin: Must have EITHER sparkles OR distinctive golden color
+    // Gold Skin: Must have EITHER sparkles OR distinctive golden color (do NOT trust the phrase "gold skin" alone)
     if (traits.traits?.skin === "gold skin") {
       const hasSparkles = description.includes("sparkle") || description.includes("sparkles") || description.includes("✨");
-      const hasGoldColor = description.includes("gold skin") || description.includes("gold-skin") || description.includes("golden body") || description.includes("golden flipper") || description.includes("yellow body") || description.includes("gold body") || description.includes("metallic yellow");
+      const hasGoldColor = description.includes("golden body") || description.includes("golden flipper") || description.includes("yellow body") || description.includes("gold body") || description.includes("metallic yellow") || description.includes("shimmering gold") || description.includes("bright gold");
       
       if (!hasSparkles && !hasGoldColor) {
         console.log("SKIN OVERRIDE: gold skin → Normal (description lacks sparkles AND gold color cues)");
