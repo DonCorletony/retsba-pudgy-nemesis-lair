@@ -445,6 +445,7 @@ import LilHead_Viking_Helmet_Black from '@/assets/pfp-traits/lil/head/Viking_Hel
 import LilHead_Visor_Blue from '@/assets/pfp-traits/lil/head/Visor_Blue.png';
 import LilHead_Visor_Green from '@/assets/pfp-traits/lil/head/Visor_Green.png';
 import LilHead_Wizard_Hat from '@/assets/pfp-traits/lil/head/Wizard_Hat.png';
+import LilFace_Aviators from '@/assets/pfp-traits/lil/face/Aviators.png';
 
 // Mapping for right flipper traits that have special output versions
 const LIL_RIGHT_FLIPPER_OUTPUT_MAP: Record<string, string> = {
@@ -482,6 +483,7 @@ const LIL_FACE_DIRECT_MAP: Record<string, string> = {
   Normal: LilNormal,
   Reading_Cute: LilReadingCute,
   Winking: LilWinking,
+  Aviators: LilFace_Aviators,
 };
 
 // Mapping of Lil right flipper trait names to imported images
