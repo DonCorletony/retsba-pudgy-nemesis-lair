@@ -227,6 +227,7 @@ import LilBody_Christmas_Sweater_Red from '@/assets/pfp-traits/lil/body/Christma
 import LilBody_Christmas_Sweater_Tan from '@/assets/pfp-traits/lil/body/Christmas_Sweater_Tan.png';
 import LilBody_Electric_Coat from '@/assets/pfp-traits/lil/body/Electric_Coat.png';
 import LilBody_Ice_Coat from '@/assets/pfp-traits/lil/body/Ice_Coat.png';
+import LilBody_Ice_Coat_Output from '@/assets/pfp-traits/lil/body/Ice_Coat_Output.png';
 import LilBody_Fish_Lover from '@/assets/pfp-traits/lil/body/Fish_Lover.png';
 import LilBody_Fish_Lover_Blue from '@/assets/pfp-traits/lil/body/Fish_Lover_Blue.png';
 import LilBody_Flannel_Blue from '@/assets/pfp-traits/lil/body/Flannel_Blue.png';
@@ -671,6 +672,12 @@ const LIL_BODY_TRAIT_MAP: Record<string, string> = {
   Vote_4_Pudgy: LilBody_Vote_4_Pudgy,
   White_Belt: LilBody_White_Belt,
   Yellow_Belt: LilBody_Yellow_Belt,
+};
+
+// Output remapping for specific Lil body traits
+const LIL_BODY_TRAIT_OUTPUT_MAP: Record<string, string> = {
+  Electric_Coat: LilBody_Ice_Coat_Output,
+  Ice_Coat: LilBody_Ice_Coat_Output,
 };
 
 // Mapping of Lil left flipper trait names to imported images
@@ -1486,12 +1493,18 @@ const PFPConverter = () => {
         }
         
         // 4. Apply body trait overlay
-        if (bodyTrait && LIL_BODY_TRAIT_MAP[bodyTrait]) {
-          console.log(`Applying Lil body trait: ${bodyTrait}`);
-          const bodyOverlay = await loadImage(LIL_BODY_TRAIT_MAP[bodyTrait]);
-          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
-        } else if (bodyTrait) {
-          console.log(`No Lil overlay found for body trait: ${bodyTrait}`);
+        if (bodyTrait) {
+          if (LIL_BODY_TRAIT_OUTPUT_MAP[bodyTrait]) {
+            console.log(`Applying Lil body OUTPUT trait: ${bodyTrait}`);
+            const bodyOverlay = await loadImage(LIL_BODY_TRAIT_OUTPUT_MAP[bodyTrait]);
+            ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+          } else if (LIL_BODY_TRAIT_MAP[bodyTrait]) {
+            console.log(`Applying Lil body trait: ${bodyTrait}`);
+            const bodyOverlay = await loadImage(LIL_BODY_TRAIT_MAP[bodyTrait]);
+            ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+          } else {
+            console.log(`No Lil overlay found for body trait: ${bodyTrait}`);
+          }
         }
         
         // 5. Apply right flipper trait overlay (topmost layer for Lil)
