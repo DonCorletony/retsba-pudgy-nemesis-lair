@@ -1483,16 +1483,7 @@ const PFPConverter = () => {
           console.log(`No overlay found for left flipper trait: ${leftFlipperTrait}`);
         }
         
-        // 3. Apply head trait overlay
-        if (headTrait && LIL_HEAD_TRAIT_MAP[headTrait]) {
-          console.log(`Applying Lil head trait: ${headTrait}`);
-          const headOverlay = await loadImage(LIL_HEAD_TRAIT_MAP[headTrait]);
-          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
-        } else if (headTrait) {
-          console.log(`No Lil overlay found for head trait: ${headTrait}`);
-        }
-        
-        // 4. Apply body trait overlay
+        // 3. Apply body trait overlay
         if (bodyTrait) {
           if (LIL_BODY_TRAIT_OUTPUT_MAP[bodyTrait]) {
             console.log(`Applying Lil body OUTPUT trait: ${bodyTrait}`);
@@ -1505,6 +1496,15 @@ const PFPConverter = () => {
           } else {
             console.log(`No Lil overlay found for body trait: ${bodyTrait}`);
           }
+        }
+        
+        // 4. Apply head trait overlay
+        if (headTrait && LIL_HEAD_TRAIT_MAP[headTrait]) {
+          console.log(`Applying Lil head trait: ${headTrait}`);
+          const headOverlay = await loadImage(LIL_HEAD_TRAIT_MAP[headTrait]);
+          ctx.drawImage(headOverlay, 0, 0, 1000, 1000);
+        } else if (headTrait) {
+          console.log(`No Lil overlay found for head trait: ${headTrait}`);
         }
         
         // 5. Apply right flipper trait overlay (topmost layer for Lil)
