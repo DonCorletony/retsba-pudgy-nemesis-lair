@@ -103,6 +103,7 @@ const AVAILABLE_LIL_HEAD_TRAITS = [
   "Egg_Shell_Gold",
   "Elf_Hat",
   "Fireman_Helmet",
+  "Fish_Black",
   "Fish_Blue",
   "Fish_Gold",
   "Fish_Gray",
@@ -1143,7 +1144,8 @@ LIL HEAD TRAIT EXAMPLES:
 - "Biker_Helmet_Black" = A BLACK biker helmet with gold spikes and yellow framed goggles with blue lenses.
 - "Viking_Helmet" = A BROWN viking helmet with gray trim and two horns on top.
 - "Viking_Helmet_Black" = A BLACK helmet with silver trim and a pair of horns on it.
-- "Fish_Gray" = A LIGHT GRAY fish laying on the head.
+- "Fish_Black" = A DARK GRAY/BLACK fish laying on the head with GRAY fins and lips. The body is darker than Fish_Gray.
+- "Fish_Gray" = A LIGHT GRAY fish laying on the head with LIGHTER GRAY fins and lips. The body is lighter than Fish_Black.
 - "Fish_Blue" = A BLUE fish laying on the head.
 - "Fish_Green" = A GREEN fish laying on the head.
 - "Fish_Gold" = A GOLDEN fish on the head with sparkle.
