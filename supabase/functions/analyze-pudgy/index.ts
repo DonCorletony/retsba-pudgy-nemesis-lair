@@ -1380,6 +1380,16 @@ CRITICAL - KIMONO DISTINCTION (LOOK AT THE PATTERN):
 KEY: If the kimono is RED with BLACK TRIANGLES → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange". If BLACK with RED TRIANGULAR pattern → "Kimono_Black". If WHITE with BLACK TRIANGLES → "Kimono_White".
 - "Bathrobe" = An off-white bathrobe. Similar to a Kimono, but the two lapels meet together at the bottom of the image to form a 'V' shape, while Kimonos have a completely open front.
 
+CRITICAL - PONCHO_BLACK vs KIMONO_ABSTRACT (YOU MUST GET THIS RIGHT):
+- "Poncho_Black": A pure BLACK PONCHO / CLOAK with BIG SILVER/WHITE TRIANGLES. It looks like a cape or wrap that covers the body in a cone/triangle shape. The ONLY pattern is large SILVER/WHITE triangles on a BLACK background.
+- "Kimono_Abstract": A PURPLE + GREEN/YELLOW GEOMETRIC KIMONO with a WHITE lapel stripe. The right side is PURPLE, the left side is GREEN/YELLOW cubes/diamonds. NOT black, not a cape.
+
+KEY RULES:
+- If the garment is SOLID BLACK with large SILVER/WHITE triangles → ALWAYS "Poncho_Black", NEVER Kimono_Abstract.
+- If you see PURPLE + GREEN/YELLOW geometric shapes with a visible WHITE lapel stripe → "Kimono_Abstract".
+- In your natural-language description, if you choose Poncho_Black, you MUST say "black poncho with large silver triangles" (never "kimono").
+- In your description for Kimono_Abstract, you MUST mention "purple and green/yellow geometric kimono with white lapel stripe".
+
 CRITICAL - CROP_TOP vs SHIRT_RED (YOU MUST GET THIS RIGHT):
 - "Crop_Top": A plain solid RED/MAROON top with NO LOGO or design. It's a casual crop top style that exposes the belly area. The garment is PLAIN with no visible markings.
 - "Shirt_Red": A red/maroon HOODIE or SWEATSHIRT with a distinctive WHITE CIRCULAR LOGO (looks like an igloo or disco ball) visible on the chest. If there's a WHITE LOGO on the chest → Shirt_Red. If the red top is PLAIN with no logo → Crop_Top.
@@ -1748,6 +1758,21 @@ Return ONLY valid JSON in this exact format:
     }
     
     // ----- BODY TRAIT RECOVERY FROM DESCRIPTION -----
+    // First, fix common confusion between Poncho_Black and Kimono_Abstract using the description
+    if (traits.traits?.body === "Kimono_Abstract") {
+      const hasPonchoWord = description.includes("poncho");
+      const hasBlackPonchoPhrase = description.includes("black poncho") || description.includes("black cloak") || description.includes("black cape");
+      const hasTriangleOnlyPattern = description.includes("silver triangles") || description.includes("white triangles") || description.includes("large triangles");
+      const hasKimonoWords = description.includes("kimono") || description.includes("robe") || description.includes("lapel");
+      const hasAbstractColors = description.includes("purple and green") || description.includes("purple and yellow") || description.includes("green and yellow");
+      
+      // If the description clearly talks about a black poncho with triangles (and not a purple/green kimono), correct to Poncho_Black
+      if ((hasPonchoWord || hasBlackPonchoPhrase || hasTriangleOnlyPattern) && !hasKimonoWords && !hasAbstractColors) {
+        console.log("BODY OVERRIDE: Kimono_Abstract → Poncho_Black (description indicates black poncho with triangles)");
+        traits.traits.body = "Poncho_Black";
+      }
+    }
+    
     // If AI returned null for body but description mentions a known body trait, recover it
     if (!traits.traits?.body || traits.traits.body === null) {
       const bodyTraitKeywords: Record<string, string> = {
@@ -1755,6 +1780,7 @@ Return ONLY valid JSON in this exact format:
         "overalls": "Overalls",
         "hoodie": "Hoodie_Black",
         "kimono": "Kimono_White",
+        "poncho": "Poncho_Black",
         "karate": "White_Belt",
         "turtleneck": "Turtle_Neck_Pink",
         "scarf": "Scarf_Green",
