@@ -1279,9 +1279,15 @@ BODY TRAIT EXAMPLES:
 - "Heart" = A lone heart on the Pudgy's chest.
 - "Birthmark" = A single RED HEART on the belly.
 - "Crop_Top" = A red croptop-style shirt, exposing the belly. PLAIN with no logo.
-- "Small_T_White" = A crop-top style OFF-WHITE tshirt, cut short to expose the belly.
-- "Small_T_Blue" = A BLUE crop top style shirt with exposed belly.
-- "Small_T_Red" = A RED crop top style shirt with exposed belly.
+- "Small_T_White" = A crop-top style OFF-WHITE tshirt, cut SHORT to EXPOSE THE BELLY. The belly is clearly visible beneath the shirt.
+- "Small_T_Blue" = A BLUE crop top style shirt that is CUT SHORT to EXPOSE THE BELLY. The belly is clearly visible. NO logo. Distinguished from Shirt_Blue because Small_T_Blue shows the belly, while Shirt_Blue covers the full body and has a WHITE IGLOO LOGO.
+- "Small_T_Red" = A RED crop top style shirt that is CUT SHORT to EXPOSE THE BELLY. The belly is clearly visible.
+
+CRITICAL - SMALL_T vs SHIRT DISTINCTION (YOU MUST GET THIS RIGHT):
+- "Small_T_Blue": A SHORT BLUE SHIRT that EXPOSES THE BELLY. The bottom of the belly (white tummy area) is visible below the shirt. NO logo on the shirt.
+- "Shirt_Blue": A FULL-LENGTH BLUE SHIRT that COVERS the entire body. Has a WHITE CIRCULAR IGLOO LOGO on the chest. Belly is NOT visible.
+- KEY: If you can see the penguin's WHITE BELLY below the shirt → Small_T. If the shirt covers the whole body and has a logo → Shirt.
+- The same rule applies to Small_T_Red vs Shirt_Red and Small_T_White.
 - "Biker_Jacket" = A black leather jacket with gray spikes on the shoulders.
 - "Swordman" = An orange kimono with black triangles, with the hilt of a sword showing on the back.
 - "Caveman" = An ORANGE caveman outfit with BROWN spots.
@@ -1770,6 +1776,28 @@ Return ONLY valid JSON in this exact format:
       if ((hasPonchoWord || hasBlackPonchoPhrase || hasTriangleOnlyPattern) && !hasKimonoWords && !hasAbstractColors) {
         console.log("BODY OVERRIDE: Kimono_Abstract → Poncho_Black (description indicates black poncho with triangles)");
         traits.traits.body = "Poncho_Black";
+      }
+    }
+    
+    // Fix Shirt_Blue → Small_T_Blue when description mentions exposed belly
+    if (traits.traits?.body === "Shirt_Blue") {
+      const hasExposedBelly = description.includes("exposed belly") || description.includes("belly exposed") || description.includes("belly visible") || description.includes("showing belly") || description.includes("crop") || description.includes("short shirt") || description.includes("cut short");
+      const hasNoLogo = !description.includes("logo") && !description.includes("igloo");
+      
+      if (hasExposedBelly || hasNoLogo) {
+        console.log("BODY OVERRIDE: Shirt_Blue → Small_T_Blue (description indicates exposed belly / no logo)");
+        traits.traits.body = "Small_T_Blue";
+      }
+    }
+    
+    // Fix Shirt_Red → Small_T_Red when description mentions exposed belly
+    if (traits.traits?.body === "Shirt_Red") {
+      const hasExposedBelly = description.includes("exposed belly") || description.includes("belly exposed") || description.includes("belly visible") || description.includes("showing belly") || description.includes("crop") || description.includes("short shirt") || description.includes("cut short");
+      const hasNoLogo = !description.includes("logo") && !description.includes("igloo");
+      
+      if (hasExposedBelly || hasNoLogo) {
+        console.log("BODY OVERRIDE: Shirt_Red → Small_T_Red (description indicates exposed belly / no logo)");
+        traits.traits.body = "Small_T_Red";
       }
     }
     
