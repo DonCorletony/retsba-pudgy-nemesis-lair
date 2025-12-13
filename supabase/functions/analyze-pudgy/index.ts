@@ -950,14 +950,13 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - LEFT eye (right side of image): CLOSED, depicted as a < shape (sideways V)
 - CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
-"Cross_Eyed" (BOTH EYES LOOKING INWARD/TOWARD CENTER):
+"Cross_Eyed" (TWO PERFECTLY CIRCULAR BLACK DOTS CLOSE TOGETHER):
 - NO glasses
-- TWO OVAL-SHAPED BLACK EYES that are LOOKING INWARD toward each other
-- Both eyes have a WHITE DOT/HIGHLIGHT on the INNER side (toward the nose/center)
-- The white dots are positioned on the INSIDE edge of each eye, making eyes appear crossed
-- Eyes appear to be looking at the penguin's own beak/nose
-- CRITICAL: Two eyes with white dots on INNER sides pointing toward center = Cross_Eyed
-- CRITICAL: This is DIFFERENT from Curious (mismatched eye sizes) - Cross_Eyed has SAME SIZE eyes looking inward
+- TWO PERFECTLY CIRCULAR BLACK DOTS (not ovals - CIRCLES)
+- The dots are positioned CLOSE TOGETHER toward the center of the face
+- Much smaller and rounder than Normal oval eyes
+- CRITICAL: CIRCULAR shape (not oval) + positioned close together = Cross_Eyed
+- CRITICAL: This is DIFFERENT from Normal which has OVAL-shaped eyes spaced apart
 
 "Normal" (PLAIN OVAL BLACK EYES - SAME SIZE):
 - NO glasses
@@ -965,9 +964,9 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - Both eyes are IDENTICAL in size and shape - symmetrical
 - COMPLETELY SOLID black ovals - NO horizontal line or eyelid
 - FULLY OPEN oval eyes with no squinting or partial closure
-- NO white dots/highlights making eyes look crossed
-- CRITICAL: If both eyes are the SAME SIZE with no white dots = Normal
-- CRITICAL: If eyes have white dots on inner edges looking inward = Cross_Eyed (not Normal)
+- Eyes are OVAL shaped and spaced apart normally
+- CRITICAL: OVAL shape + normal spacing = Normal
+- CRITICAL: CIRCULAR dots close together = Cross_Eyed (not Normal)
 - CRITICAL: If eyes are DIFFERENT SIZES → Curious (not Normal)
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
