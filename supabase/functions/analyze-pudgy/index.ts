@@ -1666,6 +1666,41 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // ----- BODY TRAIT RECOVERY FROM DESCRIPTION -----
+    // If AI returned null for body but description mentions a known body trait, recover it
+    if (!traits.traits?.body || traits.traits.body === null) {
+      const bodyTraitKeywords: Record<string, string> = {
+        "toga": "Toga",
+        "overalls": "Overalls",
+        "hoodie": "Hoodie_Black",
+        "kimono": "Kimono_White",
+        "karate": "White_Belt",
+        "turtleneck": "Turtle_Neck_Pink",
+        "scarf": "Scarf_Green",
+        "bib": "Bib_Pudgy",
+        "toolbelt": "Toolbelt",
+        "tank top": "Tank_Top_Red",
+        "flannel": "Flannel_Red",
+        "sweater": "Christmas_Sweater_Red",
+        "pj": "PJs_Stripes_Pink",
+        "pijama": "PJs_Stripes_Pink",
+        "robe": "Kings_Robe_Red",
+        "cape": "Pudgy_Boy_White",
+        "medal": "Gold_Medal",
+        "chain": "Gold_Chain",
+        "bow tie": "Bow_Tie_Black",
+        "bowtie": "Bow_Tie_Black",
+      };
+      
+      for (const [keyword, traitName] of Object.entries(bodyTraitKeywords)) {
+        if (description.includes(keyword)) {
+          console.log(`BODY RECOVERY: Found "${keyword}" in description → setting body to ${traitName}`);
+          traits.traits.body = traitName;
+          break;
+        }
+      }
+    }
+    
     console.log("Final traits after global overrides:", JSON.stringify(traits.traits));
  
     // Validate and normalize the body trait
