@@ -992,16 +992,18 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - SKI goggles (gray band, blue frame, orange lens) → Ski_Goggles
 - Purple scouter device over one eye → Scouter
 - NO glasses + black rectangles under eyes → Football
-- NO glasses + asymmetrical mismatched eyes → Curious
+- NO glasses + asymmetrical mismatched eyes (oval + rounded triangle) with eyebrows and NO internal horizontal line → Curious
 - NO glasses + red oval blush marks → Blushing
 - NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
 - NO glasses + TWO TINY, PERFECTLY CIRCULAR BLACK DOTS close together near center → Cross_Eyed
 - NO glasses + TWO LARGER OVAL BLACK EYES spaced apart normally (no line, no highlights) → Normal
 
-FINAL LIL NO-GLASSES RULE (NO GLASSES VISIBLE):
-- If the eyes are TINY CIRCULAR BEADY DOTS close together → face = "Cross_Eyed" (even if they don't look traditionally "crossed")
-- If the eyes are LARGER OVALS spaced apart → face = "Normal"
+FINAL LIL NO-GLASSES RULES (NO GLASSES VISIBLE):
+- If eyes have ANY horizontal line cutting through them → face = "Mad" (NEVER Curious)
+- If eyes are TWO DIFFERENT SHAPES (oval + triangle) with eyebrows and NO internal line → face = "Curious" (NEVER Mad)
+- If eyes are TINY CIRCULAR BEADY DOTS close together → face = "Cross_Eyed" (not Normal)
+- If eyes are LARGER OVALS spaced apart with no line → face = "Normal"
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
@@ -1091,8 +1093,8 @@ LIL HEAD TRAIT EXAMPLES:
 - "Backwards_Red" = A RED cap with a blue bill, facing BACKWARD.
 - "Backwards_Green" = A GREEN cap with a red bill, facing BACKWARDS.
 - "Backwards_Hat_Black" = A standard BLACK ballcap, facing BACKWARD.
-- "Leaf_Crown_Gold" = A GOLDEN "crown" composed of leaf shapes on the head, with some sparkles.
-- "Leaf_Crown" = A "crown" of GREEN leaves on the head.
+- "Leaf_Crown_Gold" = A GOLDEN "crown" composed ONLY of gold leaf shapes on the head, with some sparkles. NO pink flowers, NO colored petals.
+- "Leaf_Crown" = A "crown" of GREEN leaves on the head. NO gold metal structure, just green leaf shapes.
 - "Durag_Purple" = A PURPLE durag. Features both dark and lighter purple.
 - "Durag_Leopard" = A BROWN durag with BLACK leopard spots.
 - "Blue_Durag" = A BLUE durag.
@@ -1109,13 +1111,12 @@ LIL HEAD TRAIT EXAMPLES:
 - "Flower_Red" = A single RED flower with yellow center on the head.
 - "Flower_Purple" = A single PURPLE flower on the head with yellow center.
 - "Flower_Blue" = A single BLUE flower on the head with yellow center.
-- "Flower_Crown" = A golden crown with a pointy top, with sparkle and a row of pink flowers on it.
-- "Party_Hat" = A RED and GREEN birthday hat with yellow ball at the top.
-- "Party_Hat_Orange" = An ORANGE birthday hat with black triangles.
-- "Party_Hat_Purple" = A PURPLE birthday hat with yellow triangle designs on it and yellow ball on top.
-- "Top_Hat_Gold" = A normally proportioned GOLD top hat with a sparkle or two.
-- "Top_Hat_Gold_Tall" = An abnormally TALL top hat in GOLD with sparkle. Can be differentiated from Top_Hat_Gold because of how tall it is.
-- "Top_Hat_Tall" = An abnormally TALL top hat in BLACK. Can be differentiated from a normal top hat because its about 2-3x the height.
+- "Flower_Crown" = A golden crown with a pointy top, with sparkle and a ROW OF PINK FLOWERS with GREEN LEAVES in the center.
+
+HEAD CROWN DECISION RULES:
+- If you see ANY PINK FLOWERS or GREEN LEAVES decorating a gold crown band → head = "Flower_Crown" (NOT Leaf_Crown_Gold).
+- If the crown is ONLY GOLD LEAF SHAPES (no pink petals, no colored flowers) → head = "Leaf_Crown_Gold".
+- If the crown is made only of GREEN leaves (no gold metal band) → head = "Leaf_Crown".
 - "Top_Hat_Black" = A standard BLACK top hat of normal height.
 - "Shark_Albino" = A LIGHT GRAY shark on the head with RED EYES.
 - "Shark" = A BLUE shark on the head.
