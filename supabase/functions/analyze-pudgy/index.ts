@@ -693,23 +693,23 @@ Left flipper traits appear in the Lil's LEFT HAND (which appears on the RIGHT si
 - "Sword_Gold" = A GOLD sword with pointed blade and gem in the hilt
 - "Spoon_Gold" = A GOLDEN spoon with sparkle effect
 - "Balloon_Sword_Red" = A RED balloon sword shaped like a sword
-- "Balloon_Green" = A green balloon on a string
-- "Butterfly_Net" = A butterfly/bug catching net with wooden handle
-- "Golf_Club" = A silver golf club iron
-- "Spoon" = A regular silver spoon
-- "Kite_Gold" = A gold geometric patterned kite with bows and a curving string
-- "Balloon_Gold" = A gold/yellow sparkling balloon on a string
-- "Staff_Ice" = A wooden twisted staff with blue ice crystal/gem
-- "Sword_Ice" = An ice blue sword with blue blade and ice hilt
-- "Candycane_Red" = A red and white striped candy cane
-- "Candycane_Green" = A green and white striped candy cane
-- "Rubber_Duck" = A yellow rubber duck toy
-- "Stick" = A brown wooden stick/branch with small twigs
-- "Balloon_Red" = A red balloon on a string
-- "Ice_Cream" = A multi-scoop ice cream cone with cherry on top
-- "Lollipop" = A pink and yellow spiral lollipop on a wooden stick
-- "Chop_Sticks" = Wooden chopsticks held crossed in the flipper
-- "Popsicle" = An orange popsicle on a wooden stick
+- "Balloon_Green" = A GREEN balloon on a string
+- "Butterfly_Net" = A BROWN butterfly net
+- "Golf_Club" = A GRAY golf club
+- "Spoon" = A GRAY spoon
+- "Kite_Gold" = A YELLOW/GOLD kite with a triangular pattern in varying shades of gold, with a yellow ribbon hanging off of it, and two bows on the kite string
+- "Balloon_Gold" = A GOLDEN balloon with sparkle
+- "Staff_Ice" = A BROWN hand staff with a BLUE detail at the top
+- "Sword_Ice" = A BLUE sword
+- "Candycane_Red" = A RED and WHITE striped candy cane
+- "Candycane_Green" = A GREEN and WHITE striped candy cane
+- "Rubber_Duck" = A YELLOW rubber duck
+- "Stick" = A BROWN stick
+- "Balloon_Red" = A RED balloon on a string
+- "Ice_Cream" = A tall ice cream cone with scoops of WHITE, BROWN, and PINK ice cream
+- "Lollipop" = A large PINK and YELLOW lollipop
+- "Chop_Sticks" = A pair of two BROWN chopsticks
+- "Popsicle" = A large ORANGE popsicle
 
 THE KEY DIFFERENCE IS THE BODY VISIBILITY:
 - LIL PUDGY: The ENTIRE BODY is visible, including FEET. You can see the penguin from head to toe.
