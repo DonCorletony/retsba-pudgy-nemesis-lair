@@ -1155,7 +1155,8 @@ LIL HEAD TRAIT EXAMPLES:
 - "Hammerhead" = A BROWN hammerhead shark on the head.
 - "Wizard_Hat" = A BLUE wizard hat with yellow stars on it.
 - "Pirate_Hat" = A dark blue pirate hat with pale yellow trim, feathers, and an anchor logo on the front.
-- "Afro" = A brown afro with a black hairpick sticking out.
+- "Afro" = A brown afro with a BLACK hairpick sticking out.
+- "Afro_Gold_Pick" = A brown afro with a GOLD hairpick sticking out of it.
 - "Macaroni" = Fanned out yellow hairs with black accent.
 - "Headband" = A red, white, and blue headband.
 - "Ear_Muffs" = Very light blue ear muffs.
