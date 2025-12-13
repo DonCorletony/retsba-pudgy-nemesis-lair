@@ -950,13 +950,24 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - LEFT eye (right side of image): CLOSED, depicted as a < shape (sideways V)
 - CRITICAL: One oval eye open + one < shaped closed eye = Winking
 
+"Cross_Eyed" (BOTH EYES LOOKING INWARD/TOWARD CENTER):
+- NO glasses
+- TWO OVAL-SHAPED BLACK EYES that are LOOKING INWARD toward each other
+- Both eyes have a WHITE DOT/HIGHLIGHT on the INNER side (toward the nose/center)
+- The white dots are positioned on the INSIDE edge of each eye, making eyes appear crossed
+- Eyes appear to be looking at the penguin's own beak/nose
+- CRITICAL: Two eyes with white dots on INNER sides pointing toward center = Cross_Eyed
+- CRITICAL: This is DIFFERENT from Curious (mismatched eye sizes) - Cross_Eyed has SAME SIZE eyes looking inward
+
 "Normal" (PLAIN OVAL BLACK EYES - SAME SIZE):
 - NO glasses
 - TWO OVAL-SHAPED BLACK MARKS of the SAME SIZE
 - Both eyes are IDENTICAL in size and shape - symmetrical
 - COMPLETELY SOLID black ovals - NO horizontal line or eyelid
 - FULLY OPEN oval eyes with no squinting or partial closure
-- CRITICAL: If both eyes are the SAME SIZE → Normal
+- NO white dots/highlights making eyes look crossed
+- CRITICAL: If both eyes are the SAME SIZE with no white dots = Normal
+- CRITICAL: If eyes have white dots on inner edges looking inward = Cross_Eyed (not Normal)
 - CRITICAL: If eyes are DIFFERENT SIZES → Curious (not Normal)
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
@@ -986,7 +997,8 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - NO glasses + red oval blush marks → Blushing
 - NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
-- NO glasses + plain solid oval eyes (no line) → Normal
+- NO glasses + eyes with white dots on INNER sides (looking inward/crossed) → Cross_Eyed
+- NO glasses + plain solid oval eyes (no line, no white dots) → Normal
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
