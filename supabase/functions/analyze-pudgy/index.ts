@@ -1393,12 +1393,18 @@ CRITICAL - KIMONO DISTINCTION (LOOK AT THE PATTERN):
 - "Kimono_Gray" = A GRAY kimono with white stripe down the lapels.
 - "Kimono_Abstract" = A kimono, PURPLE in color on the right side, with a GREEN/YELLOW geometrical design on the opposite left side, and white stripe down the lapels.
 - "Kimono_Red" = A RED kimono with BLACK TRIANGLE pattern and WHITE stripe down the lapels.
-- "Kimono_White" = A WHITE kimono with BLACK triangle pattern and WHITE stripe down the lapels.
+- "Kimono_White" = A WHITE kimono with BLACK triangle pattern and WHITE stripe down the lapels. The base color is WHITE/OFF-WHITE, NOT black. Do NOT confuse with Electric_Coat which is BLACK.
 - "Kimono_Pink" = A pink Kimono with dark pink flowers.
 - "Kimono_Black" = A BLACK kimono with RED TRIANGLE pattern and RED stripe down the lapels.
 - "Kimono_Flower_Pink" = A LIGHT PINK kimono with DARKER PINK flowers and WHITE stripe down the lapels.
 - "Kimono_Flower_Purple" = A LIGHT PURPLE kimono with DARKER PURPLE flowers on it and WHITE stripe down the lapels.
 KEY: If the kimono is RED with BLACK TRIANGLES → "Kimono_Red". If ORANGE with WHITE TRIANGLE patterns → "Kimono_Orange". If BLACK with RED TRIANGULAR pattern → "Kimono_Black". If WHITE with BLACK TRIANGLES → "Kimono_White".
+
+CRITICAL - ELECTRIC_COAT vs KIMONO_WHITE (COMPLETELY DIFFERENT COLORS):
+- "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW/GOLD designs and YELLOW zipper. The BASE COLOR IS BLACK. Yellow details.
+- "Kimono_White" = A WHITE kimono with BLACK triangle pattern. The BASE COLOR IS WHITE. Black triangle details.
+These are OPPOSITE colors. If the garment is WHITE → NEVER "Electric_Coat". If the garment is BLACK with YELLOW → "Electric_Coat".
+
 - "Bathrobe" = An off-white bathrobe. Similar to a Kimono, but the two lapels meet together at the bottom of the image to form a 'V' shape, while Kimonos have a completely open front.
 
 CRITICAL - PONCHO_BLACK vs KIMONO_ABSTRACT (YOU MUST GET THIS RIGHT):
@@ -1849,12 +1855,21 @@ Return ONLY valid JSON in this exact format:
     }
 
     // Then, fix common confusion between Electric_Coat and Kimono_White when the garment is clearly a white kimono with black triangle pattern
+    // Electric_Coat is ALWAYS BLACK with YELLOW details - if the garment is white, it's NEVER Electric_Coat
     if (traits.traits?.body === "Electric_Coat") {
-      const hasWhiteGarment = description.includes("white kimono") || description.includes("white coat") || description.includes("white cloak") || description.includes("white garment");
-      const hasBlackTrianglePattern = description.includes("black triangles") || description.includes("triangle pattern") || description.includes("triangular pattern") || description.includes("black triangle pattern");
+      const hasWhiteGarment = description.includes("white") || description.includes("off-white") || description.includes("cream") || description.includes("light colored");
+      const hasBlackTrianglePattern = description.includes("black triangle") || description.includes("triangle pattern") || description.includes("triangular");
+      const hasKimonoWord = description.includes("kimono") || description.includes("robe");
+      const hasNoYellowDetails = !description.includes("yellow") && !description.includes("gold zipper") && !description.includes("yellow detail");
 
-      if (hasWhiteGarment && hasBlackTrianglePattern) {
-        console.log("BODY OVERRIDE: Electric_Coat → Kimono_White (description indicates white kimono with black triangles)");
+      // If garment is described as white at all, it cannot be Electric_Coat (which is black)
+      if (hasWhiteGarment) {
+        console.log("BODY OVERRIDE: Electric_Coat → Kimono_White (description mentions white garment, Electric_Coat is always black)");
+        traits.traits.body = "Kimono_White";
+      }
+      // If described as a kimono with triangles but no yellow details, it's Kimono_White not Electric_Coat
+      else if (hasKimonoWord && hasBlackTrianglePattern && hasNoYellowDetails) {
+        console.log("BODY OVERRIDE: Electric_Coat → Kimono_White (description indicates kimono with triangles, no yellow details)");
         traits.traits.body = "Kimono_White";
       }
     }
