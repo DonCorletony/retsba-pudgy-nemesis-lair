@@ -743,10 +743,10 @@ DECISION RULE: Can you see the penguin's FEET?
 - NO (feet not visible, cropped image) → Big Pudgy (isLilPudgy: false)
 
 ${expectedMode === 'lil' ? `
-IMPORTANT: The user expects this to be a Lil Pudgy. Focus on analyzing Lil Pudgy traits from the LIL face trait list: ${lilFaceTraitsList}
+IMPORTANT: The user expects this to be a Lil Pudgy. Focus on analyzing Lil Pudgy traits from the trait lists provided above.
 If the image shows a full-body penguin with feet visible, this is definitely a Lil Pudgy.
 ` : expectedMode === 'big' ? `
-IMPORTANT: The user expects this to be a Big Pudgy. Focus on analyzing Big Pudgy traits from the BIG face trait list: ${faceTraitsList}
+IMPORTANT: The user expects this to be a Big Pudgy. Focus on analyzing Big Pudgy traits from the trait lists provided above.
 If the image shows only the upper body without feet visible, this is definitely a Big Pudgy.
 ` : ''}
 
