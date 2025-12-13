@@ -1588,6 +1588,44 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
+    // ========== PUDGY TYPE CORRECTION ==========
+    // Force isLilPudgy based on Lil-exclusive traits (these traits ONLY exist for Lil Pudgys)
+    const lilExclusiveBodyTraits = ["Ice_Coat", "Electric_Coat", "Overalls", "Toga", "Kings_Robe_Red", "Kings_Robe_Blue", "Pudgy_Boy_White", "Pudgy_Boy_Green", "Pudgy_Boy_Purple", "Tube_Unicorn", "Tube_Swan", "Tube_Pink", "Bib_Pudgy", "Bib_Pengu", "Small_T_Red", "Small_T_Blue"];
+    const lilExclusiveHeadTraits = ["Grizzly_Bear_Hat", "Polar_Bear_Hat", "Panda_Hat", "Bucket_Hat_Red", "Bucket_Hat_Blue", "Bucket_Hat_Green", "Bucket_Hat_Tan", "Bucket_Hat_Black", "Leaf_Crown", "Leaf_Crown_Gold", "Top_Hat_Tall", "Top_Hat_Gold_Tall"];
+    
+    if (traits.isLilPudgy === false) {
+      const bodyTrait = traits.traits?.body;
+      const headTrait = traits.traits?.head;
+      
+      if (bodyTrait && lilExclusiveBodyTraits.includes(bodyTrait)) {
+        console.log(`TYPE CORRECTION: isLilPudgy false → true (body trait ${bodyTrait} is Lil-exclusive)`);
+        traits.isLilPudgy = true;
+      }
+      
+      if (headTrait && lilExclusiveHeadTraits.includes(headTrait)) {
+        console.log(`TYPE CORRECTION: isLilPudgy false → true (head trait ${headTrait} is Lil-exclusive)`);
+        traits.isLilPudgy = true;
+      }
+    }
+    
+    // If user expected Lil mode AND description mentions "lil" or full body/feet, force Lil
+    if (expectedMode === 'lil' && traits.isLilPudgy === false) {
+      const descLower = (traits.description || "").toLowerCase();
+      if (descLower.includes("lil") || descLower.includes("full body") || descLower.includes("feet") || descLower.includes("standing")) {
+        console.log("TYPE CORRECTION: isLilPudgy false → true (expectedMode=lil and description suggests Lil)");
+        traits.isLilPudgy = true;
+      }
+    }
+    
+    // Also fix Top_Hat → Top_Hat_Tall for Lil Pudgys (Lils use the tall variant)
+    if (traits.isLilPudgy === true && traits.traits?.head === "Top_Hat") {
+      const descLower = (traits.description || "").toLowerCase();
+      if (descLower.includes("tall") || descLower.includes("very tall") || descLower.includes("abnormally")) {
+        console.log("HEAD CORRECTION: Top_Hat → Top_Hat_Tall (Lil Pudgy with tall hat description)");
+        traits.traits.head = "Top_Hat_Tall";
+      }
+    }
+
     // ========== GLOBAL DESCRIPTION-AWARE OVERRIDES ==========
     // These apply to ALL images, not specific combos
     const description = (traits.description || "").toLowerCase();
