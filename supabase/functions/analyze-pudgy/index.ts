@@ -1600,9 +1600,21 @@ Return ONLY valid JSON in this exact format:
       );
       traits.traits.face = "Cross_Eyed";
     }
+
+    // Special-case correction: Lil with Overalls body and yellow/gold leaf crown should be Leaf_Crown_Gold, not Flower_Crown
+    if (
+      traits.isLilPudgy === true &&
+      traits.traits?.body === "Overalls" &&
+      traits.traits?.head === "Flower_Crown"
+    ) {
+      console.log(
+        "Overriding Lil head trait from Flower_Crown to Leaf_Crown_Gold for Overalls combo",
+      );
+      traits.traits.head = "Leaf_Crown_Gold";
+    }
  
-    // Validate and normalize the body trait
-    if (traits.traits?.body && typeof traits.traits.body === 'string') {
+     // Validate and normalize the body trait
+     if (traits.traits?.body && typeof traits.traits.body === 'string') {
       const bodyTrait = traits.traits.body;
       const isLilPudgy = traits.isLilPudgy === true;
       
