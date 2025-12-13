@@ -1381,12 +1381,24 @@ Return ONLY valid JSON in this exact format:
     // Validate and normalize the body trait
     if (traits.traits?.body && typeof traits.traits.body === 'string') {
       const bodyTrait = traits.traits.body;
-      // Check if it's a valid trait
-      if (!AVAILABLE_BODY_TRAITS.includes(bodyTrait)) {
+      const isLilPudgy = traits.isLilPudgy === true;
+      
+      // Check against appropriate list based on penguin type
+      const bodyTraitList = isLilPudgy ? AVAILABLE_LIL_BODY_TRAITS : AVAILABLE_BODY_TRAITS;
+      const allBodyTraits = [...AVAILABLE_BODY_TRAITS, ...AVAILABLE_LIL_BODY_TRAITS];
+      
+      // First check if it's in the appropriate list
+      if (bodyTraitList.includes(bodyTrait)) {
+        // Valid trait for this penguin type, keep it
+        console.log(`Valid ${isLilPudgy ? 'Lil' : 'Big'} body trait: ${bodyTrait}`);
+      } else if (allBodyTraits.includes(bodyTrait)) {
+        // Valid trait but for the other penguin type - still keep it
+        console.log(`Body trait "${bodyTrait}" is for ${isLilPudgy ? 'Big' : 'Lil'} Pudgy but keeping it`);
+      } else {
         console.log(`Body trait "${bodyTrait}" not in available list, attempting to match...`);
-        // Try to find a close match
+        // Try to find a close match in the combined list
         const normalizedInput = bodyTrait.toLowerCase().replace(/[\s-]/g, '_');
-        const match = AVAILABLE_BODY_TRAITS.find(t => 
+        const match = allBodyTraits.find(t => 
           t.toLowerCase() === normalizedInput ||
           t.toLowerCase().includes(normalizedInput) ||
           normalizedInput.includes(t.toLowerCase())
