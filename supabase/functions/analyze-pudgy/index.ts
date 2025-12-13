@@ -1289,7 +1289,7 @@ BODY TRAIT EXAMPLES:
 - "Surfboard_Necklace" = A BLACK string necklace with a BLUE surfboard pendant on it.
 - "Christmas_Lights" = A string of RED and WHITE christmas lights around the neck.
 - "Ice_Coat" = A BLACK akatsuki-style cloak with BLUE details and BLUE zipper down the center.
-- "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW designs on it and YELLOW zipper down the center.
+- "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW designs on it and YELLOW zipper down the center. This coat is ALWAYS black with yellow details; if the garment is WHITE with a BLACK triangle pattern, that is NEVER "Electric_Coat" and should instead be classified as "Kimono_White".
 - "Tribal_Necklace" = A BLACK string necklace with multiple OFF-WHITE triangle shapes hanging off of it.
 - "Heart" = A lone heart on the Pudgy's chest.
 - "Birthmark" = A single RED HEART on the belly.
@@ -1847,7 +1847,18 @@ Return ONLY valid JSON in this exact format:
         traits.traits.body = "Poncho_Black";
       }
     }
-    
+
+    // Then, fix common confusion between Electric_Coat and Kimono_White when the garment is clearly a white kimono with black triangle pattern
+    if (traits.traits?.body === "Electric_Coat") {
+      const hasWhiteGarment = description.includes("white kimono") || description.includes("white coat") || description.includes("white cloak") || description.includes("white garment");
+      const hasBlackTrianglePattern = description.includes("black triangles") || description.includes("triangle pattern") || description.includes("triangular pattern") || description.includes("black triangle pattern");
+
+      if (hasWhiteGarment && hasBlackTrianglePattern) {
+        console.log("BODY OVERRIDE: Electric_Coat → Kimono_White (description indicates white kimono with black triangles)");
+        traits.traits.body = "Kimono_White";
+      }
+    }
+
     // Fix Shirt_Blue → Small_T_Blue when description mentions exposed belly
     if (traits.traits?.body === "Shirt_Blue") {
       const hasExposedBelly = description.includes("exposed belly") || description.includes("belly exposed") || description.includes("belly visible") || description.includes("showing belly") || description.includes("crop") || description.includes("short shirt") || description.includes("cut short");
