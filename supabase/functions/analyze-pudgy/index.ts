@@ -967,15 +967,14 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - IMPORTANT: On Lil Pudgys this trait is drawn as simple beady circular eyes; they do NOT visibly "cross"
 - CRITICAL: If you see TINY CIRCULAR beady dots instead of oval eyes → choose Cross_Eyed, NEVER Normal
 
-"Normal" (LARGER OVAL EYES, SPACED APART):
+"Normal" - THIS IS ACTUALLY THE BASE/DEFAULT LIL EYES AND SHOULD BE face: null:
 - NO glasses
-- TWO OVAL-SHAPED BLACK EYES of the SAME SIZE
-- Eyes are noticeably LARGER than Cross_Eyed dots and clearly OVAL (longer than they are wide)
-- Eyes are spaced APART at a normal distance across the face
-- COMPLETELY SOLID black ovals - NO horizontal line or eyelid, NO highlights
-- CRITICAL: If you see REGULAR-SIZED OVAL eyes spaced apart → choose Normal, NEVER Cross_Eyed
-- CRITICAL: If eyes are DIFFERENT SIZES → Curious (not Normal)
-- CRITICAL: If you see TINY CIRCULAR dots close together → Cross_Eyed (not Normal)
+- TWO OVAL-SHAPED BLACK EYES with WHITE HIGHLIGHTS/SHINE inside each eye
+- Eyes are larger and clearly OVAL shaped
+- Eyes have TWO SMALL WHITE CIRCLES inside each black oval (shine/reflection)
+- CRITICAL: If you see BASE LIL EYES (black ovals with white shine dots inside), this is the DEFAULT appearance and should be face: null, NOT "Normal"
+- The "Normal" trait should ONLY be used if the eyes are solid black ovals with NO white highlights
+- CRITICAL: Base Lil eyes with white highlights = face: null (no face trait)
 
 DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - RED frames + RED NOSE + WHITE MUSTACHE → Goofy_Glasses
@@ -1005,13 +1004,15 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
 - NO glasses + TWO TINY, PERFECTLY CIRCULAR BLACK DOTS close together near center → Cross_Eyed
-- NO glasses + TWO LARGER OVAL BLACK EYES spaced apart normally (no line, no highlights) → Normal
+- NO glasses + BLACK OVAL EYES WITH WHITE HIGHLIGHTS/SHINE inside (base default eyes) → face: null (NO face trait)
+- NO glasses + SOLID black ovals with NO white highlights (uncommon) → Normal
 
 FINAL LIL NO-GLASSES RULES (NO GLASSES VISIBLE):
 - If eyes have ANY horizontal line cutting through them → face = "Mad" (NEVER Curious)
 - If eyes are TWO DIFFERENT SHAPES (oval + triangle) with eyebrows and NO internal line → face = "Curious" (NEVER Mad)
 - If eyes are TINY CIRCULAR BEADY DOTS close together → face = "Cross_Eyed" (not Normal)
-- If eyes are LARGER OVALS spaced apart with no line → face = "Normal"
+- If eyes are BLACK OVALS WITH WHITE SHINE/HIGHLIGHTS inside → face = null (base default, no trait)
+- ONLY if eyes are solid black ovals with NO white highlights → face = "Normal"
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
@@ -1738,6 +1739,20 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // ----- FACE OVERRIDE: "Normal" on Lil Pudgys should be null (base eyes) -----
+    // The base Lil eyes (black ovals with white highlights) are the default and should have no face trait
+    if (traits.isLilPudgy === true && traits.traits?.face === "Normal") {
+      const hasWhiteHighlights = description.includes("white") || description.includes("highlight") || description.includes("shine") || description.includes("reflection");
+      const hasBaseEyeDescription = description.includes("oval") && !description.includes("solid black") && !description.includes("no highlight");
+      
+      // If description mentions white highlights/shine in eyes, or doesn't explicitly say "solid black with no highlights", 
+      // then it's base eyes and should be null
+      if (hasWhiteHighlights || hasBaseEyeDescription || !description.includes("solid")) {
+        console.log("FACE OVERRIDE: Normal → null (Lil Pudgy base eyes with highlights = no face trait)");
+        traits.traits.face = null;
+      }
+    }
+    
     // ----- SKIN OVERRIDES (reduce false Ice/Gold detections) -----
     // Ice Skin: Must have EITHER sparkles OR distinctive cyan/turquoise color (#77D1F6)
     // The color alone is sufficient since sparkles may be hidden by accessories
@@ -1752,14 +1767,29 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
-    // Gold Skin: Must have EITHER sparkles OR distinctive golden color (do NOT trust the phrase "gold skin" alone)
+    // Gold Skin: Must have EITHER sparkles OR distinctive golden color
+    // Be more lenient - accept "gold" or "golden" or "yellow" in description for body/flipper/skin
     if (traits.traits?.skin === "gold skin") {
       const hasSparkles = description.includes("sparkle") || description.includes("sparkles") || description.includes("✨");
-      const hasGoldColor = description.includes("golden body") || description.includes("golden flipper") || description.includes("yellow body") || description.includes("gold body") || description.includes("metallic yellow") || description.includes("shimmering gold") || description.includes("bright gold");
+      const hasGoldColor = description.includes("golden") || description.includes("gold body") || description.includes("gold skin") || description.includes("yellow body") || description.includes("yellow skin") || description.includes("metallic yellow") || description.includes("bright yellow") || description.includes("gold colored") || description.includes("gold-colored");
       
       if (!hasSparkles && !hasGoldColor) {
         console.log("SKIN OVERRIDE: gold skin → Normal (description lacks sparkles AND gold color cues)");
         traits.traits.skin = "Normal";
+      }
+    }
+    
+    // ----- SKIN RECOVERY: If skin is "Normal" but description mentions gold/yellow body, upgrade to gold skin -----
+    if (traits.traits?.skin === "Normal" || !traits.traits?.skin) {
+      const hasGoldBodyKeywords = description.includes("gold body") || description.includes("golden body") || description.includes("yellow body") || description.includes("gold-colored body") || description.includes("bright yellow body") || (description.includes("sparkle") && description.includes("yellow"));
+      const hasIceBodyKeywords = description.includes("ice body") || description.includes("icy body") || description.includes("cyan body") || description.includes("turquoise body") || description.includes("light blue body") || (description.includes("sparkle") && (description.includes("cyan") || description.includes("turquoise") || description.includes("light blue")));
+      
+      if (hasGoldBodyKeywords) {
+        console.log("SKIN RECOVERY: Normal → gold skin (description mentions gold/yellow body)");
+        traits.traits.skin = "gold skin";
+      } else if (hasIceBodyKeywords) {
+        console.log("SKIN RECOVERY: Normal → ice skin (description mentions icy/cyan body)");
+        traits.traits.skin = "ice skin";
       }
     }
     
