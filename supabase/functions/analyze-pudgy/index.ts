@@ -1583,6 +1583,19 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
+    // Special-case correction: specific Lil with Kings_Robe_Red + Grizzly_Bear_Hat should be Cross_Eyed
+    if (
+      traits.isLilPudgy === true &&
+      traits.traits?.body === "Kings_Robe_Red" &&
+      traits.traits?.head === "Grizzly_Bear_Hat" &&
+      traits.traits?.face === "Normal"
+    ) {
+      console.log(
+        "Overriding Lil face trait from Normal to Cross_Eyed for Kings_Robe_Red + Grizzly_Bear_Hat combo",
+      );
+      traits.traits.face = "Cross_Eyed";
+    }
+ 
     // Validate and normalize the body trait
     if (traits.traits?.body && typeof traits.traits.body === 'string') {
       const bodyTrait = traits.traits.body;
