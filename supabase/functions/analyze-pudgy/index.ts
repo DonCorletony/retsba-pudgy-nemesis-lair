@@ -1687,6 +1687,28 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // ----- SKIN OVERRIDES (reduce false Ice/Gold detections) -----
+    if (traits.traits?.skin === "ice skin") {
+      const hasSparkles = description.includes("sparkle") || description.includes("sparkles") || description.includes("✨");
+      const hasIcyColor = description.includes("icy") || description.includes("ice blue") || description.includes("light blue") || description.includes("cyan") || description.includes("turquoise") || description.includes("#77d1f6");
+      
+      // Require BOTH icy color and sparkles; otherwise treat as Normal to avoid false positives
+      if (!(hasSparkles && hasIcyColor)) {
+        console.log("SKIN OVERRIDE: ice skin → Normal (description lacks both sparkles and icy color cues)");
+        traits.traits.skin = "Normal";
+      }
+    }
+    
+    if (traits.traits?.skin === "gold skin") {
+      const hasSparkles = description.includes("sparkle") || description.includes("sparkles") || description.includes("✨");
+      const hasGoldColor = description.includes("gold skin") || description.includes("golden") || description.includes("yellow body") || description.includes("gold body");
+      
+      if (!(hasSparkles && hasGoldColor)) {
+        console.log("SKIN OVERRIDE: gold skin → Normal (description lacks both sparkles and gold color cues)");
+        traits.traits.skin = "Normal";
+      }
+    }
+    
     // ----- BODY TRAIT RECOVERY FROM DESCRIPTION -----
     // If AI returned null for body but description mentions a known body trait, recover it
     if (!traits.traits?.body || traits.traits.body === null) {
