@@ -806,10 +806,12 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - WHITE BANDAGE on the glasses' bridge (center between lenses)
 - Eyes visible through lenses as regular open eyes
 
-"Aviators" (BLACK AVIATOR GLASSES, GRADIENT LENSES):
-- BLACK aviator-style frames
-- Lenses are BLACK on top, fading to LIGHT BLUE toward the bottom
-- Classic aviator teardrop shape
+"Aviators" (BLACK AVIATOR GLASSES WITH TEARDROP SHAPE AND FRAMES):
+- Has visible BLACK METAL FRAMES around the lenses
+- Lenses are TEARDROP-SHAPED (rounded at bottom, narrower at top)
+- Lenses are BLACK on top, fading to LIGHT BLUE toward the bottom (GRADIENT)
+- Classic aviator style with CURVED rounded edges
+- CRITICAL: Aviators have VISIBLE FRAMES and ROUNDED teardrop shape
 
 "Goggles_Pink" (PINK CLOUT GOGGLES):
 - PINK frames in clout goggle style
@@ -832,11 +834,17 @@ For Lil Pudgys, you MUST look at these SPECIFIC features to identify face traits
 - LIGHT BLUE lenses
 - Simple round reading glasses
 
-"Squad" (BLACK FRAMELESS TRIANGULAR GLASSES):
-- BLACK, FRAMELESS glasses
-- Appears as TWO TRIANGLES bound together
-- WHITE REFLECT visible on the lenses
-- Key distinction: completely FRAMELESS design
+"Squad" (BLACK FRAMELESS TRIANGULAR GLASSES - COMPLETELY DIFFERENT FROM AVIATORS):
+- COMPLETELY FRAMELESS - NO visible frame around the lenses
+- Lenses are SHARP ANGULAR TRIANGLES (NOT rounded, NOT teardrop)
+- Appears as TWO BLACK TRIANGLES joined together at the bridge of the nose
+- The triangles have STRAIGHT EDGES and SHARP CORNERS
+- WHITE REFLECT/GLARE visible on the black lenses
+- CRITICAL DISTINCTION FROM AVIATORS:
+  * Squad = TRIANGULAR shape, FRAMELESS, SHARP edges
+  * Aviators = TEARDROP shape, HAS FRAMES, ROUNDED edges
+- If you see angular/triangular black lenses with no frame → Squad
+- If you see rounded teardrop lenses with visible frame → Aviators
 
 "Nerd_Blushing" (TAN GLASSES WITH CLOSED HAPPY EYES):
 - TAN/beige rectangular frames with WHITE BANDAGE in the middle
@@ -978,8 +986,8 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - BLUE circular frames + crossed eye dots → Reading_Cross_eyed
 - BLACK circular frames + thin + black lenses → Circle_Glasses
 - BLACK circular frames + light blue lenses → Reading_Normal
-- BLACK aviators with gradient lenses → Aviators
-- BLACK frameless triangles → Squad
+- BLACK TEARDROP-shaped glasses WITH visible frames + gradient lenses → Aviators
+- BLACK TRIANGULAR-shaped glasses WITHOUT frames (frameless angular triangles) → Squad
 - PINK clout goggles → Goggles_Pink
 - YELLOW clout goggles → Goggles_Yellow
 - BLUE clout goggles → Goggles
@@ -1683,6 +1691,33 @@ Return ONLY valid JSON in this exact format:
         if ((hasOval || hasSpacedApart) && !description.includes("circular") && !description.includes("beady") && !description.includes("crossed")) {
           console.log("GLOBAL OVERRIDE: Cross_Eyed → Normal (description indicates oval eyes)");
           traits.traits.face = "Normal";
+        }
+      }
+      
+      // Aviators vs Squad detection - Squad is TWO BLACK FRAMELESS TRIANGLES joined at bridge
+      // Aviators are teardrop-shaped with visible black FRAMES
+      if (currentFace === "Aviators") {
+        const hasTriangular = description.includes("triangle") || description.includes("triangular") || description.includes("angular");
+        const hasFrameless = description.includes("frameless") || description.includes("no frame") || description.includes("without frame");
+        const hasJoined = description.includes("joined") || description.includes("connected") || description.includes("fused") || description.includes("meet at");
+        const hasSquadKeyword = description.includes("squad");
+        
+        // If description mentions triangular/frameless/joined characteristics, it's Squad not Aviators
+        if (hasTriangular || hasFrameless || hasJoined || hasSquadKeyword) {
+          console.log("GLOBAL OVERRIDE: Aviators → Squad (description indicates triangular/frameless glasses)");
+          traits.traits.face = "Squad";
+        }
+      }
+      
+      if (currentFace === "Squad") {
+        const hasTeardrop = description.includes("teardrop") || description.includes("tear drop") || description.includes("aviator");
+        const hasFrame = description.includes("black frame") || description.includes("metal frame") || description.includes("with frame");
+        const hasGradient = description.includes("gradient") || description.includes("fading");
+        
+        // If description mentions teardrop/framed/gradient characteristics, it's Aviators not Squad
+        if ((hasTeardrop || hasFrame || hasGradient) && !description.includes("triangle") && !description.includes("frameless")) {
+          console.log("GLOBAL OVERRIDE: Squad → Aviators (description indicates teardrop/framed glasses)");
+          traits.traits.face = "Aviators";
         }
       }
     }
