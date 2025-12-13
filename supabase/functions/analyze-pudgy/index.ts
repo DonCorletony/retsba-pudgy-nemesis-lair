@@ -996,8 +996,8 @@ DECISION RULES (MUST PICK ONE - NEVER return null if glasses are visible):
 - NO glasses + red oval blush marks → Blushing
 - NO glasses + one eye closed as < → Winking
 - NO glasses + oval eyes WITH horizontal line (squinting) → Mad
-- NO glasses + eyes with white dots on INNER sides (looking inward/crossed) → Cross_Eyed
-- NO glasses + plain solid oval eyes (no line, no white dots) → Normal
+- NO glasses + TWO PERFECTLY CIRCULAR SMALL BLACK DOTS positioned CLOSE TOGETHER toward center → Cross_Eyed
+- NO glasses + TWO OVAL-SHAPED BLACK EYES spaced apart normally (no line, no white dots) → Normal
 
 CRITICAL: If the penguin is wearing ANY glasses, you MUST match to one of the glasses traits above. Do NOT return null for face if glasses are visible.
 
