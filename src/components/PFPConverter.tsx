@@ -1175,6 +1175,10 @@ const PFPConverter = () => {
     setRetsbafiedImage(null);
     setStep('idle');
     setError(null);
+    // Reset file input so user can re-upload
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, [isLilMode]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
