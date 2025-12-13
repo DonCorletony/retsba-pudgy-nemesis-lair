@@ -379,6 +379,7 @@ import LilHead_Egg_Shell from '@/assets/pfp-traits/lil/head/Egg_Shell.png';
 import LilHead_Egg_Shell_Gold from '@/assets/pfp-traits/lil/head/Egg_Shell_Gold.png';
 import LilHead_Elf_Hat from '@/assets/pfp-traits/lil/head/Elf_Hat.png';
 import LilHead_Fireman_Helmet from '@/assets/pfp-traits/lil/head/Fireman_Helmet.png';
+import LilHead_Fish_Black from '@/assets/pfp-traits/lil/head/Fish_Black.png';
 import LilHead_Fish_Blue from '@/assets/pfp-traits/lil/head/Fish_Blue.png';
 import LilHead_Fish_Gold from '@/assets/pfp-traits/lil/head/Fish_Gold.png';
 import LilHead_Fish_Gray from '@/assets/pfp-traits/lil/head/Fish_Gray.png';
@@ -752,6 +753,7 @@ const LIL_HEAD_TRAIT_MAP: Record<string, string> = {
   Egg_Shell_Gold: LilHead_Egg_Shell_Gold,
   Elf_Hat: LilHead_Elf_Hat,
   Fireman_Helmet: LilHead_Fireman_Helmet,
+  Fish_Black: LilHead_Fish_Black,
   Fish_Blue: LilHead_Fish_Blue,
   Fish_Gold: LilHead_Fish_Gold,
   Fish_Gray: LilHead_Fish_Gray,
