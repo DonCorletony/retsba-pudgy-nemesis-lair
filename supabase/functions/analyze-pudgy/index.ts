@@ -686,8 +686,9 @@ Right flipper traits appear in the Lil's RIGHT HAND (which appears on the LEFT s
 - "Surfboard_Blue" = A blue surfboard held upright
 - "Lollipop" = A yellow spiral lollipop on a wooden stick
 - "Balloon_Sword_Blue" = A blue balloon animal shaped like a sword with balloon guard/hilt
-- "Pickett_Sign" = A wooden picket sign on a pole with "GM!" written on it
-- "GM_Sign" = A black arrow-shaped marquee sign with lights around the edge and "GM!" in LED lights
+- "Pickett_Sign" = A BROWN WOODEN RECTANGULAR picket sign on a wooden pole with "GM!" written on it. The sign is BROWN/TAN colored wood, RECTANGULAR shape, mounted on a wooden stick. NOT arrow-shaped, NOT black.
+- "GM_Sign" = A BLACK/GRAY LEFT-POINTING ARROW-shaped marquee sign with small lights/bulbs around the edge and "GM!" displayed in LED-style lights. The sign is ARROW-SHAPED pointing LEFT, dark colored (black/gray), with decorative lights around the border. NOT wooden, NOT rectangular, NOT brown.
+CRITICAL - PICKETT_SIGN vs GM_SIGN: If the sign is BROWN WOODEN RECTANGULAR → "Pickett_Sign". If the sign is BLACK/GRAY ARROW-SHAPED with lights → "GM_Sign".
 - "Golden_Plunger" = A golden toilet plunger with yellow cup and gold handle
 - "Sword_Gold" = A golden sword with pointed blade and gem in the hilt
 - "Stick" = A brown wooden stick/branch with small twigs
@@ -1979,6 +1980,19 @@ Return ONLY valid JSON in this exact format:
       }
     }
 
+    // ----- RIGHT FLIPPER TRAIT OVERRIDES -----
+    // Fix confusion between GM_Sign and Pickett_Sign based on description
+    if (traits.traits?.right_flipper === "GM_Sign") {
+      const hasWoodenSign = description.includes("wooden") || description.includes("wood") || description.includes("brown sign") || description.includes("rectangular sign") || description.includes("picket");
+      const hasArrowShape = description.includes("arrow") || description.includes("arrow-shaped") || description.includes("marquee") || description.includes("lights around");
+      
+      // If described as wooden/brown/rectangular, it's Pickett_Sign not GM_Sign
+      if (hasWoodenSign && !hasArrowShape) {
+        console.log("RIGHT FLIPPER OVERRIDE: GM_Sign → Pickett_Sign (description indicates wooden rectangular sign)");
+        traits.traits.right_flipper = "Pickett_Sign";
+      }
+    }
+
     // Validate and normalize the right_flipper trait (Lil Pudgy only)
     if (traits.traits?.right_flipper && typeof traits.traits.right_flipper === 'string') {
       const rightFlipperTrait = traits.traits.right_flipper;
@@ -2001,7 +2015,7 @@ Return ONLY valid JSON in this exact format:
         }
       }
     }
-    
+
     // SPECIAL HANDLING: gold_kimono_special penguin - override traits
     if (traits.isSpecialPenguin === 'gold_kimono_special') {
       console.log('POST-PROCESSING: gold_kimono_special detected, setting hardcoded traits');
