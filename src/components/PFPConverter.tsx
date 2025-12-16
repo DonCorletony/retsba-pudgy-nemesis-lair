@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Template from '@/assets/pfp-templates/Template.png';
 import Template_2 from '@/assets/pfp-templates/Template_2.png';
 import Backwards_Template from '@/assets/pfp-templates/Backwards_Template.png';
@@ -1188,6 +1189,7 @@ interface DetectedTraits {
 type AnalysisStep = 'idle' | 'uploading' | 'analyzing' | 'compositing' | 'complete' | 'error';
 
 const PFPConverter = () => {
+  const { t } = useLanguage();
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [detectedTraits, setDetectedTraits] = useState<DetectedTraits | null>(null);
   const [retsbafiedImage, setRetsbafiedImage] = useState<string | null>(null);
@@ -1714,8 +1716,8 @@ const PFPConverter = () => {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
                     <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                   </div>
-                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
-                  <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
+                  <p className="text-black dark:text-white font-medium mb-2">{t('dropPudgyHere')}</p>
+                  <p className="text-black/40 dark:text-white/40 text-sm">{t('orClickToBrowse')}</p>
                 </motion.div>
               )}
 
@@ -1755,7 +1757,7 @@ const PFPConverter = () => {
                     variant="outline"
                     className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
                   >
-                    Try Again
+                    {t('tryAgain')}
                   </Button>
                 </motion.div>
               )}
@@ -1795,7 +1797,7 @@ const PFPConverter = () => {
           className="w-full bg-red-500 hover:bg-red-600 text-white"
         >
           <Download className="w-4 h-4 mr-2" />
-          Download
+          {t('download')}
         </Button>
       </div>
 
@@ -1804,17 +1806,17 @@ const PFPConverter = () => {
         {/* Headers row with toggle in center */}
         <div className="grid grid-cols-2 gap-6 mb-4">
           <div className="text-left">
-            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? 'Your Lil (Beta)' : 'Your Pudgy'}</h2>
-            <p className="text-black/60 dark:text-white/60 text-sm">{isLilMode ? 'Upload your Lil Pudgy NFT' : 'Upload your Pudgy Penguin NFT'}</p>
+            <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{isLilMode ? t('yourLil') : t('yourPudgy')}</h2>
+            <p className="text-black/60 dark:text-white/60 text-sm">{isLilMode ? t('uploadLil') : t('uploadPudgy')}</p>
           </div>
           <div className="flex items-start justify-between">
             <div className="text-left">
-              <h2 className="text-xl font-semibold text-black dark:text-white mb-1">Retsbafied</h2>
-              <p className="text-black/60 dark:text-white/60 text-sm">Your Retsba</p>
+              <h2 className="text-xl font-semibold text-black dark:text-white mb-1">{t('retsbafied')}</h2>
+              <p className="text-black/60 dark:text-white/60 text-sm">{t('yourRetsba')}</p>
             </div>
             <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-full px-4 py-2">
               <span className={`text-sm font-medium transition-colors ${!isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-                Big
+                {t('big')}
               </span>
               <Switch
                 checked={isLilMode}
@@ -1822,7 +1824,7 @@ const PFPConverter = () => {
                 className="data-[state=checked]:bg-primary"
               />
               <span className={`text-sm font-medium transition-colors ${isLilMode ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}>
-                Lil (Beta)
+                {t('lil')}
               </span>
             </div>
           </div>
@@ -1889,8 +1891,8 @@ const PFPConverter = () => {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
                     <Upload className="w-8 h-8 text-black/40 dark:text-white/40" />
                   </div>
-                  <p className="text-black dark:text-white font-medium mb-2">Drop your Pudgy here</p>
-                  <p className="text-black/40 dark:text-white/40 text-sm">or click to browse</p>
+                  <p className="text-black dark:text-white font-medium mb-2">{t('dropPudgyHere')}</p>
+                  <p className="text-black/40 dark:text-white/40 text-sm">{t('orClickToBrowse')}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1907,7 +1909,7 @@ const PFPConverter = () => {
               >
                 <div className="flex items-center gap-2 mb-3">
                   <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  <h3 className="font-semibold text-black dark:text-white text-sm">Detected Traits</h3>
+                  <h3 className="font-semibold text-black dark:text-white text-sm">{t('detectedTraits')}</h3>
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
                     detectedTraits.confidence === 'high' 
                       ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
@@ -1915,7 +1917,7 @@ const PFPConverter = () => {
                       ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                       : 'bg-red-500/20 text-red-600 dark:text-red-400'
                   }`}>
-                    {detectedTraits.confidence} confidence
+                    {detectedTraits.confidence} {t('confidence')}
                   </span>
                 </div>
                 
@@ -1999,7 +2001,7 @@ const PFPConverter = () => {
                     variant="outline"
                     className="mt-4 border-black/20 dark:border-white/20 text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
                   >
-                    Try Again
+                    {t('tryAgain')}
                   </Button>
                 </motion.div>
               )}
@@ -2029,7 +2031,7 @@ const PFPConverter = () => {
             className="w-full bg-red-500 hover:bg-red-600 text-white"
           >
             <Download className="w-4 h-4 mr-2" />
-            Download
+            {t('download')}
           </Button>
         </div>
         </div>

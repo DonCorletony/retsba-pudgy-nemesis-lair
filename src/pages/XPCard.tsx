@@ -331,14 +331,14 @@ const XPCard = () => {
 
               {/* Input Controls - Right Side */}
               <div className="flex flex-col justify-center space-y-6">
-                <h2 className="text-xl font-semibold mb-2 text-black dark:text-white">Customize Your Card</h2>
+                <h2 className="text-xl font-semibold mb-2 text-black dark:text-white">{t('customizeYourCard')}</h2>
                 
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-black dark:text-white">{t('username')}</Label>
                   <Input
                     id="username"
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder={t('enterUsername')}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     maxLength={30}
@@ -359,7 +359,7 @@ const XPCard = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-black dark:text-white">Profile Photo</Label>
+                  <Label className="text-black dark:text-white">{t('profilePhoto')}</Label>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -373,19 +373,19 @@ const XPCard = () => {
                     className="w-full bg-white dark:bg-retsba border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    {profilePhoto ? 'Change Photo' : 'Upload Profile Photo'}
+                    {profilePhoto ? t('changePhoto') : t('uploadProfilePhoto')}
                   </Button>
                   {profilePhoto && (
                     <div className="flex items-center gap-2 mt-2">
                       <div className="w-10 h-10 rounded-full overflow-hidden border border-black dark:border-white">
                         <img src={profilePhoto} alt="Preview" className="w-full h-full object-cover" />
                       </div>
-                      <span className="text-black/60 dark:text-white/60 text-sm">Photo uploaded</span>
+                      <span className="text-black/60 dark:text-white/60 text-sm">{t('photoUploaded')}</span>
                       <button
                         onClick={() => setProfilePhoto(null)}
                         className="text-red-400 hover:text-red-300 text-sm underline"
                       >
-                        Remove
+                        {t('remove')}
                       </button>
                     </div>
                   )}
