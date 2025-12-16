@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Import All-Time templates
 import AllTime1 from '@/assets/xp-templates/All_Time_1.png';
@@ -44,6 +45,7 @@ const ALL_TIME_TEMPLATES = [
 ];
 
 const XPCard = () => {
+  const { t } = useLanguage();
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -198,7 +200,7 @@ const XPCard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">XP Card</h1>
+            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">{t('xpCard')}</h1>
           </motion.div>
 
           <motion.div
@@ -212,17 +214,17 @@ const XPCard = () => {
               <div className="flex flex-col items-center w-full">
                 {/* Header with Preview title and Weekly/All-Time toggle */}
                 <div className="flex items-center justify-between w-full mb-4" style={{ maxWidth: `min(${CARD_WIDTH}px, 90vw)` }}>
-                  <h2 className="text-xl font-semibold text-black dark:text-white">Preview</h2>
+                  <h2 className="text-xl font-semibold text-black dark:text-white">{t('preview')}</h2>
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-medium ${!isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
-                      Weekly
+                      {t('weekly')}
                     </span>
                     <Switch 
                       checked={isAllTime} 
                       onCheckedChange={handleModeSwitch}
                     />
                     <span className={`text-sm font-medium ${isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
-                      All-Time
+                      {t('allTime')}
                     </span>
                   </div>
                 </div>
@@ -332,7 +334,7 @@ const XPCard = () => {
                 <h2 className="text-xl font-semibold mb-2 text-black dark:text-white">Customize Your Card</h2>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-black dark:text-white">Username</Label>
+                  <Label htmlFor="username" className="text-black dark:text-white">{t('username')}</Label>
                   <Input
                     id="username"
                     type="text"
@@ -345,7 +347,7 @@ const XPCard = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="xp" className="text-black dark:text-white">XP Amount</Label>
+                  <Label htmlFor="xp" className="text-black dark:text-white">{t('xpAmount')}</Label>
                   <Input
                     id="xp"
                     type="text"
@@ -395,7 +397,7 @@ const XPCard = () => {
                   disabled={!username && !xpAmount}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download XP Card
+                  {t('downloadCard')}
                 </Button>
               </div>
             </div>

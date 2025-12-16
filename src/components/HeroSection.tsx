@@ -1,6 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 const HeroSection = () => {
+  const { t } = useLanguage();
+  
   return <section className="pt-16 pb-24 md:pt-24 md:pb-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-retsba z-0"></div>
       
@@ -26,12 +30,12 @@ const HeroSection = () => {
           delay: 0.3,
           duration: 0.6
         }}>
-            <h2 className="text-stroke text-white text-4xl md:text-6xl mb-4">Evil. On Chain.</h2>
+            <h2 className="text-stroke text-white text-4xl md:text-6xl mb-4">{t('heroTagline')}</h2>
             
             
             <div className="mt-10">
               <a href="#buy-now" className="bg-retsba border-2 border-white hover:opacity-80 transition-all px-8 py-4 rounded-lg text-stroke text-3xl inline-block hover:translate-y-1">
-                BE THE VILLAIN
+                {t('heroButton')}
               </a>
             </div>
           </motion.div>

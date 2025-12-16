@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import NavBar from '../components/NavBar';
 import FooterSection from '../components/FooterSection';
 import PFPConverter from '../components/PFPConverter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PFP = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
       <NavBar />
@@ -17,7 +20,7 @@ const PFP = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">Profile Picture Converter</h1>
+            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">{t('pfpTitle')}</h1>
           </motion.div>
 
           <motion.div
@@ -34,7 +37,7 @@ const PFP = () => {
       {/* How It Works */}
       <section className="py-16 bg-white/5">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-white mb-12">How It Works</h2>
+          <h2 className="text-3xl font-bold text-center text-white mb-12">{t('howItWorks')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <motion.div
@@ -47,9 +50,9 @@ const PFP = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
                 1
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Upload Your Pudgy</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('step1Title')}</h3>
               <p className="text-white/60">
-                Drop or select your Pudgy Penguin or Lil Pudgy NFT image
+                {t('step1Desc')}
               </p>
             </motion.div>
 
@@ -63,9 +66,9 @@ const PFP = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
                 2
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">AI Detects Traits</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('step2Title')}</h3>
               <p className="text-white/60">
-                Our AI analyzes your Pudgy and identifies all its unique traits
+                {t('step2Desc')}
               </p>
             </motion.div>
 
@@ -79,9 +82,9 @@ const PFP = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
                 3
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Get Your Retsba</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('step3Title')}</h3>
               <p className="text-white/60">
-                Download your Retsbafied image with matching trait overlays
+                {t('step3Desc')}
               </p>
             </motion.div>
           </div>
