@@ -1,6 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 const AboutSection = () => {
+  const { t } = useLanguage();
+  
   return <section id="about" className="py-20 bg-retsba relative overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div className="text-center mb-12" initial={{
@@ -14,7 +18,7 @@ const AboutSection = () => {
       }} transition={{
         duration: 0.6
       }}>
-          <h2 className="text-stroke text-white text-5xl mb-4">RETSBA</h2>
+          <h2 className="text-stroke text-white text-5xl mb-4">{t('aboutTitle')}</h2>
           <div className="w-24 h-1 bg-black mx-auto"></div>
         </motion.div>
         
@@ -46,8 +50,8 @@ const AboutSection = () => {
           duration: 0.6,
           delay: 0.4
         }}>
-            <h3 className="text-stroke text-white mb-6 text-4xl">The memecoin with a darkside</h3>
-            <p className="text-stroke text-white mb-6 text-2xl">Every great legend in history has had one commonality: there is a hero, and there is a villain.  In a world of heroic Pudgy Penguins, Retsba is the villain.  Hailing from the depths of Anti-Abstract, his relentless conquest of evil will not end until he gains total dominion over the Abstract blockchain.</p>
+            <h3 className="text-stroke text-white mb-6 text-4xl">{t('aboutSubtitle')}</h3>
+            <p className="text-stroke text-white mb-6 text-2xl">{t('aboutDescription')}</p>
           </motion.div>
         </div>
       </div>
