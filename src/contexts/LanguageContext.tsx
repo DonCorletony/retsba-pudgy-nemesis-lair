@@ -943,10 +943,28 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Detect browser language and map to supported language
+const detectBrowserLanguage = (): LanguageCode => {
+  const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  const langCode = browserLang.split('-')[0].toLowerCase(); // e.g., 'en-US' -> 'en'
+  
+  // Check if the detected language is in our supported list
+  const supportedCodes: LanguageCode[] = ['en', 'es', 'ja', 'ko', 'zh', 'fr', 'de', 'pt', 'ru', 'ar'];
+  if (supportedCodes.includes(langCode as LanguageCode)) {
+    return langCode as LanguageCode;
+  }
+  
+  return 'en'; // Default to English if not supported
+};
+
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<LanguageCode>(() => {
     const saved = localStorage.getItem('language');
-    return (saved as LanguageCode) || 'en';
+    if (saved && ['en', 'es', 'ja', 'ko', 'zh', 'fr', 'de', 'pt', 'ru', 'ar'].includes(saved)) {
+      return saved as LanguageCode;
+    }
+    // No saved preference, detect from browser
+    return detectBrowserLanguage();
   });
 
   const setLanguage = (code: LanguageCode) => {
