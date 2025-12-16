@@ -34,6 +34,16 @@ import XPTemplate6_JA from '@/assets/xp-cards/ja/XP_Template_6.png';
 import AllTime1_JA from '@/assets/xp-cards/ja/All_Time_1.png';
 import AllTime2_JA from '@/assets/xp-cards/ja/All_Time_2.png';
 
+// Import Korean templates
+import XPTemplate1_KO from '@/assets/xp-cards/ko/XP_Template_1.png';
+import XPTemplate2_KO from '@/assets/xp-cards/ko/XP_Template_2.png';
+import XPTemplate3_KO from '@/assets/xp-cards/ko/XP_Template_3.png';
+import XPTemplate4_KO from '@/assets/xp-cards/ko/XP_Template_4.png';
+import XPTemplate5_KO from '@/assets/xp-cards/ko/XP_Template_5.png';
+import XPTemplate6_KO from '@/assets/xp-cards/ko/XP_Template_6.png';
+import AllTime1_KO from '@/assets/xp-cards/ko/All_Time_1.png';
+import AllTime2_KO from '@/assets/xp-cards/ko/All_Time_2.png';
+
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
@@ -83,17 +93,30 @@ const WEEKLY_TEMPLATES_JA = [
 ];
 const ALL_TIME_TEMPLATES_JA = [AllTime1_JA, AllTime2_JA];
 
+// Korean templates
+const WEEKLY_TEMPLATES_KO = [
+  XPTemplate1_KO,
+  XPTemplate2_KO,
+  XPTemplate3_KO,
+  XPTemplate4_KO,
+  XPTemplate5_KO,
+  XPTemplate6_KO,
+];
+const ALL_TIME_TEMPLATES_KO = [AllTime1_KO, AllTime2_KO];
+
 // Template map by language code
 const WEEKLY_TEMPLATES_BY_LANG: Record<string, string[]> = {
   en: WEEKLY_TEMPLATES_EN,
   es: WEEKLY_TEMPLATES_ES,
   ja: WEEKLY_TEMPLATES_JA,
+  ko: WEEKLY_TEMPLATES_KO,
 };
 
 const ALL_TIME_TEMPLATES_BY_LANG: Record<string, string[]> = {
   en: ALL_TIME_TEMPLATES_EN,
   es: ALL_TIME_TEMPLATES_ES,
   ja: ALL_TIME_TEMPLATES_JA,
+  ko: ALL_TIME_TEMPLATES_KO,
 };
 
 const XPCard = () => {
