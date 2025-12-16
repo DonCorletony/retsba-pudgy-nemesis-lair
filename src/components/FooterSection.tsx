@@ -1,7 +1,9 @@
-
 import React from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const FooterSection = () => {
+  const { t } = useLanguage();
+  
   return (
     <footer className="bg-retsba py-12">
       <div className="container mx-auto px-4">
@@ -60,7 +62,7 @@ const FooterSection = () => {
         
         <div className="mt-8 border-t border-black pt-8 text-center">
           <p className="text-stroke text-white text-xl">
-            © {new Date().getFullYear()} RETSBA. Evil. On chain.
+            © {new Date().getFullYear()} RETSBA. {t('footerTagline')}
           </p>
         </div>
       </div>
