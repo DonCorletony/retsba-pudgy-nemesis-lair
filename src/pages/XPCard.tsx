@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+
+// Import All-Time templates
+import AllTime1 from '@/assets/xp-templates/All_Time_1.png';
+import AllTime2 from '@/assets/xp-templates/All_Time_2.png';
 
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
@@ -22,8 +27,8 @@ const XP_FONT = 54;
 const XP_LEFT = 24;
 const XP_BOTTOM = 72;
 
-// Template images
-const TEMPLATES = [
+// Weekly template images
+const WEEKLY_TEMPLATES = [
   '/images/xp-template-v2.png',
   '/images/xp-template-2.png',
   '/images/xp-template-3.png',
@@ -32,19 +37,33 @@ const TEMPLATES = [
   '/images/xp-template-7.png',
 ];
 
+// All-Time template images
+const ALL_TIME_TEMPLATES = [
+  AllTime1,
+  AllTime2,
+];
+
 const XPCard = () => {
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState(0);
+  const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const templates = isAllTime ? ALL_TIME_TEMPLATES : WEEKLY_TEMPLATES;
+
   const nextTemplate = () => {
-    setCurrentTemplate((prev) => (prev + 1) % TEMPLATES.length);
+    setCurrentTemplate((prev) => (prev + 1) % templates.length);
   };
 
   const prevTemplate = () => {
-    setCurrentTemplate((prev) => (prev - 1 + TEMPLATES.length) % TEMPLATES.length);
+    setCurrentTemplate((prev) => (prev - 1 + templates.length) % templates.length);
+  };
+
+  const handleModeSwitch = (checked: boolean) => {
+    setIsAllTime(checked);
+    setCurrentTemplate(0); // Reset to first template when switching modes
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +99,7 @@ const XPCard = () => {
       await new Promise<void>((resolve, reject) => {
         templateImg.onload = () => resolve();
         templateImg.onerror = reject;
-        templateImg.src = TEMPLATES[currentTemplate];
+        templateImg.src = templates[currentTemplate];
       });
       
       ctx.drawImage(templateImg, 0, 0, CARD_WIDTH, CARD_HEIGHT);
@@ -190,8 +209,23 @@ const XPCard = () => {
           >
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
               {/* Card Preview - Left Side */}
-              <div className="flex flex-col items-center">
-                <h2 className="text-xl font-semibold mb-4 text-black dark:text-white">Preview</h2>
+              <div className="flex flex-col items-center w-full">
+                {/* Header with Preview title and Weekly/All-Time toggle */}
+                <div className="flex items-center justify-between w-full mb-4" style={{ maxWidth: `min(${CARD_WIDTH}px, 90vw)` }}>
+                  <h2 className="text-xl font-semibold text-black dark:text-white">Preview</h2>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${!isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
+                      Weekly
+                    </span>
+                    <Switch 
+                      checked={isAllTime} 
+                      onCheckedChange={handleModeSwitch}
+                    />
+                    <span className={`text-sm font-medium ${isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
+                      All-Time
+                    </span>
+                  </div>
+                </div>
                 <div 
                   className="relative rounded-lg overflow-hidden shadow-2xl"
                   style={{ 
@@ -203,7 +237,7 @@ const XPCard = () => {
                 >
                   {/* Template Background */}
                   <img 
-                    src={TEMPLATES[currentTemplate]} 
+                    src={templates[currentTemplate]} 
                     alt="XP Card Template"
                     className="w-full h-full object-cover"
                   />
@@ -273,7 +307,7 @@ const XPCard = () => {
                   </button>
                   
                   <div className="flex items-center gap-2">
-                    {TEMPLATES.map((_, index) => (
+                    {templates.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentTemplate(index)}
