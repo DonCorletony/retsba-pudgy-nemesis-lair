@@ -10,9 +10,19 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-// Import All-Time templates
+// Import English All-Time templates
 import AllTime1 from '@/assets/xp-templates/All_Time_1.png';
 import AllTime2 from '@/assets/xp-templates/All_Time_2.png';
+
+// Import Spanish templates
+import XPTemplate1_ES from '@/assets/xp-cards/es/XP_Template_1.png';
+import XPTemplate2_ES from '@/assets/xp-cards/es/XP_Template_2.png';
+import XPTemplate3_ES from '@/assets/xp-cards/es/XP_Template_3.png';
+import XPTemplate4_ES from '@/assets/xp-cards/es/XP_Template_4.png';
+import XPTemplate5_ES from '@/assets/xp-cards/es/XP_Template_5.png';
+import XPTemplate6_ES from '@/assets/xp-cards/es/XP_Template_6.png';
+import AllTime1_ES from '@/assets/xp-cards/es/All_Time_1.png';
+import AllTime2_ES from '@/assets/xp-cards/es/All_Time_2.png';
 
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
@@ -28,8 +38,8 @@ const XP_FONT = 54;
 const XP_LEFT = 24;
 const XP_BOTTOM = 72;
 
-// Weekly template images
-const WEEKLY_TEMPLATES = [
+// English Weekly templates (default)
+const WEEKLY_TEMPLATES_EN = [
   '/images/xp-template-v2.png',
   '/images/xp-template-2.png',
   '/images/xp-template-3.png',
@@ -38,14 +48,33 @@ const WEEKLY_TEMPLATES = [
   '/images/xp-template-7.png',
 ];
 
-// All-Time template images
-const ALL_TIME_TEMPLATES = [
-  AllTime1,
-  AllTime2,
+// English All-Time templates (default)
+const ALL_TIME_TEMPLATES_EN = [AllTime1, AllTime2];
+
+// Spanish templates
+const WEEKLY_TEMPLATES_ES = [
+  XPTemplate1_ES,
+  XPTemplate2_ES,
+  XPTemplate3_ES,
+  XPTemplate4_ES,
+  XPTemplate5_ES,
+  XPTemplate6_ES,
 ];
+const ALL_TIME_TEMPLATES_ES = [AllTime1_ES, AllTime2_ES];
+
+// Template map by language code
+const WEEKLY_TEMPLATES_BY_LANG: Record<string, string[]> = {
+  en: WEEKLY_TEMPLATES_EN,
+  es: WEEKLY_TEMPLATES_ES,
+};
+
+const ALL_TIME_TEMPLATES_BY_LANG: Record<string, string[]> = {
+  en: ALL_TIME_TEMPLATES_EN,
+  es: ALL_TIME_TEMPLATES_ES,
+};
 
 const XPCard = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -53,7 +82,10 @@ const XPCard = () => {
   const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const templates = isAllTime ? ALL_TIME_TEMPLATES : WEEKLY_TEMPLATES;
+  // Get templates based on current language (fallback to English)
+  const weeklyTemplates = WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN;
+  const allTimeTemplates = ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN;
+  const templates = isAllTime ? allTimeTemplates : weeklyTemplates;
 
   const nextTemplate = () => {
     setCurrentTemplate((prev) => (prev + 1) % templates.length);
