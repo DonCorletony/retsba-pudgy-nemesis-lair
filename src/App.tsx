@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AbstractWalletProvider } from "@abstract-foundation/agw-react";
 import { abstract } from "viem/chains";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
 import Test from "./pages/Test";
@@ -17,26 +18,28 @@ import Auth from "./pages/Auth";
 
 const App = () => {
   return (
-    <AbstractWalletProvider chain={abstract}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/freemoney" element={<FreeMoney />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="/memes" element={<Memes />} />
-            <Route path="/xp" element={<XPCard />} />
-            <Route path="/pfp" element={<PFP />} />
-            <Route path="/createaccount" element={<CreateAccount />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AbstractWalletProvider>
+    <LanguageProvider>
+      <AbstractWalletProvider chain={abstract}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/freemoney" element={<FreeMoney />} />
+              <Route path="/test" element={<Test />} />
+              <Route path="/memes" element={<Memes />} />
+              <Route path="/xp" element={<XPCard />} />
+              <Route path="/pfp" element={<PFP />} />
+              <Route path="/createaccount" element={<CreateAccount />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AbstractWalletProvider>
+    </LanguageProvider>
   );
 }
 
