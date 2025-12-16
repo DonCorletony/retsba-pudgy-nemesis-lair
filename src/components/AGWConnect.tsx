@@ -3,12 +3,14 @@ import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const AGWConnect = () => {
   const { login } = useLoginWithAbstract();
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleConnect = async () => {
     try {
@@ -47,7 +49,7 @@ export const AGWConnect = () => {
       onClick={handleConnect}
       className="bg-primary hover:bg-primary/90 text-white"
     >
-      Connect AGW
+      {t('connectAGW')} AGW
     </Button>
   );
 };
