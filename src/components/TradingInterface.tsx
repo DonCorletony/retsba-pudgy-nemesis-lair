@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 // Removed useBridgeAndSwap import - only local swaps now
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}` // RETSBA token on Abstract
@@ -118,6 +119,7 @@ const uniswapV3RouterAbi = [
 export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalanceRefresh?: () => void; refreshTrigger?: number }) => {
   const { address, isConnected } = useAccount()
   const { toast } = useToast()
+  const { t } = useLanguage()
   
   // State for selected token, swap amount and estimated RETSBA output
   const [selectedToken, setSelectedToken] = useState(TOKENS[0]) // Default to ETH
@@ -409,10 +411,10 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-center">Buy Retsba</CardTitle>
+          <CardTitle className="text-center">{t('buyRetsbaTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-muted-foreground">Please connect your wallet to continue</p>
+          <p className="text-muted-foreground">{t('connectWalletToContinue')}</p>
         </CardContent>
       </Card>
     )
@@ -421,12 +423,12 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
   return (
     <Card className="w-full max-w-md mx-auto bg-white rounded-lg shadow-lg">
       <CardHeader>
-        <CardTitle className="text-center text-black">Buy RETSBA</CardTitle>
+        <CardTitle className="text-center text-black">{t('buyRetsbaTitle')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Token Selection Balance */}
         <div className="p-4 border rounded-lg bg-white">
-          <Label className="text-sm font-medium text-muted-foreground">Token Balance</Label>
+          <Label className="text-sm font-medium text-muted-foreground">{t('tokenBalance')}</Label>
           <div className="mt-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -471,9 +473,9 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
 
         {/* RETSBA Balance */}
         <div className="p-4 border rounded-lg bg-white">
-          <Label className="text-sm font-medium text-muted-foreground">RETSBA Balance</Label>
+          <Label className="text-sm font-medium text-muted-foreground">{t('retsbaBalance')}</Label>
           {retsbaLoading ? (
-            <p className="text-lg font-semibold text-black">Loading...</p>
+            <p className="text-lg font-semibold text-black">{t('loading')}</p>
           ) : retsbaError ? (
             <div>
               <p className="text-lg font-semibold text-destructive">Contract Error</p>
@@ -506,7 +508,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
         <div className="space-y-3">
           <div className="p-4 border rounded-lg bg-white">
             <Label htmlFor="swap-amount" className="text-sm font-medium">
-              Amount of {selectedToken.symbol} to corrupt
+              {t('amountToCorrupt')} ({selectedToken.symbol})
             </Label>
             <Input
               id="swap-amount"
@@ -524,13 +526,13 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
           {swapAmount && estimatedRetsba && currentPrice > 0 && (
             <div className="p-3 border rounded-lg bg-accent/50">
               <Label className="text-sm font-medium text-muted-foreground">
-                You will receive (estimated)
+                {t('youWillReceive')}
               </Label>
               <p className="text-lg font-semibold text-black">
                 {estimatedRetsba} RETSBA
               </p>
               <p className="text-xs text-muted-foreground">
-                Rate: 1 ETH = {(1 / currentPrice).toFixed(2)} RETSBA (0.5% slippage applied)
+                Rate: 1 ETH = {(1 / currentPrice).toFixed(2)} RETSBA (0.5% {t('slippageApplied')})
               </p>
             </div>
           )}
@@ -539,7 +541,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
           {(isLoadingPrice || currentPrice === 0) && swapAmount && (
             <div className="p-3 border rounded-lg bg-muted/50">
               <Label className="text-sm font-medium text-muted-foreground">
-                Loading price data...
+                {t('loadingPriceData')}
               </Label>
             </div>
           )}
@@ -552,9 +554,9 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
             disabled={isPending || !swapAmount || currentPrice === 0 || isLoadingPrice}
             className="w-full text-white" style={{ backgroundColor: '#FF0000' }}
           >
-            {isPending ? 'Submitting...' : 
-             currentPrice === 0 ? 'Loading Price...' : 
-             'Become the Villain'}
+            {isPending ? t('submitting') : 
+             currentPrice === 0 ? t('loadingPrice') : 
+             t('becomeTheVillain')}
           </Button>
         </div>
 
