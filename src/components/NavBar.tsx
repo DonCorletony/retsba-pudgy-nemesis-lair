@@ -10,10 +10,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-
+import { useLanguage, LANGUAGES, LanguageCode } from '@/contexts/LanguageContext';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as const;
 
 // Format balance to 5-digit display without rounding
@@ -54,6 +61,7 @@ const NavBar = () => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+  const { t, language, setLanguage, currentLanguage } = useLanguage();
   
   // Supabase authentication state
   const [user, setUser] = useState<User | null>(null);
@@ -221,7 +229,6 @@ const NavBar = () => {
     );
   };
 
-  // Auth Button Component  
   const AuthButton = ({ className, onClick }: { className?: string, onClick?: () => void }) => (
     <button
       onClick={(e) => {
@@ -230,7 +237,7 @@ const NavBar = () => {
       }}
       className={`bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors px-4 py-2 rounded-lg border border-white/20 ${className}`}
     >
-      Sign In / Sign Up
+      {t('signInSignUp')}
     </button>
   );
 
@@ -480,13 +487,44 @@ const NavBar = () => {
               {/* Dark Mode Toggle for Mobile */}
               <div className="flex items-center justify-between py-4 mt-4 border-t border-white/20">
                 <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
-                  Dark Mode
+                  {t('darkMode')}
                 </Label>
                 <Switch
                   id="mobile-dark-mode"
                   checked={isDarkMode}
                   onCheckedChange={setIsDarkMode}
                 />
+              </div>
+              
+              {/* Language Selector for Mobile */}
+              <div className="flex items-center justify-between py-4">
+                <Label className="text-white text-lg">
+                  {t('language')}
+                </Label>
+                <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
+                  <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
+                    <SelectValue>
+                      <span className="flex items-center gap-2">
+                        <span>{currentLanguage.flag}</span>
+                        <span>{currentLanguage.abbr}</span>
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a2e] border-white/20">
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem 
+                        key={lang.code} 
+                        value={lang.code}
+                        className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.abbr}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Sign Out Button for Mobile */}
@@ -499,7 +537,7 @@ const NavBar = () => {
                     }}
                     className="text-white/70 hover:text-white text-sm transition-colors"
                   >
-                    Sign Out
+                    {t('signOut')}
                   </button>
                 </div>
               )}
@@ -559,7 +597,7 @@ const NavBar = () => {
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              Home
+              {t('home')}
             </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
@@ -568,7 +606,7 @@ const NavBar = () => {
                 setIsDropdownOpen(false);
               }}
             >
-              About
+              {t('about')}
             </button>
             <a 
               href="https://giphy.com/channel/Retsba" 
@@ -577,7 +615,7 @@ const NavBar = () => {
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              Giphy
+              {t('giphy')}
             </a>
             <a 
               href="https://memedepot.com/d/retsba" 
@@ -586,21 +624,21 @@ const NavBar = () => {
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              Memes
+              {t('memes')}
             </a>
             <a 
               href="/xp" 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              XP Card
+              {t('xpCard')}
             </a>
             <a 
               href="/pfp" 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              PFP
+              {t('pfp')}
             </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
@@ -609,19 +647,50 @@ const NavBar = () => {
                 setIsDropdownOpen(false);
               }}
             >
-              Buy Now
+              {t('buyNow')}
             </button>
             
             {/* Dark Mode Toggle */}
             <div className="flex items-center justify-between py-4 mt-8">
               <Label htmlFor="dark-mode" className="text-white text-lg">
-                Dark Mode
+                {t('darkMode')}
               </Label>
               <Switch
                 id="dark-mode"
                 checked={isDarkMode}
                 onCheckedChange={setIsDarkMode}
               />
+            </div>
+            
+            {/* Language Selector */}
+            <div className="flex items-center justify-between py-4">
+              <Label className="text-white text-lg">
+                {t('language')}
+              </Label>
+              <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
+                <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
+                  <SelectValue>
+                    <span className="flex items-center gap-2">
+                      <span>{currentLanguage.flag}</span>
+                      <span>{currentLanguage.abbr}</span>
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a2e] border-white/20">
+                  {LANGUAGES.map((lang) => (
+                    <SelectItem 
+                      key={lang.code} 
+                      value={lang.code}
+                      className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{lang.flag}</span>
+                        <span>{lang.abbr}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             {/* Sign Out Button - Bottom Right */}
@@ -634,7 +703,7 @@ const NavBar = () => {
                   }}
                   className="text-white/70 hover:text-white text-sm transition-colors"
                 >
-                  Sign Out
+                  {t('signOut')}
                 </button>
               </div>
             )}
@@ -649,10 +718,10 @@ const NavBar = () => {
       <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
         <DialogContent className="max-w-md bg-retsba border border-white/20">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">Search Profiles</h2>
+            <h2 className="text-lg font-semibold text-white">{t('searchProfiles')}</h2>
             
             <Input
-              placeholder="Search by username or display name..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-white/10 border-white/20 text-white placeholder:text-white/60"
@@ -663,13 +732,13 @@ const NavBar = () => {
             <div className="max-h-80 overflow-y-auto space-y-2">
               {searching && (
                 <div className="text-center py-4 text-white/70">
-                  Searching...
+                  {t('searching')}
                 </div>
               )}
               
               {!searching && searchQuery && searchResults.length === 0 && (
                 <div className="text-center py-4 text-white/70">
-                  No profiles found
+                  {t('noResults')}
                 </div>
               )}
               
