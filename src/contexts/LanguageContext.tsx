@@ -47,7 +47,9 @@ type TranslationKey =
   // Trading Interface
   | 'buyRetsbaTitle' | 'connectWalletToContinue' | 'tokenBalance' | 'retsbaBalance'
   | 'loading' | 'amountToCorrupt' | 'youWillReceive' | 'loadingPriceData'
-  | 'submitting' | 'loadingPrice' | 'becomeTheVillain' | 'slippageApplied';
+  | 'submitting' | 'loadingPrice' | 'becomeTheVillain' | 'slippageApplied'
+  // Wallet
+  | 'connectAGW';
 
 type Translations = Record<LanguageCode, Record<TranslationKey, string>>;
 
@@ -145,6 +147,7 @@ const translations: Translations = {
     loadingPrice: 'Loading Price...',
     becomeTheVillain: 'Become the Villain',
     slippageApplied: 'slippage applied',
+    connectAGW: 'Connect',
   },
   es: {
     home: 'Inicio',
@@ -231,6 +234,7 @@ const translations: Translations = {
     loadingPrice: 'Cargando Precio...',
     becomeTheVillain: 'Conviértete en el Villano',
     slippageApplied: 'deslizamiento aplicado',
+    connectAGW: 'Conectar',
   },
   ja: {
     home: 'ホーム',
@@ -317,6 +321,7 @@ const translations: Translations = {
     loadingPrice: '価格を読み込み中...',
     becomeTheVillain: '悪役になれ',
     slippageApplied: 'スリッページ適用',
+    connectAGW: '接続',
   },
   ko: {
     home: '홈',
@@ -403,6 +408,7 @@ const translations: Translations = {
     loadingPrice: '가격 로딩 중...',
     becomeTheVillain: '악당이 되어라',
     slippageApplied: '슬리피지 적용',
+    connectAGW: '연결',
   },
   zh: {
     home: '首页',
@@ -489,6 +495,7 @@ const translations: Translations = {
     loadingPrice: '加载价格中...',
     becomeTheVillain: '成为恶棍',
     slippageApplied: '滑点已应用',
+    connectAGW: '连接',
   },
   fr: {
     home: 'Accueil',
@@ -575,6 +582,7 @@ const translations: Translations = {
     loadingPrice: 'Chargement du Prix...',
     becomeTheVillain: 'Deviens le Méchant',
     slippageApplied: 'glissement appliqué',
+    connectAGW: 'Connecter',
   },
   de: {
     home: 'Startseite',
@@ -661,6 +669,7 @@ const translations: Translations = {
     loadingPrice: 'Lade Preis...',
     becomeTheVillain: 'Werde der Bösewicht',
     slippageApplied: 'Slippage angewendet',
+    connectAGW: 'Verbinden',
   },
   pt: {
     home: 'Início',
@@ -747,6 +756,7 @@ const translations: Translations = {
     loadingPrice: 'Carregando Preço...',
     becomeTheVillain: 'Seja o Vilão',
     slippageApplied: 'deslizamento aplicado',
+    connectAGW: 'Conectar',
   },
   ru: {
     home: 'Главная',
@@ -833,6 +843,7 @@ const translations: Translations = {
     loadingPrice: 'Загрузка Цены...',
     becomeTheVillain: 'Стань Злодеем',
     slippageApplied: 'применено проскальзывание',
+    connectAGW: 'Подключить',
   },
   ar: {
     home: 'الرئيسية',
@@ -919,6 +930,7 @@ const translations: Translations = {
     loadingPrice: 'جاري تحميل السعر...',
     becomeTheVillain: 'كن الشرير',
     slippageApplied: 'الانزلاق مطبق',
+    connectAGW: 'اتصال',
   },
 };
 
