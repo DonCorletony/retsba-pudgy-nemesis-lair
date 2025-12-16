@@ -363,7 +363,7 @@ const NavBar = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <motion.div 
-            className="md:hidden bg-retsba mt-2 max-h-[calc(100vh-60px)] overflow-y-auto"
+            className="md:hidden bg-retsba mt-2 max-h-[calc(100vh-60px)] overflow-y-auto mobile-nav-scroll"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: 0.3 }}
