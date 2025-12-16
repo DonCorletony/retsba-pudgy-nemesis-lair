@@ -363,7 +363,7 @@ const NavBar = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <motion.div 
-            className="md:hidden bg-retsba mt-2"
+            className="md:hidden bg-retsba mt-2 max-h-[calc(100vh-60px)] overflow-y-auto"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: 0.3 }}
@@ -374,7 +374,7 @@ const NavBar = () => {
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                HOME
+                {t('home').toUpperCase()}
               </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
@@ -383,7 +383,7 @@ const NavBar = () => {
                   setIsMobileMenuOpen(false);
                 }}
               >
-                ABOUT
+                {t('about').toUpperCase()}
               </button>
               <a 
                 href="https://giphy.com/channel/Retsba" 
@@ -392,7 +392,7 @@ const NavBar = () => {
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                GIPHY
+                {t('giphy').toUpperCase()}
               </a>
               <a 
                 href="https://memedepot.com/d/retsba" 
@@ -401,21 +401,21 @@ const NavBar = () => {
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                MEMES
+                {t('memes').toUpperCase()}
               </a>
               <a 
                 href="/xp" 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                XP CARD
+                {t('xpCard').toUpperCase()}
               </a>
               <a 
                 href="/pfp" 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                PFP
+                {t('pfp').toUpperCase()}
               </a>
               <button 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
@@ -424,7 +424,7 @@ const NavBar = () => {
                   setIsMobileMenuOpen(false);
                 }}
               >
-                BUY NOW
+                {t('buyNow').toUpperCase()}
               </button>
               
               {/* Auth/Profile Button for Mobile */}
