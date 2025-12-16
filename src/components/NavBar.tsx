@@ -497,7 +497,7 @@ const NavBar = () => {
               </div>
               
               {/* Language Selector for Mobile */}
-              <div className="flex items-center justify-between py-4">
+              <div className="flex items-center justify-between pt-2.5 pb-4">
                 <Label className="text-white text-lg">
                   {t('language')}
                 </Label>
@@ -663,7 +663,7 @@ const NavBar = () => {
             </div>
             
             {/* Language Selector */}
-            <div className="flex items-center justify-between py-4">
+            <div className="flex items-center justify-between pt-2.5 pb-4">
               <Label className="text-white text-lg">
                 {t('language')}
               </Label>
