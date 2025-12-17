@@ -427,20 +427,12 @@ const NavBar = () => {
                 {t('buyNow').toUpperCase()}
               </button>
               
-              {/* Auth/Profile Button for Mobile */}
-              {user ? (
+              {/* Auth/Profile Button for Mobile - Hidden temporarily */}
+              {user && (
                 <ProfileButton 
                   className="text-left"
                   onClick={() => {
                     navigate('/profile');
-                    setIsMobileMenuOpen(false);
-                  }}
-                />
-              ) : (
-                <AuthButton 
-                  className="text-left"
-                  onClick={() => {
-                    setAuthModalOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
                 />
@@ -571,20 +563,12 @@ const NavBar = () => {
           </svg>
         </button>
         
-        {/* Auth/Profile Button */}
-        {user ? (
+        {/* Auth/Profile Button - Hidden temporarily */}
+        {user && (
           <ProfileButton 
             className="absolute top-4 right-4"
             onClick={() => {
               navigate('/profile');
-              setIsDropdownOpen(false);
-            }}
-          />
-        ) : (
-          <AuthButton 
-            className="absolute top-4 right-4"
-            onClick={() => {
-              setAuthModalOpen(true);
               setIsDropdownOpen(false);
             }}
           />
