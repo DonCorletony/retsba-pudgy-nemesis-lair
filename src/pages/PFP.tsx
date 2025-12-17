@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import NavBar from '../components/NavBar';
 import FooterSection from '../components/FooterSection';
 import PFPConverter from '../components/PFPConverter';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,8 +9,6 @@ const PFP = () => {
   
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <NavBar />
-      
       <section className="pt-16 pb-20">
         <div className="container mx-auto px-4">
           <motion.div

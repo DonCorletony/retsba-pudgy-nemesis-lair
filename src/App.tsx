@@ -5,6 +5,9 @@ import { AbstractWalletProvider } from "@abstract-foundation/agw-react";
 import { abstract } from "viem/chains";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { MobileNavProvider } from "@/contexts/MobileNavContext";
+import { MobileNavLayout } from "@/components/MobileNavLayout";
+import NavBar from "@/components/NavBar";
 import Index from "./pages/Index";
 import FreeMoney from "./pages/FreeMoney";
 import Test from "./pages/Test";
@@ -20,24 +23,30 @@ const App = () => {
   return (
     <LanguageProvider>
       <AbstractWalletProvider chain={abstract}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/freemoney" element={<FreeMoney />} />
-              <Route path="/test" element={<Test />} />
-              <Route path="/memes" element={<Memes />} />
-              <Route path="/xp" element={<XPCard />} />
-              <Route path="/pfp" element={<PFP />} />
-              <Route path="/createaccount" element={<CreateAccount />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <MobileNavProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              {/* NavBar outside MobileNavLayout so it doesn't get pushed */}
+              <NavBar />
+              <MobileNavLayout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/freemoney" element={<FreeMoney />} />
+                  <Route path="/test" element={<Test />} />
+                  <Route path="/memes" element={<Memes />} />
+                  <Route path="/xp" element={<XPCard />} />
+                  <Route path="/pfp" element={<PFP />} />
+                  <Route path="/createaccount" element={<CreateAccount />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </MobileNavLayout>
+            </BrowserRouter>
+          </TooltipProvider>
+        </MobileNavProvider>
       </AbstractWalletProvider>
     </LanguageProvider>
   );
