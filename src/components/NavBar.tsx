@@ -390,7 +390,7 @@ const NavBar = () => {
               <div className="w-10"></div>
             </div>
             
-            <div className="p-6 flex flex-col min-h-full">
+            <div className="px-6 pt-3.5 pb-6 flex flex-col min-h-full">
               <div className="flex flex-col space-y-1.5">
                 <a 
                   href="/" 
