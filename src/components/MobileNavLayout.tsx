@@ -42,7 +42,7 @@ export const MobileNavLayout: React.FC<MobileNavLayoutProps> = ({ children }) =>
       <motion.div
         className="min-h-screen w-full"
         animate={{
-          x: isOpen ? '-80%' : 0,
+          x: isOpen ? '-100%' : 0,
         }}
         transition={{
           duration: 0.3,
