@@ -368,7 +368,7 @@ const NavBar = () => {
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: 0.3 }}
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col space-y-2">
+            <div className="container mx-auto px-4 py-3 flex flex-col space-y-1.5">
               <a 
                 href="/" 
                 className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
@@ -485,7 +485,7 @@ const NavBar = () => {
               </div>
               
               {/* Dark Mode Toggle for Mobile */}
-              <div className="flex items-center justify-between py-4 mt-4 border-t border-white/20">
+              <div className="flex items-center justify-between py-3 mt-3 border-t border-white/20">
                 <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
                   {t('darkMode')}
                 </Label>
@@ -497,7 +497,7 @@ const NavBar = () => {
               </div>
               
               {/* Language Selector for Mobile */}
-              <div className="flex items-center justify-between pt-1.5 pb-4">
+              <div className="flex items-center justify-between pt-1 pb-3">
                 <Label className="text-white text-lg">
                   {t('language')}
                 </Label>
