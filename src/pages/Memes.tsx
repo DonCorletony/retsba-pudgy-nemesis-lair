@@ -1,4 +1,3 @@
-import NavBar from "@/components/NavBar";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,7 +48,6 @@ const Memes = () => {
 
   return (
     <div className="min-h-screen bg-retsba">
-      <NavBar />
       <div className="container mx-auto px-4 pt-24 pb-8">
         {/* Page Header */}
         <div className="text-center mb-8">

@@ -14,6 +14,8 @@ import { Search, X, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useLanguage, LANGUAGES, LanguageCode } from '@/contexts/LanguageContext';
+import { useMobileNav } from '@/contexts/MobileNavContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Select,
   SelectContent,
@@ -54,7 +56,8 @@ const formatBalanceDisplay = (balance: string): string => {
 };
 
 const NavBar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOpen: isMobileMenuOpen, setIsOpen: setIsMobileMenuOpen } = useMobileNav();
+  const isMobile = useIsMobile();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -360,179 +363,191 @@ const NavBar = () => {
           </div>
         </div>
         
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
+        {/* Mobile Menu - Full screen push-style sidebar */}
+        {isMobile && (
           <motion.div 
-            className="md:hidden bg-retsba mt-2 max-h-[calc(100vh-60px)] overflow-y-auto mobile-nav-scroll"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.3 }}
+            className="md:hidden fixed top-0 right-0 w-[80%] h-full bg-retsba z-[60] overflow-y-auto"
+            initial={{ x: '100%' }}
+            animate={{ x: isMobileMenuOpen ? 0 : '100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <div className="container mx-auto px-4 py-3 flex flex-col space-y-1.5">
-              <a 
-                href="/" 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('home').toUpperCase()}
-              </a>
-              <button 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => {
-                  navigateToSection('about');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                {t('about').toUpperCase()}
-              </button>
-              <a 
-                href="https://giphy.com/channel/Retsba" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('giphy').toUpperCase()}
-              </a>
-              <a 
-                href="https://memedepot.com/d/retsba" 
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('memes').toUpperCase()}
-              </a>
-              <a 
-                href="/xp" 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('xpCard').toUpperCase()}
-              </a>
-              <a 
-                href="/pfp" 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('pfp').toUpperCase()}
-              </a>
-              <button 
-                className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                onClick={() => {
-                  navigateToSection('buy-now');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                {t('buyNow').toUpperCase()}
-              </button>
-              
-              {/* Auth/Profile Button for Mobile - Hidden temporarily */}
-              {user && (
-                <ProfileButton 
-                  className="text-left"
+            {/* Close Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors p-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <div className="p-6 pt-16 flex flex-col min-h-full">
+              <div className="flex flex-col space-y-1.5">
+                <a 
+                  href="/" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('home').toUpperCase()}
+                </a>
+                <button 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => {
-                    navigate('/profile');
+                    navigateToSection('about');
                     setIsMobileMenuOpen(false);
                   }}
-                />
-              )}
-              
-              {/* Mobile Token Balance Counters */}
-              <div className="flex flex-col space-y-2 pt-2">
-                <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                  <div className="relative mr-2">
-                    <img 
-                      src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
-                      alt="RETSBA Token"
-                      className="w-6 h-6 rounded-full"
-                    />
-                  </div>
-                  <span className="text-white font-medium text-sm min-w-[50px] text-right">
-                    {formattedRetsbaBalance}
-                  </span>
-                </div>
+                >
+                  {t('about').toUpperCase()}
+                </button>
+                <a 
+                  href="https://giphy.com/channel/Retsba" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('giphy').toUpperCase()}
+                </a>
+                <a 
+                  href="https://memedepot.com/d/retsba" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('memes').toUpperCase()}
+                </a>
+                <a 
+                  href="/xp" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('xpCard').toUpperCase()}
+                </a>
+                <a 
+                  href="/pfp" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('pfp').toUpperCase()}
+                </a>
+                <button 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => {
+                    navigateToSection('buy-now');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {t('buyNow').toUpperCase()}
+                </button>
                 
-                <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                  <div className="relative mr-2">
-                    <img 
-                      src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
-                      alt="Abstract ETH"
-                      className="w-6 h-6 rounded-full"
-                    />
-                    <img 
-                      src="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
-                      alt="Abstract badge"
-                      className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-                    />
-                  </div>
-                  <span className="text-white font-medium text-sm min-w-[50px] text-right">
-                    {formattedEthBalance}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="pt-2">
-                <AGWConnect />
-              </div>
-              
-              {/* Dark Mode Toggle for Mobile */}
-              <div className="flex items-center justify-between py-3 mt-3 border-t border-white/20">
-                <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
-                  {t('darkMode')}
-                </Label>
-                <Switch
-                  id="mobile-dark-mode"
-                  checked={isDarkMode}
-                  onCheckedChange={setIsDarkMode}
-                />
-              </div>
-              
-              {/* Language Selector for Mobile */}
-              <div className="flex items-center justify-between pt-1 pb-3">
-                <Label className="text-white text-lg">
-                  {t('language')}
-                </Label>
-                <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
-                  <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
-                    <SelectValue>
-                      <span className="flex items-center gap-2">
-                        <span>{currentLanguage.flag}</span>
-                        <span>{currentLanguage.abbr}</span>
-                      </span>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a2e] border-white/20">
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem 
-                        key={lang.code} 
-                        value={lang.code}
-                        className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white"
-                      >
-                        <span className="flex items-center gap-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.abbr}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Sign Out Button for Mobile */}
-              {user && (
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={async () => {
-                      await supabase.auth.signOut();
+                {/* Auth/Profile Button for Mobile - Hidden temporarily */}
+                {user && (
+                  <ProfileButton 
+                    className="text-left"
+                    onClick={() => {
+                      navigate('/profile');
                       setIsMobileMenuOpen(false);
                     }}
-                    className="text-white/70 hover:text-white text-sm transition-colors"
-                  >
-                    {t('signOut')}
-                  </button>
+                  />
+                )}
+                
+                {/* Mobile Token Balance Counters */}
+                <div className="flex flex-col space-y-2 pt-2">
+                  <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <div className="relative mr-2">
+                      <img 
+                        src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
+                        alt="RETSBA Token"
+                        className="w-6 h-6 rounded-full"
+                      />
+                    </div>
+                    <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                      {formattedRetsbaBalance}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                    <div className="relative mr-2">
+                      <img 
+                        src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
+                        alt="Abstract ETH"
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <img 
+                        src="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
+                        alt="Abstract badge"
+                        className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                      />
+                    </div>
+                    <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                      {formattedEthBalance}
+                    </span>
+                  </div>
                 </div>
-              )}
+                
+                <div className="pt-2">
+                  <AGWConnect />
+                </div>
+                
+                {/* Dark Mode Toggle for Mobile */}
+                <div className="flex items-center justify-between py-3 mt-3 border-t border-white/20">
+                  <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
+                    {t('darkMode')}
+                  </Label>
+                  <Switch
+                    id="mobile-dark-mode"
+                    checked={isDarkMode}
+                    onCheckedChange={setIsDarkMode}
+                  />
+                </div>
+                
+                {/* Language Selector for Mobile */}
+                <div className="flex items-center justify-between pt-1 pb-3">
+                  <Label className="text-white text-lg">
+                    {t('language')}
+                  </Label>
+                  <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
+                    <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
+                      <SelectValue>
+                        <span className="flex items-center gap-2">
+                          <span>{currentLanguage.flag}</span>
+                          <span>{currentLanguage.abbr}</span>
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a2e] border-white/20">
+                      {LANGUAGES.map((lang) => (
+                        <SelectItem 
+                          key={lang.code} 
+                          value={lang.code}
+                          className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{lang.flag}</span>
+                            <span>{lang.abbr}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Sign Out Button for Mobile */}
+                {user && (
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={async () => {
+                        await supabase.auth.signOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="text-white/70 hover:text-white text-sm transition-colors"
+                    >
+                      {t('signOut')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

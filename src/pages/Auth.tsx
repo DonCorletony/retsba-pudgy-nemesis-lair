@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import NavBar from '@/components/NavBar';
 import FooterSection from '@/components/FooterSection';
 import { useAccount } from 'wagmi';
 import { useIsAGWConnected, validateAGWForAccountCreation } from '@/utils/agwValidation';
@@ -148,7 +147,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <NavBar />
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md mx-auto">
           <Card className="bg-retsba/80 border-white/20 relative">

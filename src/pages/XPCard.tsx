@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import NavBar from '../components/NavBar';
 import FooterSection from '../components/FooterSection';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -406,8 +405,6 @@ const XPCard = () => {
 
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <NavBar />
-      
       <section className="pt-16 pb-20">
         <div className="container mx-auto px-4">
           <motion.div

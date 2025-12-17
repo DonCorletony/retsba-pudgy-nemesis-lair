@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Edit3, MapPin, Calendar, Loader2 } from 'lucide-react';
-import NavBar from '@/components/NavBar';
 
 interface Profile {
   id: string;
@@ -248,7 +247,6 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavBar />
       {/* Navbar Spacer */}
       <div className="h-16 md:h-20"></div>
       {/* Banner Section */}
