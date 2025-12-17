@@ -577,28 +577,36 @@ const NavBar = () => {
         animate={{ x: isDropdownOpen ? 0 : '100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {/* Close Button */}
-        <button
-          onClick={() => setIsDropdownOpen(false)}
-          className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors p-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
-        {/* Auth/Profile Button - Hidden temporarily */}
-        {user && (
-          <ProfileButton 
-            className="absolute top-4 right-4"
-            onClick={() => {
-              navigate('/profile');
-              setIsDropdownOpen(false);
-            }}
+        {/* Header with centered logo and back arrow */}
+        <div className="flex items-center justify-between p-4">
+          <button
+            onClick={() => setIsDropdownOpen(false)}
+            className="text-white hover:text-gray-300 transition-colors p-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <img 
+            src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+            alt="RETSBA" 
+            className="h-8"
           />
-        )}
+          {/* Auth/Profile Button or spacer */}
+          {user ? (
+            <ProfileButton 
+              className=""
+              onClick={() => {
+                navigate('/profile');
+                setIsDropdownOpen(false);
+              }}
+            />
+          ) : (
+            <div className="w-10"></div>
+          )}
+        </div>
         
-        <div className="p-6 pt-20">
+        <div className="p-6 pt-4">
           <div className="flex flex-col space-y-3">
             <a 
               href="/" 
