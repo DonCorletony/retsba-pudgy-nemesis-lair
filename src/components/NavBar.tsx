@@ -371,17 +371,24 @@ const NavBar = () => {
             animate={{ x: isMobileMenuOpen ? 0 : '100%' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            {/* Close Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors p-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+            {/* Header with logo and close button */}
+            <div className="flex items-center justify-between p-4 border-b border-white/20">
+              <img 
+                src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+                alt="RETSBA" 
+                className="h-8"
+              />
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-white hover:text-gray-300 transition-colors p-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             
-            <div className="p-6 pt-16 flex flex-col min-h-full">
+            <div className="p-6 flex flex-col min-h-full">
               <div className="flex flex-col space-y-1.5">
                 <a 
                   href="/" 
