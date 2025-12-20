@@ -992,6 +992,7 @@ import Poncho from '@/assets/pfp-traits/body/Poncho.png';
 import Surfboard_Necklace from '@/assets/pfp-traits/body/Surfboard_Necklace.png';
 import Christmas_Lights from '@/assets/pfp-traits/body/Christmas_Lights.png';
 import Ice_Coat from '@/assets/pfp-traits/body/Ice_Coat.png';
+import Ice_Coat_Output from '@/assets/big-pudgy/body/Ice_Coat_Output.png';
 import Tribal_Necklace from '@/assets/pfp-traits/body/Tribal_Necklace.png';
 import Heart from '@/assets/pfp-traits/body/Heart.png';
 import Crop_Top from '@/assets/pfp-traits/body/Crop_Top.png';
@@ -1164,6 +1165,11 @@ const BODY_TRAIT_MAP: Record<string, string> = {
   Scarf_Green,
   Shirt_Red,
   Bathrobe,
+};
+
+// Output remapping for specific Big Pudgy body traits
+const BIG_BODY_TRAIT_OUTPUT_MAP: Record<string, string> = {
+  Ice_Coat: Ice_Coat_Output,
 };
 
 interface DetectedTraits {
@@ -1575,12 +1581,18 @@ const PFPConverter = () => {
         // BIG PUDGY LAYERING: Body → Face → Head
         
         // 1. Apply body trait overlay first (bottom layer)
-        if (bodyTrait && BODY_TRAIT_MAP[bodyTrait]) {
-          console.log(`Applying body trait: ${bodyTrait}`);
-          const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
-          ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
-        } else if (bodyTrait) {
-          console.log(`No overlay found for body trait: ${bodyTrait}`);
+        if (bodyTrait) {
+          if (BIG_BODY_TRAIT_OUTPUT_MAP[bodyTrait]) {
+            console.log(`Applying Big body OUTPUT trait: ${bodyTrait}`);
+            const bodyOverlay = await loadImage(BIG_BODY_TRAIT_OUTPUT_MAP[bodyTrait]);
+            ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+          } else if (BODY_TRAIT_MAP[bodyTrait]) {
+            console.log(`Applying body trait: ${bodyTrait}`);
+            const bodyOverlay = await loadImage(BODY_TRAIT_MAP[bodyTrait]);
+            ctx.drawImage(bodyOverlay, 0, 0, 1000, 1000);
+          } else {
+            console.log(`No overlay found for body trait: ${bodyTrait}`);
+          }
         }
         
         // 2. Apply face trait overlay (middle layer)
