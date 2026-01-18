@@ -103,8 +103,9 @@ import XPTemplate6_RU from '@/assets/xp-cards/ru/XP_Template_6.png';
 import AllTime1_RU from '@/assets/xp-cards/ru/All_Time_1.png';
 import AllTime2_RU from '@/assets/xp-cards/ru/All_Time_2.png';
 
-// Import new template (XP Template 8 - English only for now)
+// Import new templates (English only for now)
 import XPTemplate8 from '@/assets/xp-templates/XP_Template_8.png';
+import XPTemplate9 from '@/assets/xp-templates/XP_Template_9.png';
 
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
@@ -123,6 +124,7 @@ const XP_BOTTOM = 72;
 // English Weekly templates (default)
 const WEEKLY_TEMPLATES_EN = [
   XPTemplate8, // NEW template - first in list
+  XPTemplate9, // NEW template - second in list
   '/images/xp-template-v2.png',
   '/images/xp-template-2.png',
   '/images/xp-template-3.png',
@@ -131,8 +133,8 @@ const WEEKLY_TEMPLATES_EN = [
   '/images/xp-template-7.png',
 ];
 
-// Track which templates should show "NEW" badge (index 0 = first template)
-const NEW_TEMPLATE_INDEX = 0;
+// Track which templates should show "NEW" badge (indices of new templates)
+const NEW_TEMPLATE_INDICES = [0, 1];
 
 // English All-Time templates (default)
 const ALL_TIME_TEMPLATES_EN = [AllTime1, AllTime2];
@@ -457,8 +459,8 @@ const XPCard = () => {
                     textSizeAdjust: 'none'
                   } as React.CSSProperties}
                 >
-                  {/* NEW Badge - shows when first template is selected in weekly mode */}
-                  {!isAllTime && currentTemplate === NEW_TEMPLATE_INDEX && language === 'en' && (
+                  {/* NEW Badge - shows when new templates are selected in weekly mode */}
+                  {!isAllTime && NEW_TEMPLATE_INDICES.includes(currentTemplate) && language === 'en' && (
                     <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
                       NEW
                     </div>
