@@ -133,8 +133,6 @@ const WEEKLY_TEMPLATES_EN = [
   '/images/xp-template-7.png',
 ];
 
-// Track which templates should show "NEW" badge (indices of new templates)
-const NEW_TEMPLATE_INDICES = [0, 1];
 
 // English All-Time templates (default)
 const ALL_TIME_TEMPLATES_EN = [AllTime1, AllTime2];
@@ -459,12 +457,6 @@ const XPCard = () => {
                     textSizeAdjust: 'none'
                   } as React.CSSProperties}
                 >
-                  {/* NEW Badge - shows when new templates are selected in weekly mode */}
-                  {!isAllTime && NEW_TEMPLATE_INDICES.includes(currentTemplate) && language === 'en' && (
-                    <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
-                      NEW
-                    </div>
-                  )}
                   
                   {/* Template Background */}
                   <img 
