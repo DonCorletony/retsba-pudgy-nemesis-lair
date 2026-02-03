@@ -104,8 +104,12 @@ import AllTime1_RU from '@/assets/xp-cards/ru/All_Time_1.png';
 import AllTime2_RU from '@/assets/xp-cards/ru/All_Time_2.png';
 
 // Import new templates (English only for now)
+import XPTemplateTollan from '@/assets/xp-templates/XP_Template_Tollan.png';
 import XPTemplate8 from '@/assets/xp-templates/XP_Template_8.png';
 import XPTemplate9 from '@/assets/xp-templates/XP_Template_9.png';
+
+// Track which templates should show "NEW" badge and divider (index 0 = featured new template)
+const NEW_TEMPLATE_INDEX = 0;
 
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
@@ -123,8 +127,9 @@ const XP_BOTTOM = 72;
 
 // English Weekly templates (default)
 const WEEKLY_TEMPLATES_EN = [
-  XPTemplate8, // NEW template - first in list
-  XPTemplate9, // NEW template - second in list
+  XPTemplateTollan, // NEW featured template - first in list
+  XPTemplate8,
+  XPTemplate9,
   '/images/xp-template-v2.png',
   '/images/xp-template-2.png',
   '/images/xp-template-3.png',
@@ -457,7 +462,13 @@ const XPCard = () => {
                     textSizeAdjust: 'none'
                   } as React.CSSProperties}
                 >
-                  
+                  {/* NEW Badge - shows when first template is selected in weekly mode */}
+                  {!isAllTime && currentTemplate === NEW_TEMPLATE_INDEX && language === 'en' && (
+                    <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+                      NEW
+                    </div>
+                  )}
+
                   {/* Template Background */}
                   <img 
                     src={templates[currentTemplate]} 
@@ -531,13 +542,18 @@ const XPCard = () => {
                   
                   <div className="flex items-center gap-2">
                     {templates.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentTemplate(index)}
-                        className={`w-2.5 h-2.5 rounded-full transition-colors border border-black dark:border-white ${
-                          index === currentTemplate ? 'bg-black dark:bg-white' : 'bg-white dark:bg-black'
-                        }`}
-                      />
+                      <React.Fragment key={index}>
+                        <button
+                          onClick={() => setCurrentTemplate(index)}
+                          className={`w-2.5 h-2.5 rounded-full transition-colors border border-black dark:border-white ${
+                            index === currentTemplate ? 'bg-black dark:bg-white' : 'bg-white dark:bg-black'
+                          }`}
+                        />
+                        {/* Divider after the first (NEW) template in weekly mode */}
+                        {!isAllTime && index === NEW_TEMPLATE_INDEX && language === 'en' && (
+                          <span className="text-black dark:text-white text-sm font-light mx-1">|</span>
+                        )}
+                      </React.Fragment>
                     ))}
                   </div>
                   
