@@ -104,7 +104,8 @@ const NavBar = () => {
   // Copy exact balance logic from TradingInterface
   const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address,
-    chainId: 2741, // Abstract chain - same as TradingInterface
+    chainId: 2741,
+    query: { enabled: !!address },
   });
 
   const { data: retsbaBalance, refetch: refetchRetsbaBalance } = useReadContract({
@@ -112,6 +113,7 @@ const NavBar = () => {
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    query: { enabled: !!address },
   });
 
   const { data: retsbaDecimals } = useReadContract({
