@@ -153,7 +153,8 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
   // Get native ETH balance on Abstract (current chain) with refetch capability
   const { data: abstractEthBalance, refetch: refetchAbstractEthBalance } = useBalance({
     address: address,
-    chainId: 2741, // Abstract chain,
+    chainId: 2741,
+    query: { enabled: !!address },
   })
 
   // Since we only show Abstract ETH, we don't need cross-chain balance tracking
@@ -167,6 +168,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    query: { enabled: !!address },
   })
 
   // Get RETSBA token balance with refetch capability
@@ -175,6 +177,7 @@ export const TradingInterface = ({ onBalanceRefresh, refreshTrigger }: { onBalan
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    query: { enabled: !!address },
   })
 
   // Trigger balance refetch when refreshTrigger changes
