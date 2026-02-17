@@ -104,13 +104,13 @@ import AllTime1_RU from '@/assets/xp-cards/ru/All_Time_1.png';
 import AllTime2_RU from '@/assets/xp-cards/ru/All_Time_2.png';
 
 // Import new templates (English only for now)
+import XPTemplateFrankyGO from '@/assets/xp-cards/XP_Template_FrankyGO.png';
 import XPTemplateTollan from '@/assets/xp-templates/XP_Template_Tollan.png';
 import XPTemplate8 from '@/assets/xp-templates/XP_Template_8.png';
 import XPTemplate9 from '@/assets/xp-templates/XP_Template_9.png';
 
 // Track which templates should show "NEW" badge and divider (index 0 = featured new template)
 const NEW_TEMPLATE_INDEX = 0;
-
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
@@ -127,7 +127,8 @@ const XP_BOTTOM = 72;
 
 // English Weekly templates (default)
 const WEEKLY_TEMPLATES_EN = [
-  XPTemplateTollan, // NEW featured template - first in list
+  XPTemplateFrankyGO, // NEW featured template - first in list
+  XPTemplateTollan,
   XPTemplate8,
   XPTemplate9,
   '/images/xp-template-v2.png',
