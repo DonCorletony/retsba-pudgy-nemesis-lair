@@ -448,7 +448,7 @@ const XPCard = () => {
                     <Switch 
                       checked={isAllTime} 
                       onCheckedChange={handleModeSwitch}
-                      className="border border-black/30 dark:border-transparent"
+                      className="border-black/25 dark:border-white/0"
                     />
                     <span className={`text-sm font-medium ${isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
                       {t('allTime')}
