@@ -445,11 +445,12 @@ const XPCard = () => {
                     <span className={`text-sm font-medium ${!isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
                       {t('weekly')}
                     </span>
-                    <Switch 
-                      checked={isAllTime} 
-                      onCheckedChange={handleModeSwitch}
-                      className="border-black/25 dark:border-white/0"
-                    />
+                    <div className="rounded-full ring-1 ring-black/25 dark:ring-transparent">
+                      <Switch 
+                        checked={isAllTime} 
+                        onCheckedChange={handleModeSwitch}
+                      />
+                    </div>
                     <span className={`text-sm font-medium ${isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
                       {t('allTime')}
                     </span>
