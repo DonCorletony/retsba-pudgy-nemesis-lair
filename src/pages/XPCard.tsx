@@ -448,6 +448,7 @@ const XPCard = () => {
                     <Switch 
                       checked={isAllTime} 
                       onCheckedChange={handleModeSwitch}
+                      className="border border-black/30 dark:border-transparent"
                     />
                     <span className={`text-sm font-medium ${isAllTime ? 'text-black dark:text-white' : 'text-black/50 dark:text-white/50'}`}>
                       {t('allTime')}
@@ -550,8 +551,8 @@ const XPCard = () => {
                             index === currentTemplate ? 'bg-black dark:bg-white' : 'bg-white dark:bg-black'
                           }`}
                         />
-                        {/* Divider after the first (NEW) template in weekly mode */}
-                        {!isAllTime && index === NEW_TEMPLATE_INDEX && language === 'en' && (
+                        {/* Divider after the first two collab cards in weekly mode */}
+                        {!isAllTime && index === 1 && language === 'en' && (
                           <span className="text-black dark:text-white text-sm font-light mx-1">|</span>
                         )}
                       </React.Fragment>
