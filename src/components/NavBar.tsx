@@ -442,6 +442,13 @@ const NavBar = () => {
                 >
                   {t('pfp').toUpperCase()}
                 </a>
+                <a 
+                  href="/wallpapers" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('wallpapers').toUpperCase()}
+                </a>
                 <button 
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => {
@@ -657,6 +664,13 @@ const NavBar = () => {
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('pfp')}
+            </a>
+            <a 
+              href="/wallpapers" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              {t('wallpapers')}
             </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
