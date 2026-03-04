@@ -368,7 +368,7 @@ const NavBar = () => {
         {/* Mobile Menu - Full screen push-style sidebar */}
         {isMobile && (
           <motion.div 
-            className="md:hidden fixed top-0 right-0 w-full h-full bg-retsba z-[60] overflow-y-auto"
+            className="md:hidden fixed top-0 right-0 w-full h-full bg-retsba z-[60] overflow-y-auto scrollbar-none"
             initial={{ x: '100%' }}
             animate={{ x: isMobileMenuOpen ? 0 : '100%' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -581,7 +581,7 @@ const NavBar = () => {
 
       {/* Slide-out Sidebar */}
       <motion.div
-        className="fixed top-0 right-0 h-full w-80 bg-retsba z-50 shadow-2xl"
+        className="fixed top-0 right-0 h-full w-80 bg-retsba z-50 shadow-2xl overflow-y-auto scrollbar-none"
         initial={{ x: '100%' }}
         animate={{ x: isDropdownOpen ? 0 : '100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
