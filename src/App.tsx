@@ -14,6 +14,7 @@ import Test from "./pages/Test";
 import Memes from "./pages/Memes";
 import XPCard from "./pages/XPCard";
 import PFP from "./pages/PFP";
+import Wallpapers from "./pages/Wallpapers";
 import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => {
                   <Route path="/memes" element={<Memes />} />
                   <Route path="/xp" element={<XPCard />} />
                   <Route path="/pfp" element={<PFP />} />
+                  <Route path="/wallpapers" element={<Wallpapers />} />
                   <Route path="/createaccount" element={<CreateAccount />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/auth" element={<Auth />} />

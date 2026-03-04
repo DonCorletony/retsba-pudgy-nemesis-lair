@@ -24,7 +24,7 @@ export const LANGUAGES: Language[] = [
 
 type TranslationKey = 
   // Nav
-  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'buyNow'
+  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'buyNow'
   | 'darkMode' | 'language' | 'signIn' | 'signUp' | 'signInSignUp' | 'signOut'
   | 'profile' | 'search' | 'searchProfiles' | 'searchPlaceholder' | 'noResults' | 'searching'
   // XP Card
@@ -62,6 +62,7 @@ const translations: Translations = {
     memes: 'Memes',
     xpCard: 'XP Card',
     pfp: 'PFP',
+    wallpapers: 'Wallpapers',
     buyNow: 'Buy Now',
     darkMode: 'Dark Mode',
     language: 'Language',
@@ -156,6 +157,7 @@ const translations: Translations = {
     memes: 'Memes',
     xpCard: 'Tarjeta XP',
     pfp: 'PFP',
+    wallpapers: 'Fondos de Pantalla',
     buyNow: 'Comprar Ahora',
     darkMode: 'Modo Oscuro',
     language: 'Idioma',
@@ -243,6 +245,7 @@ const translations: Translations = {
     memes: 'ミーム',
     xpCard: 'XPカード',
     pfp: 'PFP',
+    wallpapers: '壁紙',
     buyNow: '今すぐ購入',
     darkMode: 'ダークモード',
     language: '言語',
@@ -330,6 +333,7 @@ const translations: Translations = {
     memes: '밈',
     xpCard: 'XP 카드',
     pfp: 'PFP',
+    wallpapers: '배경화면',
     buyNow: '지금 구매',
     darkMode: '다크 모드',
     language: '언어',
@@ -417,6 +421,7 @@ const translations: Translations = {
     memes: '表情包',
     xpCard: 'XP卡片',
     pfp: 'PFP',
+    wallpapers: '壁纸',
     buyNow: '立即购买',
     darkMode: '深色模式',
     language: '语言',
@@ -504,6 +509,7 @@ const translations: Translations = {
     memes: 'Mèmes',
     xpCard: 'Carte XP',
     pfp: 'PFP',
+    wallpapers: 'Fonds d\'écran',
     buyNow: 'Acheter',
     darkMode: 'Mode Sombre',
     language: 'Langue',
@@ -591,6 +597,7 @@ const translations: Translations = {
     memes: 'Memes',
     xpCard: 'XP-Karte',
     pfp: 'PFP',
+    wallpapers: 'Hintergrundbilder',
     buyNow: 'Jetzt Kaufen',
     darkMode: 'Dunkelmodus',
     language: 'Sprache',
@@ -678,6 +685,7 @@ const translations: Translations = {
     memes: 'Memes',
     xpCard: 'Cartão XP',
     pfp: 'PFP',
+    wallpapers: 'Papéis de Parede',
     buyNow: 'Comprar Agora',
     darkMode: 'Modo Escuro',
     language: 'Idioma',
@@ -765,6 +773,7 @@ const translations: Translations = {
     memes: 'Мемы',
     xpCard: 'XP Карта',
     pfp: 'PFP',
+    wallpapers: 'Обои',
     buyNow: 'Купить',
     darkMode: 'Тёмный Режим',
     language: 'Язык',
@@ -852,6 +861,7 @@ const translations: Translations = {
     memes: 'ميمز',
     xpCard: 'بطاقة XP',
     pfp: 'PFP',
+    wallpapers: 'خلفيات',
     buyNow: 'اشتري الآن',
     darkMode: 'الوضع الداكن',
     language: 'اللغة',
