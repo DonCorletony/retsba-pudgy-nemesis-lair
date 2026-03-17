@@ -337,6 +337,7 @@ const translations: Translations = {
     xpCard: 'XP 카드',
     pfp: 'PFP',
     wallpapers: '배경화면',
+    claim: '클레임',
     buyNow: '지금 구매',
     darkMode: '다크 모드',
     language: '언어',
