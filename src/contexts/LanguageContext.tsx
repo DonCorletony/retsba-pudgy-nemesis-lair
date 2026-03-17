@@ -63,6 +63,7 @@ const translations: Translations = {
     xpCard: 'XP Card',
     pfp: 'PFP',
     wallpapers: 'Wallpapers',
+    claim: 'Claim',
     buyNow: 'Buy Now',
     darkMode: 'Dark Mode',
     language: 'Language',
