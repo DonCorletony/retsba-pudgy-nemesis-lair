@@ -426,6 +426,7 @@ const translations: Translations = {
     xpCard: 'XP卡片',
     pfp: 'PFP',
     wallpapers: '壁纸',
+    claim: '领取',
     buyNow: '立即购买',
     darkMode: '深色模式',
     language: '语言',
