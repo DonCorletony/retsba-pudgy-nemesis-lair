@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import FooterSection from '../components/FooterSection';
 import { useAccount, useReadContract, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { erc20Abi, formatUnits } from 'viem';
