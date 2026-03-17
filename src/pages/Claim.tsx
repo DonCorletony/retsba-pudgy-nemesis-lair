@@ -62,7 +62,7 @@ const Claim = () => {
   // Handle successful confirmation
   useEffect(() => {
     if (isConfirmed && txHash) {
-      localStorage.setItem(COOLDOWN_KEY, Date.now().toString());
+      localStorage.setItem(COOLDOWN_KEY_PREFIX + address!.toLowerCase(), Date.now().toString());
       toast({
         title: 'Transaction confirmed!',
         description: 'Your claim transaction has been recorded on Abstract.',
