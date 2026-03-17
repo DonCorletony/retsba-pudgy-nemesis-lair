@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
 const MIN_BALANCE = 10_000;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hours
-const COOLDOWN_KEY = 'retsba_claim_last';
+const COOLDOWN_KEY_PREFIX = 'retsba_claim_last_';
 
 const Claim = () => {
   const { t } = useLanguage();
@@ -40,10 +40,11 @@ const Claim = () => {
     hash: txHash,
   });
 
-  // Cooldown timer
+  // Cooldown timer - per wallet
   useEffect(() => {
     const update = () => {
-      const last = localStorage.getItem(COOLDOWN_KEY);
+      if (!address) { setCooldownRemaining(null); return; }
+      const last = localStorage.getItem(COOLDOWN_KEY_PREFIX + address.toLowerCase());
       if (!last) { setCooldownRemaining(null); return; }
       const elapsed = Date.now() - parseInt(last);
       if (elapsed >= COOLDOWN_MS) { setCooldownRemaining(null); return; }
@@ -56,12 +57,12 @@ const Claim = () => {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [address]);
 
   // Handle successful confirmation
   useEffect(() => {
     if (isConfirmed && txHash) {
-      localStorage.setItem(COOLDOWN_KEY, Date.now().toString());
+      localStorage.setItem(COOLDOWN_KEY_PREFIX + address!.toLowerCase(), Date.now().toString());
       toast({
         title: 'Transaction confirmed!',
         description: 'Your claim transaction has been recorded on Abstract.',
@@ -127,9 +128,13 @@ const Claim = () => {
 
           <div className="max-w-md mx-auto bg-white dark:bg-black/90 dark:border dark:border-white/10 rounded-2xl shadow-lg p-10 flex items-center justify-center">
             <button
-              onClick={handleClick}
+              onClick={cooldownRemaining ? undefined : handleClick}
               disabled={isDisabled}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg px-10 py-3 rounded-xl transition-colors"
+              className={`font-bold text-lg px-10 py-3 rounded-xl transition-colors ${
+                cooldownRemaining
+                  ? 'bg-retsba dark:bg-gray-600 text-white/70 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white'
+              }`}
             >
               {getButtonText()}
             </button>
