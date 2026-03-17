@@ -285,7 +285,7 @@ const XPCard = () => {
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [currentTemplate, setCurrentTemplate] = useState(0);
+  const [currentTemplate, setCurrentTemplate] = useState(DEFAULT_TEMPLATE_INDEX);
   const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
