@@ -248,6 +248,7 @@ const translations: Translations = {
     xpCard: 'XPカード',
     pfp: 'PFP',
     wallpapers: '壁紙',
+    claim: 'クレーム',
     buyNow: '今すぐ購入',
     darkMode: 'ダークモード',
     language: '言語',
