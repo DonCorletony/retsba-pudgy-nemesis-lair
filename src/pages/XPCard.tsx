@@ -129,7 +129,7 @@ const XP_BOTTOM = 72;
 
 // English Weekly templates (default)
 const WEEKLY_TEMPLATES_EN = [
-  XPTemplateFrankyGO, // NEW featured template - first in list
+  XPTemplateFrankyGO,
   XPTemplateTollan,
   XPTemplate8,
   XPTemplate9,
@@ -139,7 +139,16 @@ const WEEKLY_TEMPLATES_EN = [
   '/images/xp-template-4.png',
   '/images/xp-template-6.png',
   '/images/xp-template-7.png',
+  XPTemplate10,
+  XPTemplate11,
 ];
+
+// Default template index (XP Template 10)
+const DEFAULT_TEMPLATE_INDEX = 10;
+
+// Mark last two templates as NEW
+NEW_TEMPLATE_INDICES.add(10);
+NEW_TEMPLATE_INDICES.add(11);
 
 
 // English All-Time templates (default)
