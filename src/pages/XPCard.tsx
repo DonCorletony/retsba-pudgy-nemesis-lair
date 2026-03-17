@@ -304,7 +304,7 @@ const XPCard = () => {
 
   const handleModeSwitch = (checked: boolean) => {
     setIsAllTime(checked);
-    setCurrentTemplate(0); // Reset to first template when switching modes
+    setCurrentTemplate(checked ? 0 : DEFAULT_TEMPLATE_INDEX); // Reset template when switching modes
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
