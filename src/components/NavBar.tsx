@@ -449,6 +449,13 @@ const NavBar = () => {
                 >
                   {t('wallpapers').toUpperCase()}
                 </a>
+                <a 
+                  href="/claim" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('claim').toUpperCase()}
+                </a>
                 <button 
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => {
