@@ -24,7 +24,7 @@ export const LANGUAGES: Language[] = [
 
 type TranslationKey = 
   // Nav
-  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'buyNow'
+  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'claim' | 'buyNow'
   | 'darkMode' | 'language' | 'signIn' | 'signUp' | 'signInSignUp' | 'signOut'
   | 'profile' | 'search' | 'searchProfiles' | 'searchPlaceholder' | 'noResults' | 'searching'
   // XP Card
@@ -63,6 +63,7 @@ const translations: Translations = {
     xpCard: 'XP Card',
     pfp: 'PFP',
     wallpapers: 'Wallpapers',
+    claim: 'Claim',
     buyNow: 'Buy Now',
     darkMode: 'Dark Mode',
     language: 'Language',
@@ -158,6 +159,7 @@ const translations: Translations = {
     xpCard: 'Tarjeta XP',
     pfp: 'PFP',
     wallpapers: 'Fondos de Pantalla',
+    claim: 'Reclamar',
     buyNow: 'Comprar Ahora',
     darkMode: 'Modo Oscuro',
     language: 'Idioma',
@@ -246,6 +248,7 @@ const translations: Translations = {
     xpCard: 'XPカード',
     pfp: 'PFP',
     wallpapers: '壁紙',
+    claim: 'クレーム',
     buyNow: '今すぐ購入',
     darkMode: 'ダークモード',
     language: '言語',
@@ -334,6 +337,7 @@ const translations: Translations = {
     xpCard: 'XP 카드',
     pfp: 'PFP',
     wallpapers: '배경화면',
+    claim: '클레임',
     buyNow: '지금 구매',
     darkMode: '다크 모드',
     language: '언어',
@@ -422,6 +426,7 @@ const translations: Translations = {
     xpCard: 'XP卡片',
     pfp: 'PFP',
     wallpapers: '壁纸',
+    claim: '领取',
     buyNow: '立即购买',
     darkMode: '深色模式',
     language: '语言',
@@ -510,6 +515,7 @@ const translations: Translations = {
     xpCard: 'Carte XP',
     pfp: 'PFP',
     wallpapers: 'Fonds d\'écran',
+    claim: 'Réclamer',
     buyNow: 'Acheter',
     darkMode: 'Mode Sombre',
     language: 'Langue',
@@ -598,6 +604,7 @@ const translations: Translations = {
     xpCard: 'XP-Karte',
     pfp: 'PFP',
     wallpapers: 'Hintergrundbilder',
+    claim: 'Beanspruchen',
     buyNow: 'Jetzt Kaufen',
     darkMode: 'Dunkelmodus',
     language: 'Sprache',
@@ -686,6 +693,7 @@ const translations: Translations = {
     xpCard: 'Cartão XP',
     pfp: 'PFP',
     wallpapers: 'Papéis de Parede',
+    claim: 'Reivindicar',
     buyNow: 'Comprar Agora',
     darkMode: 'Modo Escuro',
     language: 'Idioma',
@@ -774,6 +782,7 @@ const translations: Translations = {
     xpCard: 'XP Карта',
     pfp: 'PFP',
     wallpapers: 'Обои',
+    claim: 'Получить',
     buyNow: 'Купить',
     darkMode: 'Тёмный Режим',
     language: 'Язык',
@@ -862,6 +871,7 @@ const translations: Translations = {
     xpCard: 'بطاقة XP',
     pfp: 'PFP',
     wallpapers: 'خلفيات',
+    claim: 'مطالبة',
     buyNow: 'اشتري الآن',
     darkMode: 'الوضع الداكن',
     language: 'اللغة',
