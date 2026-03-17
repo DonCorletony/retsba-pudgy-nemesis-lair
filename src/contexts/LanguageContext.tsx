@@ -604,6 +604,7 @@ const translations: Translations = {
     xpCard: 'XP-Karte',
     pfp: 'PFP',
     wallpapers: 'Hintergrundbilder',
+    claim: 'Beanspruchen',
     buyNow: 'Jetzt Kaufen',
     darkMode: 'Dunkelmodus',
     language: 'Sprache',
