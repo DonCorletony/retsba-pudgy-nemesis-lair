@@ -18,8 +18,8 @@ const Claim = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pt-20 pb-16">
+    <div className="min-h-screen bg-retsba dark:bg-black">
+      <div className="pt-20 pb-8">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white">
             {t('claim')}
@@ -30,7 +30,7 @@ const Claim = () => {
               onClick={handleClick}
               className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-10 py-3 rounded-xl transition-colors"
             >
-              {isConnected ? t('claim') : t('connectAGW')}
+              {isConnected ? t('claim') : 'Connect AGW'}
             </button>
           </div>
         </div>
