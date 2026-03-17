@@ -108,9 +108,11 @@ import XPTemplateFrankyGO from '@/assets/xp-cards/XP_Template_FrankyGO.png';
 import XPTemplateTollan from '@/assets/xp-templates/XP_Template_Tollan.png';
 import XPTemplate8 from '@/assets/xp-templates/XP_Template_8.png';
 import XPTemplate9 from '@/assets/xp-templates/XP_Template_9.png';
+import XPTemplate10 from '@/assets/xp-templates/XP_Template_10.png';
+import XPTemplate11 from '@/assets/xp-templates/XP_Template_11.png';
 
-// Track which templates should show "NEW" badge and divider (index 0 = featured new template)
-const NEW_TEMPLATE_INDEX = 0;
+// Track which templates should show "NEW" badge (last two templates)
+const NEW_TEMPLATE_INDICES = new Set<number>();
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
@@ -127,7 +129,7 @@ const XP_BOTTOM = 72;
 
 // English Weekly templates (default)
 const WEEKLY_TEMPLATES_EN = [
-  XPTemplateFrankyGO, // NEW featured template - first in list
+  XPTemplateFrankyGO,
   XPTemplateTollan,
   XPTemplate8,
   XPTemplate9,
@@ -137,7 +139,16 @@ const WEEKLY_TEMPLATES_EN = [
   '/images/xp-template-4.png',
   '/images/xp-template-6.png',
   '/images/xp-template-7.png',
+  XPTemplate10,
+  XPTemplate11,
 ];
+
+// Default template index (XP Template 10)
+const DEFAULT_TEMPLATE_INDEX = 10;
+
+// Mark last two templates as NEW
+NEW_TEMPLATE_INDICES.add(10);
+NEW_TEMPLATE_INDICES.add(11);
 
 
 // English All-Time templates (default)
@@ -274,7 +285,7 @@ const XPCard = () => {
   const [username, setUsername] = useState('');
   const [xpAmount, setXpAmount] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [currentTemplate, setCurrentTemplate] = useState(0);
+  const [currentTemplate, setCurrentTemplate] = useState(DEFAULT_TEMPLATE_INDEX);
   const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -293,7 +304,7 @@ const XPCard = () => {
 
   const handleModeSwitch = (checked: boolean) => {
     setIsAllTime(checked);
-    setCurrentTemplate(0); // Reset to first template when switching modes
+    setCurrentTemplate(checked ? 0 : DEFAULT_TEMPLATE_INDEX); // Reset template when switching modes
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -463,8 +474,8 @@ const XPCard = () => {
                     textSizeAdjust: 'none'
                   } as React.CSSProperties}
                 >
-                  {/* NEW Badge - shows when first template is selected in weekly mode */}
-                  {!isAllTime && currentTemplate === NEW_TEMPLATE_INDEX && language === 'en' && (
+                  {/* NEW Badge - shows for new templates in weekly mode */}
+                  {!isAllTime && NEW_TEMPLATE_INDICES.has(currentTemplate) && language === 'en' && (
                     <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
                       NEW
                     </div>
