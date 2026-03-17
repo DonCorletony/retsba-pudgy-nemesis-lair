@@ -693,6 +693,7 @@ const translations: Translations = {
     xpCard: 'Cartão XP',
     pfp: 'PFP',
     wallpapers: 'Papéis de Parede',
+    claim: 'Reivindicar',
     buyNow: 'Comprar Agora',
     darkMode: 'Modo Escuro',
     language: 'Idioma',
