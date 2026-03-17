@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
 const MIN_BALANCE = 10_000;
 const COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hours
-const COOLDOWN_KEY = 'retsba_claim_last';
+const COOLDOWN_KEY_PREFIX = 'retsba_claim_last_';
 
 const Claim = () => {
   const { t } = useLanguage();
