@@ -782,6 +782,7 @@ const translations: Translations = {
     xpCard: 'XP Карта',
     pfp: 'PFP',
     wallpapers: 'Обои',
+    claim: 'Получить',
     buyNow: 'Купить',
     darkMode: 'Тёмный Режим',
     language: 'Язык',
