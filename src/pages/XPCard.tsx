@@ -108,9 +108,11 @@ import XPTemplateFrankyGO from '@/assets/xp-cards/XP_Template_FrankyGO.png';
 import XPTemplateTollan from '@/assets/xp-templates/XP_Template_Tollan.png';
 import XPTemplate8 from '@/assets/xp-templates/XP_Template_8.png';
 import XPTemplate9 from '@/assets/xp-templates/XP_Template_9.png';
+import XPTemplate10 from '@/assets/xp-templates/XP_Template_10.png';
+import XPTemplate11 from '@/assets/xp-templates/XP_Template_11.png';
 
-// Track which templates should show "NEW" badge and divider (index 0 = featured new template)
-const NEW_TEMPLATE_INDEX = 0;
+// Track which templates should show "NEW" badge (last two templates)
+const NEW_TEMPLATE_INDICES = new Set<number>();
 // Fixed dimensions - same for UI and canvas
 const CARD_WIDTH = 560;
 const CARD_HEIGHT = 350;
