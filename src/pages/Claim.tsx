@@ -128,9 +128,13 @@ const Claim = () => {
 
           <div className="max-w-md mx-auto bg-white dark:bg-black/90 dark:border dark:border-white/10 rounded-2xl shadow-lg p-10 flex items-center justify-center">
             <button
-              onClick={handleClick}
+              onClick={cooldownRemaining ? undefined : handleClick}
               disabled={isDisabled}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg px-10 py-3 rounded-xl transition-colors"
+              className={`font-bold text-lg px-10 py-3 rounded-xl transition-colors ${
+                cooldownRemaining
+                  ? 'bg-retsba dark:bg-gray-600 text-white/70 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white'
+              }`}
             >
               {getButtonText()}
             </button>
