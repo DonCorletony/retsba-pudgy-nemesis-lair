@@ -672,6 +672,13 @@ const NavBar = () => {
             >
               {t('wallpapers')}
             </a>
+            <a 
+              href="/claim" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              {t('claim')}
+            </a>
             <button 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
               onClick={() => {
