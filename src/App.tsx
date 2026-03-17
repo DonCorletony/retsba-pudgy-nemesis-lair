@@ -15,6 +15,7 @@ import Memes from "./pages/Memes";
 import XPCard from "./pages/XPCard";
 import PFP from "./pages/PFP";
 import Wallpapers from "./pages/Wallpapers";
+import Claim from "./pages/Claim";
 import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
