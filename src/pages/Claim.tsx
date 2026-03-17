@@ -35,7 +35,7 @@ const Claim = () => {
           </div>
 
           <p className="max-w-md mx-auto text-center text-white/80 text-base mt-6">
-            Users holding 10,000 $RETSBA or more can push this button once every 3 hours to generate a single transaction on the Abstract blockchain.
+            Users holding 10,000 $RETSBA or more can push this button once every 3 hours to generate a transaction on the Abstract blockchain.
           </p>
         </div>
       </div>
