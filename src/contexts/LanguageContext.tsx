@@ -871,6 +871,7 @@ const translations: Translations = {
     xpCard: 'بطاقة XP',
     pfp: 'PFP',
     wallpapers: 'خلفيات',
+    claim: 'مطالبة',
     buyNow: 'اشتري الآن',
     darkMode: 'الوضع الداكن',
     language: 'اللغة',
