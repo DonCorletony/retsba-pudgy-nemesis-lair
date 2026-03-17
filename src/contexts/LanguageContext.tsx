@@ -515,6 +515,7 @@ const translations: Translations = {
     xpCard: 'Carte XP',
     pfp: 'PFP',
     wallpapers: 'Fonds d\'écran',
+    claim: 'Réclamer',
     buyNow: 'Acheter',
     darkMode: 'Mode Sombre',
     language: 'Langue',
