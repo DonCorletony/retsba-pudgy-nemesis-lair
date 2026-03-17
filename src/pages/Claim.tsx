@@ -40,10 +40,11 @@ const Claim = () => {
     hash: txHash,
   });
 
-  // Cooldown timer
+  // Cooldown timer - per wallet
   useEffect(() => {
     const update = () => {
-      const last = localStorage.getItem(COOLDOWN_KEY);
+      if (!address) { setCooldownRemaining(null); return; }
+      const last = localStorage.getItem(COOLDOWN_KEY_PREFIX + address.toLowerCase());
       if (!last) { setCooldownRemaining(null); return; }
       const elapsed = Date.now() - parseInt(last);
       if (elapsed >= COOLDOWN_MS) { setCooldownRemaining(null); return; }
@@ -56,7 +57,7 @@ const Claim = () => {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [address]);
 
   // Handle successful confirmation
   useEffect(() => {
