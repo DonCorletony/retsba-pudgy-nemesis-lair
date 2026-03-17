@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import FooterSection from '../components/FooterSection';
 import { useAccount, useReadContract, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
 import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { erc20Abi, formatUnits } from 'viem';
@@ -106,6 +107,7 @@ const Claim = () => {
   };
 
   const isLoading = isPending || isConfirming;
+  const isDisabled = isLoading || !!cooldownRemaining;
 
   const getButtonText = () => {
     if (!isConnected) return 'Connect AGW';
@@ -126,7 +128,7 @@ const Claim = () => {
           <div className="max-w-md mx-auto bg-white dark:bg-black/90 dark:border dark:border-white/10 rounded-2xl shadow-lg p-10 flex items-center justify-center">
             <button
               onClick={handleClick}
-              disabled={isLoading}
+              disabled={isDisabled}
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg px-10 py-3 rounded-xl transition-colors"
             >
               {getButtonText()}
@@ -139,6 +141,7 @@ const Claim = () => {
           </p>
         </div>
       </div>
+      <FooterSection />
     </div>
   );
 };
