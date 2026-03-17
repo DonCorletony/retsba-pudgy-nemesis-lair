@@ -159,6 +159,7 @@ const translations: Translations = {
     xpCard: 'Tarjeta XP',
     pfp: 'PFP',
     wallpapers: 'Fondos de Pantalla',
+    claim: 'Reclamar',
     buyNow: 'Comprar Ahora',
     darkMode: 'Modo Oscuro',
     language: 'Idioma',
