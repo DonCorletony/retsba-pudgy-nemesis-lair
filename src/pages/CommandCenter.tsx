@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import FooterSection from '../components/FooterSection';
+import { XPTemplateCMS } from '@/components/XPTemplateCMS';
 
 const SESSION_KEY = 'retsba_cc_session';
+const PASSWORD_KEY = 'retsba_cc_password';
 
 const CommandCenter = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
+  const [storedPassword, setStoredPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
 
-  // Add noindex meta tag
   useEffect(() => {
     const meta = document.createElement('meta');
     meta.name = 'robots';
@@ -20,19 +22,22 @@ const CommandCenter = () => {
     return () => { document.head.removeChild(meta); };
   }, []);
 
-  // Check existing session
   useEffect(() => {
     const session = localStorage.getItem(SESSION_KEY);
+    const savedPw = localStorage.getItem(PASSWORD_KEY);
     if (session) {
       try {
         const { expiresAt } = JSON.parse(session);
         if (Date.now() < expiresAt) {
           setAuthenticated(true);
+          if (savedPw) setStoredPassword(savedPw);
         } else {
           localStorage.removeItem(SESSION_KEY);
+          localStorage.removeItem(PASSWORD_KEY);
         }
       } catch {
         localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(PASSWORD_KEY);
       }
     }
     setChecking(false);
@@ -56,6 +61,8 @@ const CommandCenter = () => {
           token: data.token,
           expiresAt: data.expiresAt,
         }));
+        localStorage.setItem(PASSWORD_KEY, password);
+        setStoredPassword(password);
         setAuthenticated(true);
       }
     } catch {
@@ -67,7 +74,6 @@ const CommandCenter = () => {
 
   if (checking) return null;
 
-  // Password gate
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-retsba dark:bg-gray-900 flex items-center justify-center px-4">
@@ -93,13 +99,12 @@ const CommandCenter = () => {
     );
   }
 
-  // Authenticated view
   return (
     <div className="min-h-screen bg-retsba dark:bg-gray-900 text-white pt-20">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Command Center</h1>
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6">
-          <p className="text-gray-600 dark:text-gray-300 text-center">Welcome, Commander.</p>
+          <XPTemplateCMS password={storedPassword} />
         </div>
       </div>
       <FooterSection />

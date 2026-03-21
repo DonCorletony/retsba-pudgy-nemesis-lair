@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import FooterSection from '../components/FooterSection';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import English All-Time templates
 import AllTime1 from '@/assets/xp-templates/All_Time_1.png';
@@ -151,6 +152,7 @@ NEW_TEMPLATE_INDICES.add(10);
 NEW_TEMPLATE_INDICES.add(11);
 
 
+
 // English All-Time templates (default)
 const ALL_TIME_TEMPLATES_EN = [AllTime1, AllTime2];
 
@@ -289,10 +291,83 @@ const XPCard = () => {
   const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get templates based on current language (fallback to English)
-  const weeklyTemplates = WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN;
-  const allTimeTemplates = ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN;
+  // DB-driven templates for English
+  const [dbWeeklyTemplates, setDbWeeklyTemplates] = useState<string[] | null>(null);
+  const [dbAllTimeTemplates, setDbAllTimeTemplates] = useState<string[] | null>(null);
+  const [dbNewIndices, setDbNewIndices] = useState<Set<number>>(new Set());
+  const [dbDefaultIndex, setDbDefaultIndex] = useState<number>(0);
+  const [dbDividerIndex, setDbDividerIndex] = useState<number | null>(null);
+
+  // Fetch templates from DB for English
+  useEffect(() => {
+    if (language !== 'en') return;
+
+    const fetchTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('xp_templates')
+          .select('*')
+          .order('section')
+          .order('sort_order');
+
+        if (error || !data || data.length === 0) return; // Fall back to hardcoded
+
+        const preDivider = data.filter((t: any) => t.section === 'pre_divider_weekly').sort((a: any, b: any) => a.sort_order - b.sort_order);
+        const postDivider = data.filter((t: any) => t.section === 'post_divider_weekly').sort((a: any, b: any) => a.sort_order - b.sort_order);
+        const allTime = data.filter((t: any) => t.section === 'all_time').sort((a: any, b: any) => a.sort_order - b.sort_order);
+
+        const weeklyUrls = [...preDivider, ...postDivider].map((t: any) => t.image_url);
+        const allTimeUrls = allTime.map((t: any) => t.image_url);
+
+        if (weeklyUrls.length > 0) setDbWeeklyTemplates(weeklyUrls);
+        if (allTimeUrls.length > 0) setDbAllTimeTemplates(allTimeUrls);
+
+        // NEW badge indices
+        const newSet = new Set<number>();
+        const allWeekly = [...preDivider, ...postDivider];
+        allWeekly.forEach((t: any, i: number) => {
+          if (t.is_new) newSet.add(i);
+        });
+        setDbNewIndices(newSet);
+
+        // Default index
+        const defaultWeekly = allWeekly.findIndex((t: any) => t.is_default);
+        if (defaultWeekly !== -1) setDbDefaultIndex(defaultWeekly);
+
+        // Divider position (after pre-divider section)
+        if (preDivider.length > 0) {
+          setDbDividerIndex(preDivider.length - 1);
+        }
+      } catch {
+        // Silently fall back to hardcoded
+      }
+    };
+
+    fetchTemplates();
+  }, [language]);
+
+  const isEnglish = language === 'en';
+
+  // Set default template when DB data loads
+  useEffect(() => {
+    if (isEnglish && dbWeeklyTemplates && !isAllTime) {
+      setCurrentTemplate(dbDefaultIndex);
+    }
+  }, [dbWeeklyTemplates, dbDefaultIndex, isEnglish, isAllTime]);
+
+
+  const weeklyTemplates = isEnglish && dbWeeklyTemplates ? dbWeeklyTemplates : (WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN);
+  const allTimeTemplates = isEnglish && dbAllTimeTemplates ? dbAllTimeTemplates : (ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN);
   const templates = isAllTime ? allTimeTemplates : weeklyTemplates;
+
+  // Determine effective default index
+  const effectiveDefaultIndex = isEnglish && dbWeeklyTemplates ? dbDefaultIndex : DEFAULT_TEMPLATE_INDEX;
+
+  // Determine effective NEW indices
+  const effectiveNewIndices = isEnglish && dbWeeklyTemplates ? dbNewIndices : NEW_TEMPLATE_INDICES;
+
+  // Determine effective divider index
+  const effectiveDividerIndex = isEnglish && dbWeeklyTemplates ? dbDividerIndex : 1;
 
   const nextTemplate = () => {
     setCurrentTemplate((prev) => (prev + 1) % templates.length);
@@ -304,7 +379,7 @@ const XPCard = () => {
 
   const handleModeSwitch = (checked: boolean) => {
     setIsAllTime(checked);
-    setCurrentTemplate(checked ? 0 : DEFAULT_TEMPLATE_INDEX); // Reset template when switching modes
+    setCurrentTemplate(checked ? 0 : effectiveDefaultIndex);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -475,7 +550,7 @@ const XPCard = () => {
                   } as React.CSSProperties}
                 >
                   {/* NEW Badge - shows for new templates in weekly mode */}
-                  {!isAllTime && NEW_TEMPLATE_INDICES.has(currentTemplate) && language === 'en' && (
+                  {!isAllTime && effectiveNewIndices.has(currentTemplate) && language === 'en' && (
                     <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
                       NEW
                     </div>
@@ -562,7 +637,7 @@ const XPCard = () => {
                           }`}
                         />
                         {/* Divider after the first two collab cards in weekly mode */}
-                        {!isAllTime && index === 1 && language === 'en' && (
+                        {!isAllTime && effectiveDividerIndex !== null && index === effectiveDividerIndex && language === 'en' && (
                           <span className="text-black dark:text-white text-sm font-light mx-1">|</span>
                         )}
                       </React.Fragment>
