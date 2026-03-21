@@ -291,10 +291,75 @@ const XPCard = () => {
   const [isAllTime, setIsAllTime] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Get templates based on current language (fallback to English)
-  const weeklyTemplates = WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN;
-  const allTimeTemplates = ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN;
+  // DB-driven templates for English
+  const [dbWeeklyTemplates, setDbWeeklyTemplates] = useState<string[] | null>(null);
+  const [dbAllTimeTemplates, setDbAllTimeTemplates] = useState<string[] | null>(null);
+  const [dbNewIndices, setDbNewIndices] = useState<Set<number>>(new Set());
+  const [dbDefaultIndex, setDbDefaultIndex] = useState<number>(0);
+  const [dbDividerIndex, setDbDividerIndex] = useState<number | null>(null);
+
+  // Fetch templates from DB for English
+  useEffect(() => {
+    if (language !== 'en') return;
+
+    const fetchTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('xp_templates')
+          .select('*')
+          .order('section')
+          .order('sort_order');
+
+        if (error || !data || data.length === 0) return; // Fall back to hardcoded
+
+        const preDivider = data.filter((t: any) => t.section === 'pre_divider_weekly').sort((a: any, b: any) => a.sort_order - b.sort_order);
+        const postDivider = data.filter((t: any) => t.section === 'post_divider_weekly').sort((a: any, b: any) => a.sort_order - b.sort_order);
+        const allTime = data.filter((t: any) => t.section === 'all_time').sort((a: any, b: any) => a.sort_order - b.sort_order);
+
+        const weeklyUrls = [...preDivider, ...postDivider].map((t: any) => t.image_url);
+        const allTimeUrls = allTime.map((t: any) => t.image_url);
+
+        if (weeklyUrls.length > 0) setDbWeeklyTemplates(weeklyUrls);
+        if (allTimeUrls.length > 0) setDbAllTimeTemplates(allTimeUrls);
+
+        // NEW badge indices
+        const newSet = new Set<number>();
+        const allWeekly = [...preDivider, ...postDivider];
+        allWeekly.forEach((t: any, i: number) => {
+          if (t.is_new) newSet.add(i);
+        });
+        setDbNewIndices(newSet);
+
+        // Default index
+        const defaultWeekly = allWeekly.findIndex((t: any) => t.is_default);
+        if (defaultWeekly !== -1) setDbDefaultIndex(defaultWeekly);
+
+        // Divider position (after pre-divider section)
+        if (preDivider.length > 0) {
+          setDbDividerIndex(preDivider.length - 1);
+        }
+      } catch {
+        // Silently fall back to hardcoded
+      }
+    };
+
+    fetchTemplates();
+  }, [language]);
+
+  // Determine which templates to use
+  const isEnglish = language === 'en';
+  const weeklyTemplates = isEnglish && dbWeeklyTemplates ? dbWeeklyTemplates : (WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN);
+  const allTimeTemplates = isEnglish && dbAllTimeTemplates ? dbAllTimeTemplates : (ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN);
   const templates = isAllTime ? allTimeTemplates : weeklyTemplates;
+
+  // Determine effective default index
+  const effectiveDefaultIndex = isEnglish && dbWeeklyTemplates ? dbDefaultIndex : DEFAULT_TEMPLATE_INDEX;
+
+  // Determine effective NEW indices
+  const effectiveNewIndices = isEnglish && dbWeeklyTemplates ? dbNewIndices : NEW_TEMPLATE_INDICES;
+
+  // Determine effective divider index
+  const effectiveDividerIndex = isEnglish && dbWeeklyTemplates ? dbDividerIndex : 1;
 
   const nextTemplate = () => {
     setCurrentTemplate((prev) => (prev + 1) % templates.length);
@@ -306,7 +371,7 @@ const XPCard = () => {
 
   const handleModeSwitch = (checked: boolean) => {
     setIsAllTime(checked);
-    setCurrentTemplate(checked ? 0 : DEFAULT_TEMPLATE_INDEX); // Reset template when switching modes
+    setCurrentTemplate(checked ? 0 : effectiveDefaultIndex);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
