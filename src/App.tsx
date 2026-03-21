@@ -18,6 +18,7 @@ import Wallpapers from "./pages/Wallpapers";
 import Claim from "./pages/Claim";
 import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
+import CommandCenter from "./pages/CommandCenter";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 
