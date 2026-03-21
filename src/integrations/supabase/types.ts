@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_templates: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_default: boolean
+          is_new: boolean
+          section: Database["public"]["Enums"]["xp_template_section"]
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_default?: boolean
+          is_new?: boolean
+          section: Database["public"]["Enums"]["xp_template_section"]
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_default?: boolean
+          is_new?: boolean
+          section?: Database["public"]["Enums"]["xp_template_section"]
+          sort_order?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -64,7 +94,10 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      xp_template_section:
+        | "pre_divider_weekly"
+        | "post_divider_weekly"
+        | "all_time"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -191,6 +224,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      xp_template_section: [
+        "pre_divider_weekly",
+        "post_divider_weekly",
+        "all_time",
+      ],
+    },
   },
 } as const
