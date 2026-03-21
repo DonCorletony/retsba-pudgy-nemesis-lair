@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import FooterSection from '../components/FooterSection';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
