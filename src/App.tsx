@@ -46,6 +46,7 @@ const App = () => {
                   <Route path="/createaccount" element={<CreateAccount />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/commandcenter" element={<CommandCenter />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MobileNavLayout>
