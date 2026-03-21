@@ -629,7 +629,7 @@ const XPCard = () => {
                           }`}
                         />
                         {/* Divider after the first two collab cards in weekly mode */}
-                        {!isAllTime && index === 1 && language === 'en' && (
+                        {!isAllTime && effectiveDividerIndex !== null && index === effectiveDividerIndex && language === 'en' && (
                           <span className="text-black dark:text-white text-sm font-light mx-1">|</span>
                         )}
                       </React.Fragment>
