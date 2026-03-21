@@ -150,7 +150,8 @@ const DEFAULT_TEMPLATE_INDEX = 10;
 NEW_TEMPLATE_INDICES.add(10);
 NEW_TEMPLATE_INDICES.add(11);
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+
+
 // English All-Time templates (default)
 const ALL_TIME_TEMPLATES_EN = [AllTime1, AllTime2];
 
