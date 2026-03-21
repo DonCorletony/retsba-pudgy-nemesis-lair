@@ -6,97 +6,176 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function jsonResponse(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
 
+  try {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
 
-    // All write actions require password validation
-    if (req.method === 'POST' || req.method === 'DELETE') {
-      const contentType = req.headers.get('content-type') || '';
-      let password: string | null = null;
-
-      if (contentType.includes('multipart/form-data')) {
-        const formData = await req.formData();
-        password = formData.get('password') as string;
-      } else {
-        const body = await req.json();
-        password = body.password;
-      }
-
-      const correctPassword = Deno.env.get('COMMAND_CENTER_PASSWORD');
-      if (!password || password !== correctPassword) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
-    // GET: List all templates
-    if (req.method === 'GET' || action === 'list') {
+    // GET: public list (no auth needed)
+    if (req.method === 'GET') {
       const { data, error } = await supabase
         .from('xp_templates')
         .select('*')
         .order('section')
         .order('sort_order');
-
       if (error) throw error;
-      return new Response(
-        JSON.stringify({ templates: data }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ templates: data });
     }
 
-    // POST actions
+    // POST: all mutations require password
     if (req.method === 'POST') {
-      const contentType = req.headers.get('content-type') || '';
+      const correctPassword = Deno.env.get('COMMAND_CENTER_PASSWORD');
 
-      // Upload new template
+      // --- File upload (multipart) ---
       if (action === 'upload') {
-        // Re-parse form data (already consumed above, need to handle differently)
-        // Actually we need to re-read, let's restructure
-        return new Response(
-          JSON.stringify({ error: 'Use upload-template action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        const formData = await req.formData();
+        const password = formData.get('password') as string;
+        if (!password || password !== correctPassword) {
+          return jsonResponse({ error: 'Unauthorized' }, 401);
+        }
+
+        const file = formData.get('file') as File;
+        const section = formData.get('section') as string;
+        const sortOrder = parseInt(formData.get('sort_order') as string || '0', 10);
+
+        if (!file || !section) {
+          return jsonResponse({ error: 'Missing file or section' }, 400);
+        }
+
+        // Upload to storage
+        const fileName = `${Date.now()}_${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('xp-templates')
+          .upload(fileName, file, { contentType: file.type, upsert: false });
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('xp-templates')
+          .getPublicUrl(fileName);
+
+        // Insert DB record
+        const { data: template, error: insertError } = await supabase
+          .from('xp_templates')
+          .insert({
+            image_url: urlData.publicUrl,
+            section,
+            sort_order: sortOrder,
+            is_new: false,
+            is_default: false,
+          })
+          .select()
+          .single();
+        if (insertError) throw insertError;
+
+        return jsonResponse({ template });
       }
 
-      // For JSON body actions
-      let body: any;
-      if (contentType.includes('multipart/form-data')) {
-        // Already consumed, this shouldn't happen for non-upload actions
-        return new Response(
-          JSON.stringify({ error: 'Invalid content type for this action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // --- JSON body actions ---
+      const body = await req.json();
+      if (!body.password || body.password !== correctPassword) {
+        return jsonResponse({ error: 'Unauthorized' }, 401);
       }
 
-      // Body was already consumed for password check, need to restructure
-      // Let's use a different approach - parse once and route
-      return new Response(
-        JSON.stringify({ error: 'Action not supported via this path' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Update template (toggle NEW, default, etc.)
+      if (action === 'update') {
+        const { id, ...updates } = body;
+        delete updates.password;
+        if (!id) return jsonResponse({ error: 'Missing id' }, 400);
+
+        // If setting as default, unset other defaults in same section
+        if (updates.is_default === true) {
+          // Get the template's section first
+          const { data: tmpl } = await supabase
+            .from('xp_templates')
+            .select('section')
+            .eq('id', id)
+            .single();
+          if (tmpl) {
+            await supabase
+              .from('xp_templates')
+              .update({ is_default: false })
+              .eq('section', tmpl.section)
+              .neq('id', id);
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('xp_templates')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+        if (error) throw error;
+        return jsonResponse({ template: data });
+      }
+
+      // Reorder templates
+      if (action === 'reorder') {
+        const { items } = body; // [{id, sort_order, section}]
+        if (!items || !Array.isArray(items)) {
+          return jsonResponse({ error: 'Missing items array' }, 400);
+        }
+
+        for (const item of items) {
+          const updateData: any = { sort_order: item.sort_order };
+          if (item.section) updateData.section = item.section;
+          await supabase
+            .from('xp_templates')
+            .update(updateData)
+            .eq('id', item.id);
+        }
+
+        return jsonResponse({ success: true });
+      }
+
+      // Delete template
+      if (action === 'delete') {
+        const { id } = body;
+        if (!id) return jsonResponse({ error: 'Missing id' }, 400);
+
+        // Get image URL to delete from storage
+        const { data: tmpl } = await supabase
+          .from('xp_templates')
+          .select('image_url')
+          .eq('id', id)
+          .single();
+
+        if (tmpl?.image_url) {
+          const urlParts = tmpl.image_url.split('/xp-templates/');
+          if (urlParts[1]) {
+            await supabase.storage.from('xp-templates').remove([urlParts[1]]);
+          }
+        }
+
+        const { error } = await supabase
+          .from('xp_templates')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        return jsonResponse({ success: true });
+      }
+
+      return jsonResponse({ error: 'Unknown action' }, 400);
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: 'Method not allowed' }, 405);
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: error.message }, 500);
   }
 });
