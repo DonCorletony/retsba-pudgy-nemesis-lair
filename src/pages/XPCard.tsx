@@ -8,6 +8,7 @@ import { Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import English All-Time templates
 import AllTime1 from '@/assets/xp-templates/All_Time_1.png';
