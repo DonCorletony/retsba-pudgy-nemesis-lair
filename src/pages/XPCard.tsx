@@ -542,7 +542,7 @@ const XPCard = () => {
                   } as React.CSSProperties}
                 >
                   {/* NEW Badge - shows for new templates in weekly mode */}
-                  {!isAllTime && NEW_TEMPLATE_INDICES.has(currentTemplate) && language === 'en' && (
+                  {!isAllTime && effectiveNewIndices.has(currentTemplate) && language === 'en' && (
                     <div className="absolute top-3 right-3 z-10 bg-white text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
                       NEW
                     </div>
