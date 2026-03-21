@@ -346,8 +346,15 @@ const XPCard = () => {
     fetchTemplates();
   }, [language]);
 
-  // Determine which templates to use
+  // Set default template when DB data loads
+  useEffect(() => {
+    if (isEnglish && dbWeeklyTemplates && !isAllTime) {
+      setCurrentTemplate(dbDefaultIndex);
+    }
+  }, [dbWeeklyTemplates, dbDefaultIndex]);
+
   const isEnglish = language === 'en';
+
   const weeklyTemplates = isEnglish && dbWeeklyTemplates ? dbWeeklyTemplates : (WEEKLY_TEMPLATES_BY_LANG[language] || WEEKLY_TEMPLATES_EN);
   const allTimeTemplates = isEnglish && dbAllTimeTemplates ? dbAllTimeTemplates : (ALL_TIME_TEMPLATES_BY_LANG[language] || ALL_TIME_TEMPLATES_EN);
   const templates = isAllTime ? allTimeTemplates : weeklyTemplates;
