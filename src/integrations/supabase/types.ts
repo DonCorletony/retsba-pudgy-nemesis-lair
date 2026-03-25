@@ -20,6 +20,7 @@ export type Database = {
           balance: string
           id: string
           rank: number
+          token_id: string
           tx_count: number
           updated_at: string
         }
@@ -28,6 +29,7 @@ export type Database = {
           balance: string
           id?: string
           rank: number
+          token_id?: string
           tx_count?: number
           updated_at?: string
         }
@@ -36,6 +38,7 @@ export type Database = {
           balance?: string
           id?: string
           rank?: number
+          token_id?: string
           tx_count?: number
           updated_at?: string
         }
@@ -46,6 +49,7 @@ export type Database = {
           created_at: string
           id: string
           snapshot_date: string
+          token_id: string
           total_holders: number
           total_txns: number
         }
@@ -53,6 +57,7 @@ export type Database = {
           created_at?: string
           id?: string
           snapshot_date?: string
+          token_id?: string
           total_holders?: number
           total_txns?: number
         }
@@ -60,6 +65,7 @@ export type Database = {
           created_at?: string
           id?: string
           snapshot_date?: string
+          token_id?: string
           total_holders?: number
           total_txns?: number
         }

@@ -54,7 +54,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
   const fetchSnapshots = useCallback(async () => {
     try {
       const { data, error: fnError } = await supabase.functions.invoke('fetch-holders', {
-        body: { password, snapshotsOnly: true },
+        body: { password, snapshotsOnly: true, tokenId },
       });
       if (!fnError && data?.snapshots) {
         setSnapshots(data.snapshots);
@@ -62,21 +62,20 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     } catch {
       // Non-critical
     }
-  }, [password]);
+  }, [password, tokenId]);
 
   const fetchHolders = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const { data, error: fnError } = await supabase.functions.invoke('fetch-holders', {
-        body: { password },
+        body: { password, tokenId },
       });
       if (fnError || !data?.holders) {
         setError(fnError?.message || data?.error || 'Holder data failed to load.');
       } else {
         setHolders(data.holders);
         setCountdown(REFRESH_INTERVAL);
-        // Refresh snapshots after new data is saved
         fetchSnapshots();
       }
     } catch (e: any) {
@@ -84,7 +83,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     } finally {
       setLoading(false);
     }
-  }, [password, fetchSnapshots]);
+  }, [password, tokenId, fetchSnapshots]);
 
   useEffect(() => {
     fetchHolders();

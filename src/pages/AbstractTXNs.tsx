@@ -7,9 +7,9 @@ const PASSWORD = 'AbsterSucksEggs987';
 
 const TOKENS = [
   { id: 'retsba', label: 'RETSBA', contract: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' },
-  { id: 'abster', label: 'Abster', contract: '' },
-  { id: 'god', label: 'God', contract: '' },
-  { id: 'polly', label: 'Polly', contract: '' },
+  { id: 'abster', label: 'Abster', contract: '0xc325b7e2736A5202bd860F5974D0AA375E57EdE5' },
+  { id: 'god', label: 'God', contract: '0x3D72DDD35cadb4e5B22CDB20b36f98077BE84284' },
+  { id: 'polly', label: 'Polly', contract: '0x987CF44F3F5d854eC0703123d7fD003a8b56eBb4' },
 ] as const;
 
 const AbstractTXNs = () => {
@@ -110,14 +110,7 @@ const AbstractTXNs = () => {
         </div>
 
         <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-          {currentToken.contract ? (
-            <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} />
-          ) : (
-            <div className="text-center py-16 text-muted-foreground">
-              <p className="text-lg font-medium mb-2">${currentToken.label} — Coming Soon</p>
-              <p className="text-sm">Contract address needed to enable tracking</p>
-            </div>
-          )}
+          <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} />
         </div>
       </div>
       <FooterSection />
