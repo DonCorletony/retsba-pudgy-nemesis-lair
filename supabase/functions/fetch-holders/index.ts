@@ -81,7 +81,8 @@ async function fetchLogsForRange(fromBlock: number, toBlock: number): Promise<Tr
 async function scanBalances(latestBlock: number) {
   const balances = new Map<string, bigint>();
   let processedEvents = 0;
-  let fromBlock = 0;
+  const startBlock = Math.max(0, latestBlock - THIRTY_DAYS_BLOCKS);
+  let fromBlock = startBlock;
   let span = INITIAL_BLOCK_SPAN;
 
   while (fromBlock <= latestBlock) {
