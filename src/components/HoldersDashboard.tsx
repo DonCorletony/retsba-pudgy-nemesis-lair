@@ -12,7 +12,7 @@ interface Holder {
 type SortField = 'rank' | 'balance' | 'txCount';
 type SortDir = 'asc' | 'desc';
 
-const TOTAL_SUPPLY = 1_000_000_000; // 1B tokens
+const TOTAL_SUPPLY = 1_000_000_000; // 1B tokens (after 18 decimals division)
 const REFRESH_INTERVAL = 300; // 5 minutes in seconds
 
 const formatBalance = (raw: string, decimals = 18): string => {
