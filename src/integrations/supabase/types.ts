@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      holder_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          snapshot_date: string
+          total_holders: number
+          total_txns: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          snapshot_date?: string
+          total_holders?: number
+          total_txns?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          snapshot_date?: string
+          total_holders?: number
+          total_txns?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
