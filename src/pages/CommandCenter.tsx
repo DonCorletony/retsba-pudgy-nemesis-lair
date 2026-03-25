@@ -107,6 +107,10 @@ const CommandCenter = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6">
           <XPTemplateCMS password={storedPassword} />
         </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6 mt-8">
+          <HoldersDashboard password={storedPassword} />
+        </div>
       </div>
       <FooterSection />
     </div>
