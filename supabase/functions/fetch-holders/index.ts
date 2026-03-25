@@ -108,6 +108,34 @@ async function scanBalances(latestBlock: number) {
   return { balances, processedEvents };
 }
 
+async function fetchTransactionCounts(addresses: string[]) {
+  const counts = new Map<string, number>();
+  const chunkSize = 25;
+
+  for (let i = 0; i < addresses.length; i += chunkSize) {
+    const chunk = addresses.slice(i, i + chunkSize);
+    const response = await rpcCall<Array<RpcSuccess<string> | RpcError>>(
+      chunk.map((address, index) => ({
+        jsonrpc: "2.0",
+        id: index,
+        method: "eth_getTransactionCount",
+        params: [address, "latest"],
+      })),
+    );
+
+    if (!Array.isArray(response)) {
+      throw new Error("Unexpected RPC response while fetching transaction counts");
+    }
+
+    chunk.forEach((address, index) => {
+      const result = response.find((entry) => entry.id === index && "result" in entry);
+      counts.set(address, result && "result" in result ? parseInt(result.result, 16) : 0);
+    });
+  }
+
+  return counts;
+}
+
 async function saveSnapshot(totalHolders: number, totalTxns: number) {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
