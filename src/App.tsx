@@ -19,6 +19,7 @@ import Claim from "./pages/Claim";
 import CreateAccount from "./pages/CreateAccount";
 import Profile from "./pages/Profile";
 import CommandCenter from "./pages/CommandCenter";
+import AbstractTXNs from "./pages/AbstractTXNs";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 
@@ -47,6 +48,7 @@ const App = () => {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/commandcenter" element={<CommandCenter />} />
+                  <Route path="/abstracttxns" element={<AbstractTXNs />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </MobileNavLayout>

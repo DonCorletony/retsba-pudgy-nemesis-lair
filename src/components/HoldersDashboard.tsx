@@ -42,7 +42,7 @@ const formatDateLabel = (dateStr: string): string => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) => {
+export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; tokenLabel?: string }> = ({ password, tokenId = 'retsba', tokenLabel = 'RETSBA' }) => {
   const [holders, setHolders] = useState<Holder[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -147,7 +147,7 @@ export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) =
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top 250 Holders</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top 250 {tokenLabel} Holders</h2>
         <div className="flex items-center gap-3">
           {countdown > 0 && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
