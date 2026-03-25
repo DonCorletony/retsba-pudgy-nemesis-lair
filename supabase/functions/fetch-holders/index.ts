@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.52.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,9 +14,7 @@ const TOP_N = 250;
 const INITIAL_BLOCK_SPAN = 2_000_000;
 const MIN_BLOCK_SPAN = 2_000;
 const MAX_BLOCK_SPAN = 4_000_000;
-// Abstract produces ~1 block/sec → 30 days ≈ 2.6M blocks
 const THIRTY_DAYS_BLOCKS = 30 * 24 * 60 * 60;
-const MAX_BLOCK_SPAN = 4_000_000;
 
 type RpcSuccess<T> = { jsonrpc: string; id: number; result: T };
 type RpcError = { jsonrpc: string; id: number; error: { code: number; message: string } };
@@ -30,11 +29,9 @@ async function rpcCall<T>(payload: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
   if (!response.ok) {
     throw new Error(`RPC request failed with ${response.status}`);
   }
-
   return response.json();
 }
 
@@ -51,7 +48,6 @@ function applyTransferLog(log: TransferLog, balances: Map<string, bigint>) {
     const fromAddress = topicToAddress(fromTopic);
     balances.set(fromAddress, (balances.get(fromAddress) ?? 0n) - value);
   }
-
   if (toTopic !== ZERO_TOPIC) {
     const toAddress = topicToAddress(toTopic);
     balances.set(toAddress, (balances.get(toAddress) ?? 0n) + value);
@@ -70,11 +66,9 @@ async function fetchLogsForRange(fromBlock: number, toBlock: number): Promise<Tr
       topics: [TRANSFER_TOPIC],
     }],
   });
-
   if ("error" in data) {
     throw new Error(data.error.message);
   }
-
   return data.result ?? [];
 }
 
@@ -87,17 +81,13 @@ async function scanBalances(latestBlock: number) {
 
   while (fromBlock <= latestBlock) {
     const toBlock = Math.min(fromBlock + span, latestBlock);
-
     try {
       const logs = await fetchLogsForRange(fromBlock, toBlock);
-
       for (const log of logs) {
         applyTransferLog(log, balances);
       }
-
       processedEvents += logs.length;
       fromBlock = toBlock + 1;
-
       if (logs.length < 1000 && span < MAX_BLOCK_SPAN) {
         span = Math.min(MAX_BLOCK_SPAN, span * 2);
       } else if (logs.length > 8000 && span > MIN_BLOCK_SPAN) {
@@ -105,7 +95,6 @@ async function scanBalances(latestBlock: number) {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown RPC error";
-
       if (message.includes("10000 results") || message.includes("more than 10000 results")) {
         if (span <= MIN_BLOCK_SPAN) {
           throw new Error(`Range still too large at minimum span near block ${fromBlock}`);
@@ -113,12 +102,28 @@ async function scanBalances(latestBlock: number) {
         span = Math.max(MIN_BLOCK_SPAN, Math.floor(span / 2));
         continue;
       }
-
       throw error;
     }
   }
-
   return { balances, processedEvents };
+}
+
+async function saveSnapshot(totalHolders: number, totalTxns: number) {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) return;
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const today = new Date().toISOString().split("T")[0];
+
+    await supabase.from("holder_snapshots").upsert(
+      { snapshot_date: today, total_holders: totalHolders, total_txns: totalTxns },
+      { onConflict: "snapshot_date" }
+    );
+  } catch {
+    // Snapshot saving is non-critical; don't fail the request
+  }
 }
 
 serve(async (req) => {
@@ -127,12 +132,35 @@ serve(async (req) => {
   }
 
   try {
-    const { password } = await req.json();
+    const body = await req.json();
+    const { password, snapshotsOnly } = body;
     const storedPassword = Deno.env.get("COMMAND_CENTER_PASSWORD");
 
     if (!password || password !== storedPassword) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // If only snapshots requested, return them without scanning
+    if (snapshotsOnly) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!supabaseUrl || !serviceRoleKey) {
+        return new Response(JSON.stringify({ snapshots: [] }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const supabase = createClient(supabaseUrl, serviceRoleKey);
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const { data } = await supabase
+        .from("holder_snapshots")
+        .select("snapshot_date, total_holders, total_txns")
+        .gte("snapshot_date", thirtyDaysAgo)
+        .order("snapshot_date", { ascending: true });
+
+      return new Response(JSON.stringify({ snapshots: data ?? [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -163,7 +191,6 @@ serve(async (req) => {
 
     const holders = rankedHolders.map(([address, balance], index) => {
       const response = txCountResponses.find((entry) => entry.id === index && "result" in entry);
-
       return {
         rank: index + 1,
         address,
@@ -171,6 +198,9 @@ serve(async (req) => {
         txCount: response && "result" in response ? parseInt(response.result, 16) : 0,
       };
     });
+
+    const totalTxns = holders.reduce((sum, h) => sum + h.txCount, 0);
+    await saveSnapshot(rankedHolders.length, totalTxns);
 
     return new Response(JSON.stringify({
       holders,
