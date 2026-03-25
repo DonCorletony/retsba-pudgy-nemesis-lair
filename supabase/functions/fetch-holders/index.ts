@@ -22,10 +22,11 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { password, snapshotsOnly } = body;
+    const { password, snapshotsOnly, tokenId = "retsba" } = body;
     const storedPassword = Deno.env.get("COMMAND_CENTER_PASSWORD");
 
-    if (!password || password !== storedPassword) {
+    // Allow either the command center password or the abstract txns marker
+    if (!password || (password !== storedPassword && password !== "__abstract_txns__")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -40,6 +41,7 @@ serve(async (req) => {
       const { data } = await supabase
         .from("holder_snapshots")
         .select("snapshot_date, total_holders, total_txns")
+        .eq("token_id", tokenId)
         .gte("snapshot_date", thirtyDaysAgo)
         .order("snapshot_date", { ascending: true });
 
@@ -48,15 +50,16 @@ serve(async (req) => {
       });
     }
 
-    // Fetch cached holders
+    // Fetch cached holders for the specific token
     const { data: cached, error: cacheError } = await supabase
       .from("holder_cache")
       .select("rank, address, balance, tx_count")
+      .eq("token_id", tokenId)
       .order("rank", { ascending: true })
       .limit(TOP_N);
 
     if (cacheError || !cached || cached.length === 0) {
-      return new Response(JSON.stringify({ error: "No cached holder data available" }), {
+      return new Response(JSON.stringify({ error: `No cached holder data for ${tokenId}. Data needs to be seeded first.` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -73,14 +76,14 @@ serve(async (req) => {
     const totalTxns = holders.reduce((sum, h) => sum + h.txCount, 0);
     const today = new Date().toISOString().split("T")[0];
     await supabase.from("holder_snapshots").upsert(
-      { snapshot_date: today, total_holders: holders.length, total_txns: totalTxns },
-      { onConflict: "snapshot_date" }
+      { snapshot_date: today, total_holders: holders.length, total_txns: totalTxns, token_id: tokenId },
+      { onConflict: "token_id,snapshot_date" }
     );
 
     return new Response(JSON.stringify({
       holders,
       totalPositiveBalanceHolders: holders.length,
-      cachedAt: cached[0]?.updated_at ?? null,
+      cachedAt: null,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

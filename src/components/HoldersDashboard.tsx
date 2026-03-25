@@ -69,14 +69,13 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     setError('');
     try {
       const { data, error: fnError } = await supabase.functions.invoke('fetch-holders', {
-        body: { password },
+        body: { password, tokenId },
       });
       if (fnError || !data?.holders) {
         setError(fnError?.message || data?.error || 'Holder data failed to load.');
       } else {
         setHolders(data.holders);
         setCountdown(REFRESH_INTERVAL);
-        // Refresh snapshots after new data is saved
         fetchSnapshots();
       }
     } catch (e: any) {
@@ -84,7 +83,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     } finally {
       setLoading(false);
     }
-  }, [password, fetchSnapshots]);
+  }, [password, tokenId, fetchSnapshots]);
 
   useEffect(() => {
     fetchHolders();
