@@ -54,7 +54,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
   const fetchSnapshots = useCallback(async () => {
     try {
       const { data, error: fnError } = await supabase.functions.invoke('fetch-holders', {
-        body: { password, snapshotsOnly: true },
+        body: { password, snapshotsOnly: true, tokenId },
       });
       if (!fnError && data?.snapshots) {
         setSnapshots(data.snapshots);
@@ -62,7 +62,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     } catch {
       // Non-critical
     }
-  }, [password]);
+  }, [password, tokenId]);
 
   const fetchHolders = useCallback(async () => {
     setLoading(true);
