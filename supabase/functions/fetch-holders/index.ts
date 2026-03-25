@@ -8,7 +8,7 @@ const corsHeaders = {
 const CONTRACT_ADDRESS = '0x52629ddbf28aa01aa22b994ec9c80273e4eb5b0a';
 const ABSTRACT_RPC_URL = 'https://api.mainnet.abs.xyz';
 const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000000000000000000000000000';
+const ZERO_TOPIC = '0x0000000000000000000000000000000000000000000000000000000000000000';
 const TOP_N = 250;
 
 async function rpcCall(payload: unknown): Promise<unknown> {
@@ -20,27 +20,15 @@ async function rpcCall(payload: unknown): Promise<unknown> {
   return res.json();
 }
 
-async function getLatestBlock(): Promise<number> {
-  const data: any = await rpcCall({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] });
-  return parseInt(data.result, 16);
-}
-
 async function getTransferLogs(fromBlock: number, toBlock: number): Promise<any[]> {
   const data: any = await rpcCall({
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'eth_getLogs',
-    params: [{
-      fromBlock: '0x' + fromBlock.toString(16),
-      toBlock: '0x' + toBlock.toString(16),
-      address: CONTRACT_ADDRESS,
-      topics: [TRANSFER_TOPIC],
-    }],
+    jsonrpc: '2.0', id: 1, method: 'eth_getLogs',
+    params: [{ fromBlock: '0x' + fromBlock.toString(16), toBlock: '0x' + toBlock.toString(16), address: CONTRACT_ADDRESS, topics: [TRANSFER_TOPIC] }],
   });
 
   if (data.error) {
-    // If too many results, split the range in half
     if (data.error.code === -32602 && data.error.message?.includes('10000')) {
+      // Split and recurse — but run halves in parallel
       const mid = Math.floor((fromBlock + toBlock) / 2);
       const [first, second] = await Promise.all([
         getTransferLogs(fromBlock, mid),
@@ -50,7 +38,6 @@ async function getTransferLogs(fromBlock: number, toBlock: number): Promise<any[
     }
     throw new Error(data.error.message);
   }
-
   return data.result || [];
 }
 
@@ -68,31 +55,33 @@ serve(async (req) => {
     const storedPassword = Deno.env.get('COMMAND_CENTER_PASSWORD');
     if (!password || password !== storedPassword) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Step 1: Get all Transfer events and compute balances
-    const latestBlock = await getLatestBlock();
+    // Get latest block
+    const blockData: any = await rpcCall({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] });
+    const latestBlock = parseInt(blockData.result, 16);
+
+    // Fetch all Transfer events with auto-splitting for large ranges
     const allLogs = await getTransferLogs(0, latestBlock);
 
+    // Compute balances from transfer events
     const balances: Record<string, bigint> = {};
-
     for (const log of allLogs) {
       const from = topicToAddress(log.topics[1]);
       const to = topicToAddress(log.topics[2]);
       const value = BigInt(log.data);
 
-      if (log.topics[1] !== ZERO_ADDRESS) {
+      if (log.topics[1] !== ZERO_TOPIC) {
         balances[from] = (balances[from] || 0n) - value;
       }
-      if (log.topics[2] !== ZERO_ADDRESS) {
+      if (log.topics[2] !== ZERO_TOPIC) {
         balances[to] = (balances[to] || 0n) + value;
       }
     }
 
-    // Step 2: Sort by balance descending, take top N
+    // Sort by balance, take top N
     const sorted = Object.entries(balances)
       .filter(([_, bal]) => bal > 0n)
       .sort((a, b) => (b[1] > a[1] ? 1 : b[1] < a[1] ? -1 : 0))
@@ -100,25 +89,24 @@ serve(async (req) => {
 
     const addresses = sorted.map(([addr]) => addr);
 
-    // Step 3: Batch fetch tx counts
-    const batchPayload = addresses.map((addr, i) => ({
-      jsonrpc: '2.0',
-      method: 'eth_getTransactionCount',
-      params: [addr, 'latest'],
-      id: i,
-    }));
-
-    const rpcData: any = await rpcCall(batchPayload);
+    // Batch fetch tx counts (split into chunks of 100 for RPC)
     const txCounts: Record<string, number> = {};
-    if (Array.isArray(rpcData)) {
-      for (const item of rpcData) {
-        if (item.result) {
-          txCounts[addresses[item.id]] = parseInt(item.result, 16);
+    for (let i = 0; i < addresses.length; i += 100) {
+      const chunk = addresses.slice(i, i + 100);
+      const batch = chunk.map((addr, j) => ({
+        jsonrpc: '2.0', method: 'eth_getTransactionCount',
+        params: [addr, 'latest'], id: i + j,
+      }));
+      const rpcData: any = await rpcCall(batch);
+      if (Array.isArray(rpcData)) {
+        for (const item of rpcData) {
+          if (item.result) {
+            txCounts[addresses[item.id]] = parseInt(item.result, 16);
+          }
         }
       }
     }
 
-    // Step 4: Build result
     const holders = sorted.map(([address, balance], i) => ({
       rank: i + 1,
       address,
@@ -126,13 +114,12 @@ serve(async (req) => {
       txCount: txCounts[address] || 0,
     }));
 
-    return new Response(JSON.stringify({ holders, totalEvents: allLogs.length }), {
+    return new Response(JSON.stringify({ holders, totalEvents: allLogs.length, totalHolders: Object.keys(balances).filter(k => balances[k] > 0n).length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
