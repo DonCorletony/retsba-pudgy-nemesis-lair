@@ -208,24 +208,14 @@ serve(async (req) => {
       .sort((a, b) => (a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1))
       .slice(0, TOP_N);
 
-    const txCountResponses = await rpcCall<Array<RpcSuccess<string> | RpcError>>(
-      rankedHolders.map(([address], index) => ({
-        jsonrpc: "2.0",
-        id: index,
-        method: "eth_getTransactionCount",
-        params: [address, "latest"],
-      })),
-    );
+    const txCounts = await fetchTransactionCounts(rankedHolders.map(([address]) => address));
 
-    const holders = rankedHolders.map(([address, balance], index) => {
-      const response = txCountResponses.find((entry) => entry.id === index && "result" in entry);
-      return {
-        rank: index + 1,
-        address,
-        balance: balance.toString(),
-        txCount: response && "result" in response ? parseInt(response.result, 16) : 0,
-      };
-    });
+    const holders = rankedHolders.map(([address, balance], index) => ({
+      rank: index + 1,
+      address,
+      balance: balance.toString(),
+      txCount: txCounts.get(address) ?? 0,
+    }));
 
     const totalTxns = holders.reduce((sum, h) => sum + h.txCount, 0);
     await saveSnapshot(rankedHolders.length, totalTxns);
