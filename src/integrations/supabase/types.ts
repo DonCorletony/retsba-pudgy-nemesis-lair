@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      holder_cache: {
+        Row: {
+          address: string
+          balance: string
+          id: string
+          rank: number
+          tx_count: number
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          balance: string
+          id?: string
+          rank: number
+          tx_count?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          balance?: string
+          id?: string
+          rank?: number
+          tx_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       holder_snapshots: {
         Row: {
           created_at: string
