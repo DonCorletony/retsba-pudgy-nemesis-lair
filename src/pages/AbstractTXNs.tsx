@@ -110,14 +110,7 @@ const AbstractTXNs = () => {
         </div>
 
         <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-          {currentToken.contract ? (
-            <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} />
-          ) : (
-            <div className="text-center py-16 text-muted-foreground">
-              <p className="text-lg font-medium mb-2">${currentToken.label} — Coming Soon</p>
-              <p className="text-sm">Contract address needed to enable tracking</p>
-            </div>
-          )}
+          <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} />
         </div>
       </div>
       <FooterSection />
