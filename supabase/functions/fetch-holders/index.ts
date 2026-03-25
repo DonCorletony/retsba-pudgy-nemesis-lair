@@ -13,6 +13,9 @@ const TOP_N = 250;
 const INITIAL_BLOCK_SPAN = 2_000_000;
 const MIN_BLOCK_SPAN = 2_000;
 const MAX_BLOCK_SPAN = 4_000_000;
+// Abstract produces ~1 block/sec → 30 days ≈ 2.6M blocks
+const THIRTY_DAYS_BLOCKS = 30 * 24 * 60 * 60;
+const MAX_BLOCK_SPAN = 4_000_000;
 
 type RpcSuccess<T> = { jsonrpc: string; id: number; result: T };
 type RpcError = { jsonrpc: string; id: number; error: { code: number; message: string } };
