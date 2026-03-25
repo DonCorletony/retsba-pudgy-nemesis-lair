@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FooterSection from '../components/FooterSection';
 import { HoldersDashboard } from '@/components/HoldersDashboard';
-
-const SESSION_KEY = 'abstract_txns_session';
-const PASSWORD = 'AbsterSucksEggs987';
+import { supabase } from '@/integrations/supabase/client';
 
 const TOKENS = [
   { id: 'retsba', label: 'RETSBA', contract: '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' },
@@ -17,6 +15,7 @@ const AbstractTXNs = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<string>('retsba');
 
   useEffect(() => {
@@ -27,34 +26,44 @@ const AbstractTXNs = () => {
     return () => { document.head.removeChild(meta); };
   }, []);
 
+  // Check IP-based session on mount
   useEffect(() => {
-    const session = localStorage.getItem(SESSION_KEY);
-    if (session) {
+    const checkSession = async () => {
       try {
-        const { expiresAt } = JSON.parse(session);
-        if (Date.now() < expiresAt) {
+        const { data, error: fnError } = await supabase.functions.invoke('verify-abstract-txns', {
+          body: { action: 'check' },
+        });
+        if (!fnError && data?.authenticated) {
           setAuthenticated(true);
-        } else {
-          localStorage.removeItem(SESSION_KEY);
         }
       } catch {
-        localStorage.removeItem(SESSION_KEY);
+        // Not authenticated
       }
-    }
-    setChecking(false);
+      setChecking(false);
+    };
+    checkSession();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (password === PASSWORD) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({
-        expiresAt: Date.now() + 12 * 60 * 60 * 1000,
-      }));
-      setAuthenticated(true);
-    } else {
-      setError('Incorrect password');
-      setPassword('');
+    setLoading(true);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('verify-abstract-txns', {
+        body: { action: 'login', password },
+      });
+
+      if (fnError || !data?.success) {
+        setError('Incorrect password');
+        setPassword('');
+      } else {
+        setAuthenticated(true);
+      }
+    } catch {
+      setError('Something went wrong');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,10 +84,10 @@ const AbstractTXNs = () => {
           {error && <p className="text-destructive text-sm">{error}</p>}
           <button
             type="submit"
-            disabled={!password}
+            disabled={loading || !password}
             className="w-full px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl transition-colors disabled:opacity-50"
           >
-            Enter
+            {loading ? 'Verifying...' : 'Enter'}
           </button>
         </form>
       </div>
