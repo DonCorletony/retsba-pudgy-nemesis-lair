@@ -46,7 +46,7 @@ export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) =
         body: { password },
       });
       if (fnError || !data?.holders) {
-        setError(fnError?.message || 'Failed to fetch holder data');
+        setError(fnError?.message || 'Holder data failed to load.');
       } else {
         setHolders(data.holders);
         setCountdown(REFRESH_INTERVAL);
@@ -113,7 +113,7 @@ export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) =
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top 100 Holders</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Top 250 Holders</h2>
         <div className="flex items-center gap-3">
           {countdown > 0 && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
