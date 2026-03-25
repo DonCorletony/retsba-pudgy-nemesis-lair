@@ -46,7 +46,7 @@ export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) =
         body: { password },
       });
       if (fnError || !data?.holders) {
-        setError(fnError?.message || 'Holder data failed to load.');
+        setError(fnError?.message || data?.error || 'Holder data failed to load.');
       } else {
         setHolders(data.holders);
         setCountdown(REFRESH_INTERVAL);

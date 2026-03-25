@@ -10,6 +10,9 @@ const ABSTRACT_RPC_URL = "https://api.mainnet.abs.xyz";
 const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const ZERO_TOPIC = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const TOP_N = 250;
+const INITIAL_BLOCK_SPAN = 2_000_000;
+const MIN_BLOCK_SPAN = 2_000;
+const MAX_BLOCK_SPAN = 4_000_000;
 
 type RpcSuccess<T> = { jsonrpc: string; id: number; result: T };
 type RpcError = { jsonrpc: string; id: number; error: { code: number; message: string } };
@@ -52,8 +55,8 @@ function applyTransferLog(log: TransferLog, balances: Map<string, bigint>) {
   }
 }
 
-async function processRange(fromBlock: number, toBlock: number, balances: Map<string, bigint>): Promise<number> {
-  const payload = {
+async function fetchLogsForRange(fromBlock: number, toBlock: number): Promise<TransferLog[]> {
+  const data = await rpcCall<RpcSuccess<TransferLog[]> | RpcError>({
     jsonrpc: "2.0",
     id: 1,
     method: "eth_getLogs",
@@ -63,28 +66,55 @@ async function processRange(fromBlock: number, toBlock: number, balances: Map<st
       address: CONTRACT_ADDRESS,
       topics: [TRANSFER_TOPIC],
     }],
-  };
-
-  const data = await rpcCall<RpcSuccess<TransferLog[]> | RpcError>(payload);
+  });
 
   if ("error" in data) {
-    if (data.error.code === -32602 && data.error.message.includes("10000") && fromBlock < toBlock) {
-      const mid = Math.floor((fromBlock + toBlock) / 2);
-      const [leftCount, rightCount] = await Promise.all([
-        processRange(fromBlock, mid, balances),
-        processRange(mid + 1, toBlock, balances),
-      ]);
-      return leftCount + rightCount;
-    }
-
     throw new Error(data.error.message);
   }
 
-  for (const log of data.result ?? []) {
-    applyTransferLog(log, balances);
+  return data.result ?? [];
+}
+
+async function scanBalances(latestBlock: number) {
+  const balances = new Map<string, bigint>();
+  let processedEvents = 0;
+  let fromBlock = 0;
+  let span = INITIAL_BLOCK_SPAN;
+
+  while (fromBlock <= latestBlock) {
+    const toBlock = Math.min(fromBlock + span, latestBlock);
+
+    try {
+      const logs = await fetchLogsForRange(fromBlock, toBlock);
+
+      for (const log of logs) {
+        applyTransferLog(log, balances);
+      }
+
+      processedEvents += logs.length;
+      fromBlock = toBlock + 1;
+
+      if (logs.length < 1000 && span < MAX_BLOCK_SPAN) {
+        span = Math.min(MAX_BLOCK_SPAN, span * 2);
+      } else if (logs.length > 8000 && span > MIN_BLOCK_SPAN) {
+        span = Math.max(MIN_BLOCK_SPAN, Math.floor(span / 2));
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown RPC error";
+
+      if (message.includes("10000 results") || message.includes("more than 10000 results")) {
+        if (span <= MIN_BLOCK_SPAN) {
+          throw new Error(`Range still too large at minimum span near block ${fromBlock}`);
+        }
+        span = Math.max(MIN_BLOCK_SPAN, Math.floor(span / 2));
+        continue;
+      }
+
+      throw error;
+    }
   }
 
-  return data.result?.length ?? 0;
+  return { balances, processedEvents };
 }
 
 serve(async (req) => {
@@ -109,44 +139,39 @@ serve(async (req) => {
       method: "eth_blockNumber",
       params: [],
     });
-    const latestBlock = parseInt(latestBlockResponse.result, 16);
 
-    const balances = new Map<string, bigint>();
-    const processedEvents = await processRange(0, latestBlock, balances);
+    const latestBlock = parseInt(latestBlockResponse.result, 16);
+    const { balances, processedEvents } = await scanBalances(latestBlock);
 
     const rankedHolders = Array.from(balances.entries())
       .filter(([, balance]) => balance > 0n)
       .sort((a, b) => (a[1] === b[1] ? 0 : a[1] > b[1] ? -1 : 1))
       .slice(0, TOP_N);
 
-    const txCountRequests = rankedHolders.map(([address], index) => ({
-      jsonrpc: "2.0",
-      id: index,
-      method: "eth_getTransactionCount",
-      params: [address, "latest"],
-    }));
+    const txCountResponses = await rpcCall<Array<RpcSuccess<string> | RpcError>>(
+      rankedHolders.map(([address], index) => ({
+        jsonrpc: "2.0",
+        id: index,
+        method: "eth_getTransactionCount",
+        params: [address, "latest"],
+      })),
+    );
 
-    const txCountResponses = await rpcCall<Array<RpcSuccess<string> | RpcError>>(txCountRequests);
-    const txCounts = new Map<string, number>();
+    const holders = rankedHolders.map(([address, balance], index) => {
+      const response = txCountResponses.find((entry) => entry.id === index && "result" in entry);
 
-    for (const response of txCountResponses) {
-      if ("result" in response) {
-        const [address] = rankedHolders[response.id];
-        txCounts.set(address, parseInt(response.result, 16));
-      }
-    }
-
-    const holders = rankedHolders.map(([address, balance], index) => ({
-      rank: index + 1,
-      address,
-      balance: balance.toString(),
-      txCount: txCounts.get(address) ?? 0,
-    }));
+      return {
+        rank: index + 1,
+        address,
+        balance: balance.toString(),
+        txCount: response && "result" in response ? parseInt(response.result, 16) : 0,
+      };
+    });
 
     return new Response(JSON.stringify({
       holders,
       processedEvents,
-      totalPositiveBalanceHolders: Array.from(balances.values()).filter((balance) => balance > 0n).length,
+      totalPositiveBalanceHolders: rankedHolders.length,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
