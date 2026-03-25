@@ -42,7 +42,7 @@ const formatDateLabel = (dateStr: string): string => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export const HoldersDashboard: React.FC<{ password: string }> = ({ password }) => {
+export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; tokenLabel?: string }> = ({ password, tokenId = 'retsba', tokenLabel = 'RETSBA' }) => {
   const [holders, setHolders] = useState<Holder[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(false);
