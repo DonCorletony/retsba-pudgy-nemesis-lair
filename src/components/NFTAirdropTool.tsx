@@ -170,7 +170,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">NFT Airdrop Tool</h2>
+        <h2 className="text-xl font-bold text-black">NFT Airdrop Tool</h2>
         {isConnected && address && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Wallet className="w-4 h-4" />
@@ -190,7 +190,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           {(status === 'idle' || status === 'error') && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="nft-contract" className="text-muted-foreground">
+                <Label htmlFor="nft-contract" className="text-gray-700">
                   NFT Contract Address (ERC-1155)
                 </Label>
                 <Input
@@ -203,7 +203,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="token-id" className="text-muted-foreground">
+                <Label htmlFor="token-id" className="text-gray-700">
                   NFT Token ID
                 </Label>
                 <Input
@@ -217,7 +217,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="holder-token" className="text-muted-foreground">
+                <Label htmlFor="holder-token" className="text-gray-700">
                   Send to holders of
                 </Label>
                 <select
@@ -233,7 +233,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="holder-count" className="text-muted-foreground">
+                <Label htmlFor="holder-count" className="text-gray-700">
                   Number of top holders
                 </Label>
                 <Input
@@ -277,19 +277,19 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Recipients</p>
-                  <p className="text-2xl font-bold text-foreground">{holders.length}</p>
+                 <p className="text-sm text-gray-600">Recipients</p>
+                  <p className="text-2xl font-bold text-black">{holders.length}</p>
                 </div>
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-muted-foreground">NFTs per holder</p>
-                  <p className="text-2xl font-bold text-foreground">1</p>
+                  <p className="text-sm text-gray-600">NFTs per holder</p>
+                  <p className="text-2xl font-bold text-black">1</p>
                 </div>
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Total NFTs needed</p>
-                  <p className="text-2xl font-bold text-foreground">{holders.length}</p>
+                  <p className="text-sm text-gray-600">Total NFTs needed</p>
+                  <p className="text-2xl font-bold text-black">{holders.length}</p>
                 </div>
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Your balance</p>
+                  <p className="text-sm text-gray-600">Your balance</p>
                   <p className={`text-2xl font-bold ${nftBalance !== null && nftBalance >= BigInt(holders.length) ? 'text-green-600' : 'text-destructive'}`}>
                     {nftBalance?.toString() ?? '0'}
                   </p>
@@ -297,10 +297,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="bg-muted/30 rounded-xl p-4 max-h-60 overflow-y-auto">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Recipient addresses (top {holders.length}):</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (top {holders.length}):</p>
                 <div className="space-y-1">
                   {holders.slice(0, 20).map((h) => (
-                    <div key={h.address} className="flex justify-between text-xs font-mono text-foreground/80">
+                    <div key={h.address} className="flex justify-between text-xs font-mono text-black/80">
                       <span>#{h.rank}</span>
                       <span>{h.address}</span>
                     </div>
@@ -313,7 +313,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-gray-600 text-center">
                 This will send in {Math.ceil(holders.length / BATCH_SIZE)} batch transaction(s) of up to {BATCH_SIZE} transfers each.
               </p>
 
@@ -336,8 +336,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           {status === 'confirming' && (
             <div className="text-center space-y-4 py-8">
               <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
-              <p className="text-lg font-bold text-foreground">Are you sure?</p>
-              <p className="text-muted-foreground">
+              <p className="text-lg font-bold text-black">Are you sure?</p>
+              <p className="text-gray-700">
                 You are about to send <strong>{holders.length}</strong> NFTs to the top {holders.length} holders of{' '}
                 <strong>{TOKEN_OPTIONS.find((t) => t.id === selectedToken)?.label}</strong>.
                 This action cannot be undone.
@@ -359,8 +359,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           {status === 'sending' && (
             <div className="text-center py-12 space-y-4">
               <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
-              <p className="text-lg font-bold text-foreground">Sending NFTs...</p>
-              <p className="text-muted-foreground">
+              <p className="text-lg font-bold text-black">Sending NFTs...</p>
+              <p className="text-gray-700">
                 {progress.sent} / {progress.total} transferred
               </p>
               <div className="w-full max-w-md mx-auto bg-muted rounded-full h-3">
@@ -380,8 +380,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           {status === 'done' && (
             <div className="text-center py-12 space-y-4">
               <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
-              <p className="text-lg font-bold text-foreground">Airdrop Complete!</p>
-              <p className="text-muted-foreground">
+              <p className="text-lg font-bold text-black">Airdrop Complete!</p>
+              <p className="text-gray-700">
                 Successfully sent {progress.total} NFTs across {txHashes.length} transaction(s).
               </p>
               {txHashes.length > 0 && (
