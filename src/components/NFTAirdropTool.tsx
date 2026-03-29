@@ -60,10 +60,66 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setHolders([]);
     setNftBalance(null);
     setProgress({ sent: 0, total: 0 });
+    setSimulateProgress({ checked: 0, total: 0, skipped: 0 });
+    setSkippedAddresses([]);
     setErrorMsg('');
     setTxHashes([]);
     setTestResult('');
   };
+
+  // Simulate transfers to filter out addresses that can't receive ERC-1155
+  const simulateTransfers = useCallback(async (candidates: HolderEntry[]): Promise<HolderEntry[]> => {
+    if (!address || !publicClient || !nftContract || !tokenId) return candidates;
+
+    setStatus('simulating');
+    setSimulateProgress({ checked: 0, total: candidates.length, skipped: 0 });
+    setSkippedAddresses([]);
+
+    const compatible: HolderEntry[] = [];
+    const skipped: { rank: number; address: string }[] = [];
+
+    for (let i = 0; i < candidates.length; i += SIMULATE_BATCH_SIZE) {
+      const chunk = candidates.slice(i, i + SIMULATE_BATCH_SIZE);
+
+      const results = await Promise.allSettled(
+        chunk.map((holder) =>
+          publicClient.simulateContract({
+            address: nftContract as `0x${string}`,
+            abi: ERC1155_ABI,
+            functionName: 'safeTransferFrom',
+            args: [
+              address,
+              holder.address as `0x${string}`,
+              BigInt(tokenId),
+              1n,
+              '0x' as `0x${string}`,
+            ],
+            account: address,
+          })
+        )
+      );
+
+      results.forEach((result, idx) => {
+        const holder = chunk[idx];
+        if (result.status === 'fulfilled') {
+          compatible.push(holder);
+        } else {
+          console.log(`[Airdrop Sim] Skipping #${holder.rank} (${holder.address}): ${(result.reason as Error)?.shortMessage || (result.reason as Error)?.message}`);
+          skipped.push({ rank: holder.rank, address: holder.address });
+        }
+      });
+
+      setSimulateProgress({
+        checked: Math.min(i + SIMULATE_BATCH_SIZE, candidates.length),
+        total: candidates.length,
+        skipped: skipped.length,
+      });
+    }
+
+    setSkippedAddresses(skipped);
+    console.log(`[Airdrop Sim] ${compatible.length} compatible, ${skipped.length} skipped`);
+    return compatible;
+  }, [address, publicClient, nftContract, tokenId]);
 
   // Test a single transfer to a burn address to verify the contract works
   const testSingleTransfer = useCallback(async () => {
