@@ -293,8 +293,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       try {
         setBatchProgress({ current: i + 1, total: batches.length });
         console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}...`);
-        const result = await (sendCallsAsync as (args: { calls: typeof batch.calls }) => Promise<string>)({ calls: batch.calls });
-        const batchId = typeof result === 'string' ? result : String(result);
+        const result = await (sendCallsAsync as any)({ calls: batch.calls });
+        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
         totalSent += batch.count;
         newHashes.push(batchId);
         setTxHashes((prev) => [...prev, batchId]);
