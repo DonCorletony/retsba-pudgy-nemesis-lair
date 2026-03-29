@@ -563,7 +563,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   Cancel
                 </Button>
                 <Button
-                  onClick={executeBatchSend}
+                  onClick={() => executeBatchSend(0)}
                   className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
                   Send {holders.length} NFTs
