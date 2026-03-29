@@ -33,8 +33,8 @@ interface HolderEntry {
 }
 
 export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => {
-  const { isConnected, address } = useAccount();
-  const { data: abstractClient } = useAbstractClient();
+  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const { toast } = useToast();
 
   const [nftContract, setNftContract] = useState('');
