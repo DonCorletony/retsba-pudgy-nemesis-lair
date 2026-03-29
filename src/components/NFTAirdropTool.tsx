@@ -300,16 +300,31 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         setTxHashes((prev) => [...prev, batchId]);
         setProgress({ sent: totalSent, total: count });
         console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
-      } catch (batchError) {
-        console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
-        setErrorMsg(`Batch ${i + 1} failed after ${totalSent}/${count} NFTs were submitted.`);
-        setProgress({ sent: totalSent, total: count });
-        setStatus('error');
-        toast({
-          title: 'Airdrop Paused',
-          description: `Submitted ${totalSent}/${count}. Use "Resume" to continue from the next unsent holder.`,
-          variant: 'destructive',
-        });
+      } catch (batchError: any) {
+        const msg = batchError?.shortMessage || batchError?.message || '';
+        const isUserRejection = /reject|denied|cancel|user refused/i.test(msg);
+        console.warn(`[Airdrop] Batch ${i + 1} issue:`, msg);
+
+        if (isUserRejection) {
+          // User rejected this batch approval — pause quietly without alarming error UI
+          setProgress({ sent: totalSent, total: count });
+          setStatus('confirming');
+          toast({
+            title: 'Batch skipped',
+            description: `You declined batch ${i + 1}. Use "Resume" to retry remaining transfers.`,
+          });
+        } else {
+          // Genuine error
+          console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
+          setErrorMsg(`Batch ${i + 1} encountered an error after ${totalSent}/${count} NFTs were submitted.`);
+          setProgress({ sent: totalSent, total: count });
+          setStatus('error');
+          toast({
+            title: 'Airdrop Paused',
+            description: `Submitted ${totalSent}/${count}. Use "Resume" to continue.`,
+            variant: 'destructive',
+          });
+        }
         return;
       }
     }
