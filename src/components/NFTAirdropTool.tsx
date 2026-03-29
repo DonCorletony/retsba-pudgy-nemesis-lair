@@ -13,13 +13,11 @@ const ERC1155_ABI = parseAbi([
   'function balanceOf(address account, uint256 id) view returns (uint256)',
 ]);
 
-const BATCH_SIZE = 50; // transfers per transaction batch
+const BATCH_SIZE = 50;
 
 type AirdropStatus = 'idle' | 'loading-holders' | 'previewing' | 'confirming' | 'sending' | 'done' | 'error';
 
-type TokenOption = { id: string; label: string };
-
-const TOKEN_OPTIONS: TokenOption[] = [
+const TOKEN_OPTIONS = [
   { id: 'retsba', label: '$RETSBA' },
   { id: 'abster', label: 'Abster' },
   { id: 'god', label: 'God' },
@@ -33,6 +31,7 @@ interface HolderEntry {
 }
 
 export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => {
+  const { isConnected, address } = useAccount();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { toast } = useToast();
@@ -58,7 +57,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   };
 
   const fetchHolders = useCallback(async () => {
-    if (!nftContract || !tokenId || !holderCount || !isConnected || !address) return;
+    if (!nftContract || !tokenId || !holderCount || !isConnected || !address || !publicClient) return;
 
     if (!isAddress(nftContract)) {
       setErrorMsg('Invalid NFT contract address');
@@ -77,7 +76,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setErrorMsg('');
 
     try {
-      // Fetch holder addresses
       const { data, error } = await supabase.functions.invoke('fetch-holders', {
         body: { password, tokenId: selectedToken },
       });
@@ -87,15 +85,9 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       }
 
       const topHolders: HolderEntry[] = (data.holders as HolderEntry[]).slice(0, count);
+      if (topHolders.length === 0) throw new Error('No holders found');
 
-      if (topHolders.length === 0) {
-        throw new Error('No holders found');
-      }
-
-      // Check NFT balance using abstractClient
-      if (!abstractClient) throw new Error('Wallet client not ready');
-
-      const balance = await abstractClient.readContract({
+      const balance = await publicClient.readContract({
         address: nftContract as `0x${string}`,
         abi: ERC1155_ABI,
         functionName: 'balanceOf',
@@ -110,10 +102,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       setErrorMsg(err.message || 'Something went wrong');
       setStatus('error');
     }
-  }, [nftContract, tokenId, holderCount, isConnected, address, abstractClient, password, selectedToken]);
+  }, [nftContract, tokenId, holderCount, isConnected, address, publicClient, password, selectedToken]);
 
   const executeBatchSend = useCallback(async () => {
-    if (!abstractClient || !address || holders.length === 0) return;
+    if (!walletClient || !address || holders.length === 0) return;
 
     const count = holders.length;
     const needed = BigInt(count);
@@ -129,11 +121,9 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     let totalSent = 0;
 
     try {
-      // Chunk holders into batches
       for (let i = 0; i < holders.length; i += BATCH_SIZE) {
         const chunk = holders.slice(i, i + BATCH_SIZE);
 
-        // Build batch of safeTransferFrom calls
         const calls = chunk.map((holder) => ({
           to: nftContract as `0x${string}`,
           data: encodeFunctionData({
@@ -149,8 +139,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use AGW batch transaction
-        const txHash = await abstractClient.sendTransactionBatch({
+        // Use sendCalls for EIP-5792 batch (supported by AGW)
+        const txHash = await (walletClient as any).sendTransactionBatch({
           calls,
         });
 
@@ -175,12 +165,12 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         });
       }
     }
-  }, [abstractClient, address, holders, nftBalance, nftContract, tokenId, toast]);
+  }, [walletClient, address, holders, nftBalance, nftContract, tokenId, toast]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">NFT Airdrop Tool</h2>
+        <h2 className="text-xl font-bold text-foreground">NFT Airdrop Tool</h2>
         {isConnected && address && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Wallet className="w-4 h-4" />
@@ -197,11 +187,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         </div>
       ) : (
         <>
-          {/* Configuration Form */}
           {(status === 'idle' || status === 'error') && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="nft-contract" className="text-gray-700 dark:text-gray-300">
+                <Label htmlFor="nft-contract" className="text-muted-foreground">
                   NFT Contract Address (ERC-1155)
                 </Label>
                 <Input
@@ -214,7 +203,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="token-id" className="text-gray-700 dark:text-gray-300">
+                <Label htmlFor="token-id" className="text-muted-foreground">
                   NFT Token ID
                 </Label>
                 <Input
@@ -228,7 +217,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="holder-token" className="text-gray-700 dark:text-gray-300">
+                <Label htmlFor="holder-token" className="text-muted-foreground">
                   Send to holders of
                 </Label>
                 <select
@@ -244,7 +233,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="holder-count" className="text-gray-700 dark:text-gray-300">
+                <Label htmlFor="holder-count" className="text-muted-foreground">
                   Number of top holders
                 </Label>
                 <Input
@@ -277,7 +266,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {/* Loading */}
           {status === 'loading-holders' && (
             <div className="text-center py-12">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
@@ -285,7 +273,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {/* Preview */}
           {status === 'previewing' && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -346,7 +333,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {/* Final Confirmation */}
           {status === 'confirming' && (
             <div className="text-center space-y-4 py-8">
               <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
@@ -370,7 +356,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {/* Sending Progress */}
           {status === 'sending' && (
             <div className="text-center py-12 space-y-4">
               <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
@@ -392,7 +377,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {/* Done */}
           {status === 'done' && (
             <div className="text-center py-12 space-y-4">
               <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto" />
