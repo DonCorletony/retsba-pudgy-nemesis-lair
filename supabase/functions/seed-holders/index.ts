@@ -6,20 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ABSTRACT_RPC_URL = "https://api.mainnet.abs.xyz";
-const TRANSFER_EVENT_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
 const TOP_N = 1000;
-const LOG_BATCH_SIZE = 100000;
-
-// First transfer blocks per token (to skip empty ranges)
-const TOKEN_START_BLOCKS: Record<string, number> = {
-  retsba: 3400000,
-  abster: 3400000,
-  god: 3400000,
-  polly: 3400000,
-};
+const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const ABSCAN_API_URL = "https://api.abscan.org/api";
 
 const TOKEN_CONTRACTS: Record<string, string> = {
   retsba: "0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A",
@@ -35,131 +25,51 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-function toHex(n: number) {
-  return `0x${n.toString(16)}`;
+interface AbscanHolder {
+  TokenHolderAddress: string;
+  TokenHolderQuantity: string;
 }
 
-function parseHexBigInt(hex: string): bigint {
-  return BigInt(hex);
-}
+async function fetchHoldersFromAbscan(contractAddress: string, apiKey: string): Promise<AbscanHolder[]> {
+  const allHolders: AbscanHolder[] = [];
+  let page = 1;
+  const perPage = 1000;
 
-function parseHexNumber(hex: string | null | undefined): number {
-  if (!hex) return 0;
-  return Number.parseInt(hex, 16);
-}
+  while (allHolders.length < TOP_N) {
+    const url = `${ABSCAN_API_URL}?module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=${page}&offset=${perPage}&apikey=${apiKey}`;
+    console.log(`Fetching page ${page} from Abscan...`);
 
-function addressFromTopic(topic: string): string {
-  return "0x" + topic.slice(26).toLowerCase();
-}
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Abscan API failed: ${response.status}`);
 
-async function rpcRequest<T>(method: string, params: unknown[]): Promise<T> {
-  const response = await fetch(ABSTRACT_RPC_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  if (!response.ok) throw new Error(`RPC failed: ${response.status}`);
-  const payload = await response.json();
-  if (payload.error) throw new Error(payload.error.message ?? "RPC error");
-  return payload.result as T;
-}
+    const data = await response.json();
+    if (data.status !== "1" || !Array.isArray(data.result)) {
+      console.log(`Abscan response: ${JSON.stringify(data)}`);
+      // If no more results, break
+      if (data.message === "No token holder found" || data.result?.length === 0) break;
+      throw new Error(`Abscan API error: ${data.message || "Unknown"}`);
+    }
 
-async function getAllTransferLogs(contractAddress: string, tokenId: string): Promise<Array<{ from: string; to: string; value: bigint }>> {
-  const latestBlockHex = await rpcRequest<string>("eth_blockNumber", []);
-  const latestBlock = parseHexNumber(latestBlockHex);
-  const startBlock = TOKEN_START_BLOCKS[tokenId] ?? 0;
+    const holders = data.result as AbscanHolder[];
+    if (holders.length === 0) break;
 
-  const transfers: Array<{ from: string; to: string; value: bigint }> = [];
-  let fromBlock = startBlock;
-
-  console.log(`Fetching transfer logs for ${contractAddress} from block ${startBlock} to ${latestBlock}`);
-
-  while (fromBlock <= latestBlock) {
-    const toBlock = Math.min(fromBlock + LOG_BATCH_SIZE - 1, latestBlock);
-
-    try {
-      const logs = await rpcRequest<Array<{
-        topics: string[];
-        data: string;
-      }>>("eth_getLogs", [{
-        address: contractAddress,
-        topics: [TRANSFER_EVENT_TOPIC],
-        fromBlock: toHex(fromBlock),
-        toBlock: toHex(toBlock),
-      }]);
-
-      for (const log of logs) {
-        if (log.topics.length < 3) continue;
-        const from = addressFromTopic(log.topics[1]);
-        const to = addressFromTopic(log.topics[2]);
-        const value = parseHexBigInt(log.data);
-        transfers.push({ from, to, value });
-      }
-
-      if ((fromBlock % (LOG_BATCH_SIZE * 10)) === 0) {
-        console.log(`  Processed blocks ${fromBlock}-${toBlock}, ${transfers.length} transfers so far`);
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      // If batch too large, halve it
-      if (msg.includes("too many") || msg.includes("limit") || msg.includes("range")) {
-        console.log(`  Block range too large at ${fromBlock}, trying smaller batches`);
-        // Retry with smaller range
-        const smallBatch = Math.floor(LOG_BATCH_SIZE / 4);
-        let subFrom = fromBlock;
-        while (subFrom <= toBlock) {
-          const subTo = Math.min(subFrom + smallBatch - 1, toBlock);
-          const logs = await rpcRequest<Array<{
-            topics: string[];
-            data: string;
-          }>>("eth_getLogs", [{
-            address: contractAddress,
-            topics: [TRANSFER_EVENT_TOPIC],
-            fromBlock: toHex(subFrom),
-            toBlock: toHex(subTo),
-          }]);
-          for (const log of logs) {
-            if (log.topics.length < 3) continue;
-            transfers.push({
-              from: addressFromTopic(log.topics[1]),
-              to: addressFromTopic(log.topics[2]),
-              value: parseHexBigInt(log.data),
-            });
-          }
-          subFrom = subTo + 1;
-        }
-      } else {
-        throw e;
+    // Filter out dead/zero addresses and zero balances
+    const excluded = new Set([DEAD_ADDRESS, ZERO_ADDRESS]);
+    for (const h of holders) {
+      const addr = h.TokenHolderAddress.toLowerCase();
+      if (!excluded.has(addr) && h.TokenHolderQuantity !== "0") {
+        allHolders.push(h);
       }
     }
 
-    fromBlock = toBlock + 1;
+    if (holders.length < perPage) break;
+    page++;
+
+    // Rate limit: Abscan typically allows 5 calls/sec
+    await new Promise(r => setTimeout(r, 250));
   }
 
-  console.log(`Total transfers found: ${transfers.length}`);
-  return transfers;
-}
-
-function computeBalances(transfers: Array<{ from: string; to: string; value: bigint }>): Map<string, bigint> {
-  const balances = new Map<string, bigint>();
-
-  for (const tx of transfers) {
-    const fromBal = balances.get(tx.from) ?? 0n;
-    balances.set(tx.from, fromBal - tx.value);
-
-    const toBal = balances.get(tx.to) ?? 0n;
-    balances.set(tx.to, toBal + tx.value);
-  }
-
-  // Remove zero/negative, dead, and zero addresses
-  const excluded = new Set([ZERO_ADDRESS, DEAD_ADDRESS]);
-  for (const [addr, bal] of balances) {
-    if (bal <= 0n || excluded.has(addr)) {
-      balances.delete(addr);
-    }
-  }
-
-  return balances;
+  return allHolders.slice(0, TOP_N);
 }
 
 serve(async (req) => {
@@ -172,12 +82,17 @@ serve(async (req) => {
     const password = typeof body?.password === "string" ? body.password : "";
     const tokenId = typeof body?.tokenId === "string" ? body.tokenId.toLowerCase() : "retsba";
     const storedPassword = Deno.env.get("COMMAND_CENTER_PASSWORD");
+    const abscanApiKey = Deno.env.get("ABSCAN_API_KEY");
 
     if (!password || password !== storedPassword) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (!abscanApiKey) {
+      throw new Error("ABSCAN_API_KEY not configured");
     }
 
     const contractAddress = TOKEN_CONTRACTS[tokenId];
@@ -188,17 +103,14 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Seeding holder cache for ${tokenId} (${contractAddress})`);
+    console.log(`Seeding holder cache for ${tokenId} (${contractAddress}) via Abscan API`);
 
-    const transfers = await getAllTransferLogs(contractAddress, tokenId);
-    const balances = computeBalances(transfers);
+    const holders = await fetchHoldersFromAbscan(contractAddress, abscanApiKey);
+    console.log(`Fetched ${holders.length} holders from Abscan`);
 
-    // Sort by balance descending, take top N
-    const sorted = [...balances.entries()]
-      .sort((a, b) => (b[1] > a[1] ? 1 : b[1] < a[1] ? -1 : 0))
-      .slice(0, TOP_N);
-
-    console.log(`Top ${sorted.length} holders computed. #1: ${sorted[0]?.[1].toString()}, #${sorted.length}: ${sorted[sorted.length - 1]?.[1].toString()}`);
+    if (holders.length === 0) {
+      throw new Error("No holders returned from Abscan API");
+    }
 
     const supabase = getSupabase();
 
@@ -213,11 +125,11 @@ serve(async (req) => {
     }
 
     // Insert in batches of 100
-    const rows = sorted.map(([address, balance], index) => ({
+    const rows = holders.map((h, index) => ({
       token_id: tokenId,
-      address,
+      address: h.TokenHolderAddress.toLowerCase(),
       rank: index + 1,
-      balance: balance.toString(),
+      balance: h.TokenHolderQuantity,
       tx_count: 0,
       updated_at: new Date(0).toISOString(), // Force tx count refresh on next fetch
     }));
@@ -235,8 +147,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       holdersSeeded: rows.length,
-      topBalance: sorted[0]?.[1].toString(),
-      bottomBalance: sorted[sorted.length - 1]?.[1].toString(),
+      topBalance: holders[0]?.TokenHolderQuantity,
+      bottomBalance: holders[holders.length - 1]?.TokenHolderQuantity,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
