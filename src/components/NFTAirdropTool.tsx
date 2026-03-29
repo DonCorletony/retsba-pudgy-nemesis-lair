@@ -447,6 +447,20 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
 
           {(status === 'previewing' || status === 'testing') && (
             <div className="space-y-4">
+              {skippedAddresses.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 space-y-2">
+                  <p className="text-sm font-medium text-yellow-800">
+                    ⚠️ {skippedAddresses.length} address(es) auto-excluded (can't receive ERC-1155):
+                  </p>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {skippedAddresses.map((s) => (
+                      <div key={s.address} className="text-xs font-mono text-yellow-700">
+                        #{s.rank} — {s.address}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
                   <p className="text-sm text-gray-600">Recipients</p>
