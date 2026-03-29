@@ -104,7 +104,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         if (result.status === 'fulfilled') {
           compatible.push(holder);
         } else {
-          console.log(`[Airdrop Sim] Skipping #${holder.rank} (${holder.address}): ${(result.reason as Error)?.shortMessage || (result.reason as Error)?.message}`);
+          console.log(`[Airdrop Sim] Skipping #${holder.rank} (${holder.address}): ${(result.reason as any)?.shortMessage || (result.reason as Error)?.message}`);
           skipped.push({ rank: holder.rank, address: holder.address });
         }
       });
