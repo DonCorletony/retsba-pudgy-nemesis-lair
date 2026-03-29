@@ -49,6 +49,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   const [holders, setHolders] = useState<HolderEntry[]>([]);
   const [nftBalance, setNftBalance] = useState<bigint | null>(null);
   const [progress, setProgress] = useState({ sent: 0, total: 0 });
+  const [simulateProgress, setSimulateProgress] = useState({ checked: 0, total: 0, skipped: 0 });
+  const [skippedAddresses, setSkippedAddresses] = useState<{ rank: number; address: string }[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [txHashes, setTxHashes] = useState<string[]>([]);
   const [testResult, setTestResult] = useState('');
