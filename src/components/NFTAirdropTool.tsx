@@ -41,7 +41,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
 
   const [nftContract, setNftContract] = useState('');
   const [tokenId, setTokenId] = useState('');
-  const [holderCount, setHolderCount] = useState('');
+  const [rankStart, setRankStart] = useState('1');
+  const [rankEnd, setRankEnd] = useState('');
   const [selectedToken, setSelectedToken] = useState('retsba');
   const [status, setStatus] = useState<AirdropStatus>('idle');
   const [holders, setHolders] = useState<HolderEntry[]>([]);
@@ -61,15 +62,16 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setTestResult('');
   };
 
-  // Test a single transfer to the #1 holder to verify the contract works
+  // Test a single transfer to a burn address to verify the contract works
   const testSingleTransfer = useCallback(async () => {
-    if (!address || !nftContract || !tokenId || holders.length === 0) return;
+    if (!address || !nftContract || !tokenId) return;
 
     setStatus('testing');
     setTestResult('');
     setErrorMsg('');
 
-    const testRecipient = holders[0].address as `0x${string}`;
+    // Send to burn address so no real holder gets it
+    const testRecipient = '0x000000000000000000000000000000000000dEaD' as `0x${string}`;
 
     try {
       console.log('[Airdrop Test] Attempting single safeTransferFrom...');
@@ -117,10 +119,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       setErrorMsg(`Single transfer failed: ${msg}. This means the NFT contract may have transfer restrictions or compatibility issues on Abstract.`);
       setStatus('previewing');
     }
-  }, [address, nftContract, tokenId, holders, writeContractAsync, publicClient, toast]);
+  }, [address, nftContract, tokenId, writeContractAsync, publicClient, toast]);
 
   const fetchHolders = useCallback(async () => {
-    if (!nftContract || !tokenId || !holderCount || !isConnected || !address || !publicClient) return;
+    if (!nftContract || !tokenId || !rankEnd || !isConnected || !address || !publicClient) return;
 
     if (!isAddress(nftContract)) {
       setErrorMsg('Invalid NFT contract address');
@@ -128,9 +130,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       return;
     }
 
-    const count = parseInt(holderCount);
-    if (isNaN(count) || count < 1 || count > 1000) {
-      setErrorMsg('Holder count must be between 1 and 1,000');
+    const start = parseInt(rankStart);
+    const end = parseInt(rankEnd);
+    if (isNaN(start) || isNaN(end) || start < 1 || end > 1000 || start > end) {
+      setErrorMsg('Invalid rank range. Start must be ≤ end, both between 1 and 1,000');
       setStatus('error');
       return;
     }
@@ -147,8 +150,10 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         throw new Error(error?.message || 'Failed to fetch holders');
       }
 
-      const topHolders: HolderEntry[] = (data.holders as HolderEntry[]).slice(0, count);
-      if (topHolders.length === 0) throw new Error('No holders found');
+      // Slice by rank range (ranks are 1-indexed, array is 0-indexed)
+      const allHolders = data.holders as HolderEntry[];
+      const rangeHolders = allHolders.slice(start - 1, end);
+      if (rangeHolders.length === 0) throw new Error('No holders found in that range');
 
       const balance = await publicClient.readContract({
         address: nftContract as `0x${string}`,
@@ -158,14 +163,14 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       });
 
       setNftBalance(balance as bigint);
-      setHolders(topHolders);
-      setProgress({ sent: 0, total: topHolders.length });
+      setHolders(rangeHolders);
+      setProgress({ sent: 0, total: rangeHolders.length });
       setStatus('previewing');
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong');
       setStatus('error');
     }
-  }, [nftContract, tokenId, holderCount, isConnected, address, publicClient, password, selectedToken]);
+  }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken]);
 
   const executeBatchSend = useCallback(async () => {
     if (!address || holders.length === 0) return;
@@ -297,14 +302,29 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="holder-count" className="text-gray-700">
-                  Number of top holders
+                <Label htmlFor="rank-start" className="text-gray-700">
+                  Holder rank start
                 </Label>
                 <Input
-                  id="holder-count"
-                  placeholder="e.g. 100"
-                  value={holderCount}
-                  onChange={(e) => setHolderCount(e.target.value)}
+                  id="rank-start"
+                  placeholder="e.g. 1"
+                  value={rankStart}
+                  onChange={(e) => setRankStart(e.target.value)}
+                  type="number"
+                  min="1"
+                  max="1000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="rank-end" className="text-gray-700">
+                  Holder rank end
+                </Label>
+                <Input
+                  id="rank-end"
+                  placeholder="e.g. 1000"
+                  value={rankEnd}
+                  onChange={(e) => setRankEnd(e.target.value)}
                   type="number"
                   min="1"
                   max="1000"
@@ -321,7 +341,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               <div className="col-span-full">
                 <Button
                   onClick={fetchHolders}
-                  disabled={!nftContract || !tokenId || !holderCount}
+                  disabled={!nftContract || !tokenId || !rankEnd}
                   className="w-full bg-primary hover:bg-primary/90"
                 >
                   Preview Airdrop
@@ -367,7 +387,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               )}
 
               <div className="bg-muted/30 rounded-xl p-4 max-h-60 overflow-y-auto">
-                <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (top {holders.length}):</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (ranks {holders[0]?.rank}–{holders[holders.length - 1]?.rank}):</p>
                 <div className="space-y-1">
                   {holders.slice(0, 20).map((h) => (
                     <div key={h.address} className="flex justify-between text-xs font-mono text-black/80">
@@ -395,14 +415,14 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onClick={testSingleTransfer}
                   variant="outline"
                   className="flex-1 border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                  disabled={status === 'testing' || !holders.length}
+                  disabled={status === 'testing'}
                 >
                   {status === 'testing' ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <TestTube className="w-4 h-4 mr-2" />
                   )}
-                  Test 1 Transfer
+                  Test 1 Transfer (to burn)
                 </Button>
                 <Button
                   onClick={() => setStatus('confirming')}
