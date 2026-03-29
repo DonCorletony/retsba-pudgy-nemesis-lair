@@ -11,7 +11,15 @@ const TRANSFER_EVENT_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a116
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
 const TOP_N = 1000;
-const LOG_BATCH_SIZE = 10000;
+const LOG_BATCH_SIZE = 100000;
+
+// First transfer blocks per token (to skip empty ranges)
+const TOKEN_START_BLOCKS: Record<string, number> = {
+  retsba: 3400000,
+  abster: 3400000,
+  god: 3400000,
+  polly: 3400000,
+};
 
 const TOKEN_CONTRACTS: Record<string, string> = {
   retsba: "0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A",
@@ -56,14 +64,16 @@ async function rpcRequest<T>(method: string, params: unknown[]): Promise<T> {
   return payload.result as T;
 }
 
-async function getAllTransferLogs(contractAddress: string): Promise<Array<{ from: string; to: string; value: bigint }>> {
+async function getAllTransferLogs(contractAddress: string, tokenId: string): Promise<Array<{ from: string; to: string; value: bigint }>> {
   const latestBlockHex = await rpcRequest<string>("eth_blockNumber", []);
+  const latestBlock = parseHexNumber(latestBlockHex);
+  const startBlock = TOKEN_START_BLOCKS[tokenId] ?? 0;
   const latestBlock = parseHexNumber(latestBlockHex);
 
   const transfers: Array<{ from: string; to: string; value: bigint }> = [];
-  let fromBlock = 0;
+  let fromBlock = startBlock;
 
-  console.log(`Fetching transfer logs for ${contractAddress} up to block ${latestBlock}`);
+  console.log(`Fetching transfer logs for ${contractAddress} from block ${startBlock} to ${latestBlock}`);
 
   while (fromBlock <= latestBlock) {
     const toBlock = Math.min(fromBlock + LOG_BATCH_SIZE - 1, latestBlock);
