@@ -422,7 +422,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   ) : (
                     <TestTube className="w-4 h-4 mr-2" />
                   )}
-                  Test 1 Transfer
+                  Test 1 Transfer (to burn)
                 </Button>
                 <Button
                   onClick={() => setStatus('confirming')}
