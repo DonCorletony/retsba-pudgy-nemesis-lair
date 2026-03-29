@@ -41,7 +41,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
 
   const [nftContract, setNftContract] = useState('');
   const [tokenId, setTokenId] = useState('');
-  const [holderCount, setHolderCount] = useState('');
+  const [rankStart, setRankStart] = useState('1');
+  const [rankEnd, setRankEnd] = useState('');
   const [selectedToken, setSelectedToken] = useState('retsba');
   const [status, setStatus] = useState<AirdropStatus>('idle');
   const [holders, setHolders] = useState<HolderEntry[]>([]);
