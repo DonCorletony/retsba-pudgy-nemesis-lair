@@ -334,7 +334,48 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         </div>
       ) : (
         <>
-          {(status === 'idle' || status === 'error') && (
+          {status === 'error' && progress.sent > 0 && holders.length > 0 && (
+            <div className="text-center space-y-4 py-8">
+              <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
+              <p className="text-lg font-bold text-black">Airdrop Paused</p>
+              <p className="text-gray-700">
+                Sent <strong>{progress.sent}</strong> / <strong>{progress.total}</strong> NFTs before the error occurred.
+              </p>
+              {errorMsg && (
+                <p className="text-sm text-destructive">{errorMsg}</p>
+              )}
+              <div className="flex gap-3 max-w-md mx-auto">
+                <Button variant="outline" onClick={resetState} className="flex-1">
+                  Start Over
+                </Button>
+                <Button
+                  onClick={() => executeBatchSend(progress.sent)}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Resume ({progress.total - progress.sent} remaining)
+                </Button>
+              </div>
+              {txHashes.length > 0 && (
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs text-muted-foreground">Completed batches:</p>
+                  {txHashes.map((hash, i) => (
+                    <a
+                      key={hash}
+                      href={`https://abscan.org/tx/${hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-xs text-primary hover:underline font-mono"
+                    >
+                      Batch {i + 1}: {hash.slice(0, 10)}...{hash.slice(-8)}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(status === 'idle' || (status === 'error' && progress.sent === 0)) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nft-contract" className="text-gray-700">
