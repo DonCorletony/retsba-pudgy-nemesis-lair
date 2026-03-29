@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import FooterSection from '../components/FooterSection';
 import { XPTemplateCMS } from '@/components/XPTemplateCMS';
 import { HoldersDashboard } from '@/components/HoldersDashboard';
+import { NFTAirdropTool } from '@/components/NFTAirdropTool';
 
 const SESSION_KEY = 'retsba_cc_session';
 const PASSWORD_KEY = 'retsba_cc_password';
@@ -110,6 +111,10 @@ const CommandCenter = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6 mt-8">
           <HoldersDashboard password={storedPassword} />
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6 mt-8">
+          <NFTAirdropTool password={storedPassword} />
         </div>
       </div>
       <FooterSection />
