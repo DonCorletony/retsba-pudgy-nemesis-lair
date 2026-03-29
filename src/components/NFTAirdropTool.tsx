@@ -89,6 +89,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           1n,
           '0x' as `0x${string}`,
         ],
+        account: address,
+        chain: agwClient?.chain ?? undefined,
       });
 
       setTestResult(`✅ Test transfer succeeded! TX: ${hash}`);
