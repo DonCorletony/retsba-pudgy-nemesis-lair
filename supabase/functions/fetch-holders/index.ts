@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const TOP_N = 1000;
+const TOP_N = 1001;
 const ABSTRACT_RPC_URL = "https://api.mainnet.abs.xyz";
 const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
 const CACHE_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
