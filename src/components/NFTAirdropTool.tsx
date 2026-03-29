@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { useAccount, usePublicClient, useSendCalls } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
+import { useAbstractClient } from '@abstract-foundation/agw-react';
 import { encodeFunctionData, parseAbi, isAddress } from 'viem';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ interface HolderEntry {
 export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => {
   const { isConnected, address } = useAccount();
   const publicClient = usePublicClient();
-  const { sendCallsAsync } = useSendCalls();
+  const { data: agwClient } = useAbstractClient();
   const { toast } = useToast();
 
   const [nftContract, setNftContract] = useState('');
@@ -139,13 +140,16 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use EIP-5792 sendCalls (supported by AGW)
-        const result = await (sendCallsAsync as any)({
-          calls,
+        if (!agwClient) {
+          throw new Error('AGW client not available');
+        }
+
+        // Use AGW native sendTransactionBatch
+        const hash = await (agwClient as any).sendTransactionBatch({
+          calls: calls as any,
         });
 
-        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
-        setTxHashes((prev) => [...prev, batchId]);
+        setTxHashes((prev) => [...prev, hash]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
       }
@@ -166,7 +170,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         });
       }
     }
-  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
+  }, [address, holders, nftBalance, nftContract, tokenId, toast, agwClient]);
 
   return (
     <div className="space-y-6">
