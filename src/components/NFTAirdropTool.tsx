@@ -15,8 +15,9 @@ const ERC1155_ABI = parseAbi([
 ]);
 
 const BATCH_SIZE = 50;
+const SIMULATE_BATCH_SIZE = 20;
 
-type AirdropStatus = 'idle' | 'loading-holders' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
+type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
 
 const TOKEN_OPTIONS = [
   { id: 'retsba', label: '$RETSBA' },
