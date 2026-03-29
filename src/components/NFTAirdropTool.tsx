@@ -239,25 +239,32 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
   }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken, simulateTransfers]);
 
-  const executeBatchSend = useCallback(async () => {
+  const executeBatchSend = useCallback(async (resumeFromIndex = 0) => {
     if (!address || holders.length === 0) return;
 
     const count = holders.length;
-    const needed = BigInt(count);
+    const needed = BigInt(count - resumeFromIndex);
 
     if (nftBalance === null || nftBalance < needed) {
-      setErrorMsg(`Insufficient NFT balance. You have ${nftBalance?.toString() ?? '0'} but need ${count}.`);
+      setErrorMsg(`Insufficient NFT balance. You have ${nftBalance?.toString() ?? '0'} but need ${needed.toString()}.`);
       setStatus('error');
       return;
     }
 
     setStatus('sending');
-    setTxHashes([]);
-    let totalSent = 0;
+    if (resumeFromIndex === 0) {
+      setTxHashes([]);
+    }
+    let totalSent = resumeFromIndex;
+    setProgress({ sent: totalSent, total: count });
 
     try {
-      for (let i = 0; i < holders.length; i += BATCH_SIZE) {
+      for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
         const chunk = holders.slice(i, i + BATCH_SIZE);
+        const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(holders.length / BATCH_SIZE);
+
+        console.log(`[Airdrop] Sending batch ${batchNum}/${totalBatches} (${chunk.length} transfers)...`);
 
         const calls = chunk.map((holder) => ({
           to: nftContract as `0x${string}`,
@@ -274,7 +281,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use EIP-5792 sendCalls (official AGW docs approach)
         const result = await (sendCallsAsync as any)({
           calls,
         });
@@ -283,6 +289,11 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         setTxHashes((prev) => [...prev, batchId]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
+
+        // Small delay between batches to avoid nonce conflicts
+        if (i + BATCH_SIZE < holders.length) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
       }
 
       setStatus('done');
@@ -291,15 +302,15 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         description: `Successfully sent NFTs to ${totalSent} holders`,
       });
     } catch (err: any) {
-      setErrorMsg(err.message || 'Transaction failed');
+      console.error(`[Airdrop] Batch failed at index ${totalSent}:`, err);
+      setErrorMsg(`Batch failed after sending ${totalSent}/${count}. You can resume from where it stopped.`);
+      setProgress({ sent: totalSent, total: count });
       setStatus('error');
-      if (totalSent > 0) {
-        toast({
-          title: 'Airdrop Partially Complete',
-          description: `Sent to ${totalSent}/${count} holders before error`,
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Airdrop Partially Complete',
+        description: `Sent to ${totalSent}/${count} holders. Use "Resume" to continue.`,
+        variant: 'destructive',
+      });
     }
   }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
@@ -323,7 +334,48 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         </div>
       ) : (
         <>
-          {(status === 'idle' || status === 'error') && (
+          {status === 'error' && progress.sent > 0 && holders.length > 0 && (
+            <div className="text-center space-y-4 py-8">
+              <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto" />
+              <p className="text-lg font-bold text-black">Airdrop Paused</p>
+              <p className="text-gray-700">
+                Sent <strong>{progress.sent}</strong> / <strong>{progress.total}</strong> NFTs before the error occurred.
+              </p>
+              {errorMsg && (
+                <p className="text-sm text-destructive">{errorMsg}</p>
+              )}
+              <div className="flex gap-3 max-w-md mx-auto">
+                <Button variant="outline" onClick={resetState} className="flex-1">
+                  Start Over
+                </Button>
+                <Button
+                  onClick={() => executeBatchSend(progress.sent)}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Resume ({progress.total - progress.sent} remaining)
+                </Button>
+              </div>
+              {txHashes.length > 0 && (
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs text-muted-foreground">Completed batches:</p>
+                  {txHashes.map((hash, i) => (
+                    <a
+                      key={hash}
+                      href={`https://abscan.org/tx/${hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-xs text-primary hover:underline font-mono"
+                    >
+                      Batch {i + 1}: {hash.slice(0, 10)}...{hash.slice(-8)}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(status === 'idle' || (status === 'error' && progress.sent === 0)) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nft-contract" className="text-gray-700">
@@ -552,7 +604,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   Cancel
                 </Button>
                 <Button
-                  onClick={executeBatchSend}
+                  onClick={() => executeBatchSend(0)}
                   className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
                   Send {holders.length} NFTs
