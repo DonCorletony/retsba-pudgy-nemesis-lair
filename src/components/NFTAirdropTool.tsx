@@ -182,25 +182,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
   }, [address, nftContract, tokenId, writeContractAsync, publicClient, toast]);
 
-  const buildTransferCalls = useCallback((batchHolders: HolderEntry[]) => {
-    if (!address) return [];
-
-    return batchHolders.map((holder) => ({
-      to: nftContract as `0x${string}`,
-      data: encodeFunctionData({
-        abi: ERC1155_ABI,
-        functionName: 'safeTransferFrom',
-        args: [
-          address,
-          holder.address as `0x${string}`,
-          BigInt(tokenId),
-          1n,
-          '0x' as `0x${string}`,
-        ],
-      }),
-    }));
-  }, [address, nftContract, tokenId]);
-
   const fetchHolders = useCallback(async () => {
     if (!nftContract || !tokenId || !rankEnd || !isConnected || !address || !publicClient) return;
 
@@ -279,15 +260,25 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
     setProgress({ sent: resumeFromIndex, total: count });
 
-    const submitCalls = async (calls: Array<{ to: `0x${string}`; data: `0x${string}` }>) => {
-      const result = await (sendCallsAsync as any)({ calls });
-      return typeof result === 'string' ? result : result?.id ?? 'unknown';
-    };
-
-    const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; startIdx: number }> = [];
+    // Build batches of calls inline (same format that worked before)
+    const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; count: number }> = [];
     for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
       const chunk = holders.slice(i, i + BATCH_SIZE);
-      batches.push({ calls: buildTransferCalls(chunk), startIdx: i });
+      const calls = chunk.map((holder) => ({
+        to: nftContract as `0x${string}`,
+        data: encodeFunctionData({
+          abi: ERC1155_ABI,
+          functionName: 'safeTransferFrom',
+          args: [
+            address,
+            holder.address as `0x${string}`,
+            BigInt(tokenId),
+            1n,
+            '0x' as `0x${string}`,
+          ],
+        }),
+      }));
+      batches.push({ calls, count: calls.length });
     }
 
     console.log(`[Airdrop] Sending ${batches.length} batch(es) sequentially (auto-advance)...`);
@@ -302,8 +293,9 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       try {
         setBatchProgress({ current: i + 1, total: batches.length });
         console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}...`);
-        const batchId = await submitCalls(batch.calls);
-        totalSent += batch.calls.length;
+        const result = await sendCallsAsync({ calls: batch.calls });
+        const batchId = typeof result === 'string' ? result : (result as any)?.id ?? 'unknown';
+        totalSent += batch.count;
         newHashes.push(batchId);
         setTxHashes((prev) => [...prev, batchId]);
         setProgress({ sent: totalSent, total: count });
@@ -329,7 +321,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       title: 'Airdrop Complete',
       description: `Successfully sent NFTs to ${totalSent} holders across ${batches.length} batch(es).`,
     });
-  }, [address, holders, nftBalance, buildTransferCalls, toast, sendCallsAsync]);
+  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
   return (
     <div className="space-y-6">
