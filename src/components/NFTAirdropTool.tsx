@@ -424,6 +424,27 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
+          {status === 'simulating' && (
+            <div className="text-center py-12 space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+              <p className="text-lg font-bold text-black">Simulating transfers...</p>
+              <p className="text-gray-700">
+                Checking {simulateProgress.checked} / {simulateProgress.total} addresses
+              </p>
+              {simulateProgress.skipped > 0 && (
+                <p className="text-sm text-yellow-600">
+                  ⚠️ {simulateProgress.skipped} incompatible address(es) found — will be skipped
+                </p>
+              )}
+              <div className="w-full max-w-md mx-auto bg-muted rounded-full h-3">
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${simulateProgress.total ? (simulateProgress.checked / simulateProgress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {(status === 'previewing' || status === 'testing') && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
