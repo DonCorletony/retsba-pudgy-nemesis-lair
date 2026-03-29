@@ -191,7 +191,7 @@ serve(async (req) => {
 
     console.log(`Seeding holder cache for ${tokenId} (${contractAddress})`);
 
-    const transfers = await getAllTransferLogs(contractAddress);
+    const transfers = await getAllTransferLogs(contractAddress, tokenId);
     const balances = computeBalances(transfers);
 
     // Sort by balance descending, take top N
