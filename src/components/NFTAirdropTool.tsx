@@ -14,7 +14,7 @@ const ERC1155_ABI = parseAbi([
   'function balanceOf(address account, uint256 id) view returns (uint256)',
 ]);
 
-const FALLBACK_BATCH_SIZE = 50;
+const BATCH_SIZE = 50;
 const SIMULATE_BATCH_SIZE = 20;
 
 type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
@@ -54,6 +54,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   const [errorMsg, setErrorMsg] = useState('');
   const [txHashes, setTxHashes] = useState<string[]>([]);
   const [testResult, setTestResult] = useState('');
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
 
   const resetState = () => {
     setStatus('idle');
@@ -61,6 +62,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setNftBalance(null);
     setProgress({ sent: 0, total: 0 });
     setSimulateProgress({ checked: 0, total: 0, skipped: 0 });
+    setBatchProgress({ current: 0, total: 0 });
     setSkippedAddresses([]);
     setErrorMsg('');
     setTxHashes([]);
@@ -277,41 +279,19 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
     setProgress({ sent: resumeFromIndex, total: count });
 
-    const remainingHolders = holders.slice(resumeFromIndex);
     const submitCalls = async (calls: Array<{ to: `0x${string}`; data: `0x${string}` }>) => {
       const result = await (sendCallsAsync as any)({ calls });
       return typeof result === 'string' ? result : result?.id ?? 'unknown';
     };
 
-    const singleApprovalCalls = buildTransferCalls(remainingHolders);
-
-    try {
-      console.log(`[Airdrop] Attempting single wallet approval for ${singleApprovalCalls.length} transfer(s)...`);
-      const batchId = await submitCalls(singleApprovalCalls);
-
-      setTxHashes((prev) => (resumeFromIndex === 0 ? [batchId] : [...prev, batchId]));
-      setProgress({ sent: count, total: count });
-      setStatus('done');
-      toast({
-        title: 'Airdrop Complete',
-        description: `Submitted ${remaining} transfer(s) in one wallet approval.`,
-      });
-      return;
-    } catch (singleApprovalError: any) {
-      console.error('[Airdrop] Single approval attempt failed, falling back to smaller batches:', singleApprovalError);
-      toast({
-        title: 'Large batch not accepted',
-        description: `Falling back to ${Math.ceil(remaining / FALLBACK_BATCH_SIZE)} smaller wallet approval(s).`,
-      });
-    }
-
     const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; startIdx: number }> = [];
-    for (let i = resumeFromIndex; i < holders.length; i += FALLBACK_BATCH_SIZE) {
-      const chunk = holders.slice(i, i + FALLBACK_BATCH_SIZE);
+    for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
+      const chunk = holders.slice(i, i + BATCH_SIZE);
       batches.push({ calls: buildTransferCalls(chunk), startIdx: i });
     }
 
-    console.log(`[Airdrop] Sending ${batches.length} fallback batch(es)...`);
+    console.log(`[Airdrop] Sending ${batches.length} batch(es) sequentially (auto-advance)...`);
+    setBatchProgress({ current: 0, total: batches.length });
 
     let totalSent = resumeFromIndex;
     const newHashes: string[] = [];
@@ -320,14 +300,16 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       const batch = batches[i];
 
       try {
+        setBatchProgress({ current: i + 1, total: batches.length });
+        console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}...`);
         const batchId = await submitCalls(batch.calls);
         totalSent += batch.calls.length;
         newHashes.push(batchId);
         setTxHashes((prev) => [...prev, batchId]);
         setProgress({ sent: totalSent, total: count });
-        console.log(`[Airdrop] Fallback batch ${i + 1} confirmed: ${batchId}`);
+        console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
       } catch (batchError) {
-        console.error(`[Airdrop] Fallback batch ${i + 1} failed:`, batchError);
+        console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
         setErrorMsg(`Batch ${i + 1} failed after ${totalSent}/${count} NFTs were submitted.`);
         setProgress({ sent: totalSent, total: count });
         setStatus('error');
@@ -345,7 +327,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setStatus('done');
     toast({
       title: 'Airdrop Complete',
-      description: `Successfully sent NFTs to ${totalSent} holders.`,
+      description: `Successfully sent NFTs to ${totalSent} holders across ${batches.length} batch(es).`,
     });
   }, [address, holders, nftBalance, buildTransferCalls, toast, sendCallsAsync]);
 
@@ -593,7 +575,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <p className="text-sm text-gray-600 text-center">
-                This will try 1 wallet approval for all {holders.length} transfers first. If the wallet rejects the request size, it will fall back to {Math.ceil(holders.length / FALLBACK_BATCH_SIZE)} smaller batch transaction(s) of up to {FALLBACK_BATCH_SIZE} transfers.
+                This will send in {Math.ceil(holders.length / BATCH_SIZE)} batch(es) of up to {BATCH_SIZE} transfers each. Each batch requires a separate wallet approval — they auto-advance after you confirm each one.
               </p>
 
               <div className="flex gap-3">
@@ -651,7 +633,11 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           {status === 'sending' && (
             <div className="text-center py-12 space-y-4">
               <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
-              <p className="text-lg font-bold text-black">Sending NFTs...</p>
+              <p className="text-lg font-bold text-black">
+                {batchProgress.total > 1
+                  ? `Approve batch ${batchProgress.current} of ${batchProgress.total}`
+                  : 'Sending NFTs...'}
+              </p>
               <p className="text-gray-700">
                 {progress.sent} / {progress.total} transferred
               </p>
