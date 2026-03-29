@@ -17,8 +17,11 @@ const ERC1155_ABI = parseAbi([
 const BATCH_SIZE = 50;
 const SIMULATE_BATCH_SIZE = 20;
 const BATCH_INIT_RETRY_DELAYS_MS = [1200, 2000, 3000];
+const BATCH_CONFIRMATION_TIMEOUT_MS = 120_000;
+const BATCH_CONFIRMATION_POLL_INTERVAL_MS = 1_000;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const isTransactionHash = (value: string): value is `0x${string}` => /^0x[a-fA-F0-9]{64}$/.test(value);
 
 type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
 
@@ -245,7 +248,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken, simulateTransfers]);
 
   const executeBatchSend = useCallback(async (resumeFromIndex = 0) => {
-    if (!address || holders.length === 0) return;
+    if (!address || !publicClient || holders.length === 0) return;
 
     const count = holders.length;
     const remaining = count - resumeFromIndex;
@@ -300,10 +303,27 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}${attempt > 0 ? ` (retry ${attempt})` : ''}...`);
           const result = await (sendCallsAsync as any)({ calls: batch.calls });
           const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
+
+          if (batchId === 'unknown') {
+            throw new Error('Wallet returned no batch id');
+          }
+
           totalSent += batch.count;
           newHashes.push(batchId);
           setTxHashes((prev) => [...prev, batchId]);
           setProgress({ sent: totalSent, total: count });
+
+          console.log(`[Airdrop] Batch ${i + 1} submitted: ${batchId}`);
+
+          if (isTransactionHash(batchId)) {
+            console.log(`[Airdrop] Waiting for batch ${i + 1} confirmation before requesting the next approval...`);
+            await publicClient.waitForTransactionReceipt({
+              hash: batchId,
+              pollingInterval: BATCH_CONFIRMATION_POLL_INTERVAL_MS,
+              timeout: BATCH_CONFIRMATION_TIMEOUT_MS,
+            });
+          }
+
           console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
           break;
         } catch (batchError: any) {
@@ -352,7 +372,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       title: 'Airdrop Complete',
       description: `Successfully sent NFTs to ${totalSent} holders across ${batches.length} batch(es).`,
     });
-  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
+  }, [address, publicClient, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
   return (
     <div className="space-y-6">
