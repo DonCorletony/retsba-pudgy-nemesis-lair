@@ -243,7 +243,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     if (!address || holders.length === 0) return;
 
     const count = holders.length;
-    const needed = BigInt(count - resumeFromIndex);
+    const remaining = count - resumeFromIndex;
+    const needed = BigInt(remaining);
 
     if (nftBalance === null || nftBalance < needed) {
       setErrorMsg(`Insufficient NFT balance. You have ${nftBalance?.toString() ?? '0'} but need ${needed.toString()}.`);
@@ -255,60 +256,73 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     if (resumeFromIndex === 0) {
       setTxHashes([]);
     }
+    setProgress({ sent: resumeFromIndex, total: count });
+
+    // Build all batch call arrays
+    const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; startIdx: number }> = [];
+    for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
+      const chunk = holders.slice(i, i + BATCH_SIZE);
+      const calls = chunk.map((holder) => ({
+        to: nftContract as `0x${string}`,
+        data: encodeFunctionData({
+          abi: ERC1155_ABI,
+          functionName: 'safeTransferFrom',
+          args: [
+            address,
+            holder.address as `0x${string}`,
+            BigInt(tokenId),
+            1n,
+            '0x' as `0x${string}`,
+          ],
+        }),
+      }));
+      batches.push({ calls, startIdx: i });
+    }
+
+    console.log(`[Airdrop] Sending ${batches.length} batch(es) in parallel...`);
+
+    // Fire all batches in parallel so all approval requests appear at once
+    const results = await Promise.allSettled(
+      batches.map(async (batch, batchIdx) => {
+        const result = await (sendCallsAsync as any)({ calls: batch.calls });
+        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
+        console.log(`[Airdrop] Batch ${batchIdx + 1} confirmed: ${batchId}`);
+        return { batchId, count: batch.calls.length };
+      })
+    );
+
     let totalSent = resumeFromIndex;
+    const newHashes: string[] = [];
+    let failedAt = -1;
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === 'fulfilled') {
+        totalSent += result.value.count;
+        newHashes.push(result.value.batchId);
+      } else {
+        console.error(`[Airdrop] Batch ${i + 1} failed:`, result.reason);
+        if (failedAt === -1) failedAt = i;
+      }
+    }
+
+    setTxHashes((prev) => [...prev, ...newHashes]);
     setProgress({ sent: totalSent, total: count });
 
-    try {
-      for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
-        const chunk = holders.slice(i, i + BATCH_SIZE);
-        const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-        const totalBatches = Math.ceil(holders.length / BATCH_SIZE);
+    const failedCount = results.filter((r) => r.status === 'rejected').length;
 
-        console.log(`[Airdrop] Sending batch ${batchNum}/${totalBatches} (${chunk.length} transfers)...`);
-
-        const calls = chunk.map((holder) => ({
-          to: nftContract as `0x${string}`,
-          data: encodeFunctionData({
-            abi: ERC1155_ABI,
-            functionName: 'safeTransferFrom',
-            args: [
-              address,
-              holder.address as `0x${string}`,
-              BigInt(tokenId),
-              1n,
-              '0x' as `0x${string}`,
-            ],
-          }),
-        }));
-
-        const result = await (sendCallsAsync as any)({
-          calls,
-        });
-
-        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
-        setTxHashes((prev) => [...prev, batchId]);
-        totalSent += chunk.length;
-        setProgress({ sent: totalSent, total: count });
-
-        // Small delay between batches to avoid nonce conflicts
-        if (i + BATCH_SIZE < holders.length) {
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-        }
-      }
-
+    if (failedCount === 0) {
       setStatus('done');
       toast({
         title: 'Airdrop Complete',
         description: `Successfully sent NFTs to ${totalSent} holders`,
       });
-    } catch (err: any) {
-      console.error(`[Airdrop] Batch failed at index ${totalSent}:`, err);
-      setErrorMsg(`Batch failed after sending ${totalSent}/${count}. You can resume from where it stopped.`);
-      setProgress({ sent: totalSent, total: count });
+    } else {
+      setErrorMsg(`${failedCount} batch(es) failed. ${totalSent}/${count} NFTs sent.`);
       setStatus('error');
       toast({
         title: 'Airdrop Partially Complete',
-        description: `Sent to ${totalSent}/${count} holders. Use "Resume" to continue.`,
+        description: `Sent ${totalSent}/${count}. Use "Resume" to retry failed batches.`,
         variant: 'destructive',
       });
     }
