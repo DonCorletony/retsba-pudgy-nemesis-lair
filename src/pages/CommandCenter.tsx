@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import FooterSection from '../components/FooterSection';
 import { XPTemplateCMS } from '@/components/XPTemplateCMS';
-import { HoldersDashboard } from '@/components/HoldersDashboard';
 import { NFTAirdropTool } from '@/components/NFTAirdropTool';
 
 const SESSION_KEY = 'retsba_cc_session';
@@ -107,10 +106,6 @@ const CommandCenter = () => {
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-8">Command Center</h1>
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6">
           <XPTemplateCMS password={storedPassword} />
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6 mt-8">
-          <HoldersDashboard password={storedPassword} />
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:border dark:border-gray-700 p-6 mt-8">

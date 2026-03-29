@@ -119,7 +119,7 @@ const AbstractTXNs = () => {
         </div>
 
         <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-          <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} />
+          <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} maxHolders={250} />
         </div>
       </div>
       <FooterSection />
