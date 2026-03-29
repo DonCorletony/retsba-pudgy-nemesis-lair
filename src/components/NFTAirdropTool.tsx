@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useAccount } from 'wagmi';
-import { useAbstractClient } from '@abstract-foundation/agw-react';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { encodeFunctionData, parseAbi, isAddress } from 'viem';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
