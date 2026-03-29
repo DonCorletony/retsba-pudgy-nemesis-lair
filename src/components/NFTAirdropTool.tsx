@@ -15,8 +15,9 @@ const ERC1155_ABI = parseAbi([
 ]);
 
 const BATCH_SIZE = 50;
+const SIMULATE_BATCH_SIZE = 20;
 
-type AirdropStatus = 'idle' | 'loading-holders' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
+type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
 
 const TOKEN_OPTIONS = [
   { id: 'retsba', label: '$RETSBA' },
@@ -48,6 +49,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   const [holders, setHolders] = useState<HolderEntry[]>([]);
   const [nftBalance, setNftBalance] = useState<bigint | null>(null);
   const [progress, setProgress] = useState({ sent: 0, total: 0 });
+  const [simulateProgress, setSimulateProgress] = useState({ checked: 0, total: 0, skipped: 0 });
+  const [skippedAddresses, setSkippedAddresses] = useState<{ rank: number; address: string }[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [txHashes, setTxHashes] = useState<string[]>([]);
   const [testResult, setTestResult] = useState('');
@@ -57,10 +60,66 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setHolders([]);
     setNftBalance(null);
     setProgress({ sent: 0, total: 0 });
+    setSimulateProgress({ checked: 0, total: 0, skipped: 0 });
+    setSkippedAddresses([]);
     setErrorMsg('');
     setTxHashes([]);
     setTestResult('');
   };
+
+  // Simulate transfers to filter out addresses that can't receive ERC-1155
+  const simulateTransfers = useCallback(async (candidates: HolderEntry[]): Promise<HolderEntry[]> => {
+    if (!address || !publicClient || !nftContract || !tokenId) return candidates;
+
+    setStatus('simulating');
+    setSimulateProgress({ checked: 0, total: candidates.length, skipped: 0 });
+    setSkippedAddresses([]);
+
+    const compatible: HolderEntry[] = [];
+    const skipped: { rank: number; address: string }[] = [];
+
+    for (let i = 0; i < candidates.length; i += SIMULATE_BATCH_SIZE) {
+      const chunk = candidates.slice(i, i + SIMULATE_BATCH_SIZE);
+
+      const results = await Promise.allSettled(
+        chunk.map((holder) =>
+          publicClient.simulateContract({
+            address: nftContract as `0x${string}`,
+            abi: ERC1155_ABI,
+            functionName: 'safeTransferFrom',
+            args: [
+              address,
+              holder.address as `0x${string}`,
+              BigInt(tokenId),
+              1n,
+              '0x' as `0x${string}`,
+            ],
+            account: address,
+          })
+        )
+      );
+
+      results.forEach((result, idx) => {
+        const holder = chunk[idx];
+        if (result.status === 'fulfilled') {
+          compatible.push(holder);
+        } else {
+          console.log(`[Airdrop Sim] Skipping #${holder.rank} (${holder.address}): ${(result.reason as any)?.shortMessage || (result.reason as Error)?.message}`);
+          skipped.push({ rank: holder.rank, address: holder.address });
+        }
+      });
+
+      setSimulateProgress({
+        checked: Math.min(i + SIMULATE_BATCH_SIZE, candidates.length),
+        total: candidates.length,
+        skipped: skipped.length,
+      });
+    }
+
+    setSkippedAddresses(skipped);
+    console.log(`[Airdrop Sim] ${compatible.length} compatible, ${skipped.length} skipped`);
+    return compatible;
+  }, [address, publicClient, nftContract, tokenId]);
 
   // Test a single transfer to a burn address to verify the contract works
   const testSingleTransfer = useCallback(async () => {
@@ -163,14 +222,22 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       });
 
       setNftBalance(balance as bigint);
-      setHolders(rangeHolders);
-      setProgress({ sent: 0, total: rangeHolders.length });
+
+      // Simulate all transfers to filter out incompatible addresses
+      const compatibleHolders = await simulateTransfers(rangeHolders);
+
+      if (compatibleHolders.length === 0) {
+        throw new Error('No compatible recipients found. All addresses in this range rejected the ERC-1155 transfer.');
+      }
+
+      setHolders(compatibleHolders);
+      setProgress({ sent: 0, total: compatibleHolders.length });
       setStatus('previewing');
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong');
       setStatus('error');
     }
-  }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken]);
+  }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken, simulateTransfers]);
 
   const executeBatchSend = useCallback(async () => {
     if (!address || holders.length === 0) return;
@@ -357,8 +424,43 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
+          {status === 'simulating' && (
+            <div className="text-center py-12 space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+              <p className="text-lg font-bold text-black">Simulating transfers...</p>
+              <p className="text-gray-700">
+                Checking {simulateProgress.checked} / {simulateProgress.total} addresses
+              </p>
+              {simulateProgress.skipped > 0 && (
+                <p className="text-sm text-yellow-600">
+                  ⚠️ {simulateProgress.skipped} incompatible address(es) found — will be skipped
+                </p>
+              )}
+              <div className="w-full max-w-md mx-auto bg-muted rounded-full h-3">
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${simulateProgress.total ? (simulateProgress.checked / simulateProgress.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {(status === 'previewing' || status === 'testing') && (
             <div className="space-y-4">
+              {skippedAddresses.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 space-y-2">
+                  <p className="text-sm font-medium text-yellow-800">
+                    ⚠️ {skippedAddresses.length} address(es) auto-excluded (can't receive ERC-1155):
+                  </p>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {skippedAddresses.map((s) => (
+                      <div key={s.address} className="text-xs font-mono text-yellow-700">
+                        #{s.rank} — {s.address}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
                   <p className="text-sm text-gray-600">Recipients</p>
