@@ -222,8 +222,16 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       });
 
       setNftBalance(balance as bigint);
-      setHolders(rangeHolders);
-      setProgress({ sent: 0, total: rangeHolders.length });
+
+      // Simulate all transfers to filter out incompatible addresses
+      const compatibleHolders = await simulateTransfers(rangeHolders);
+
+      if (compatibleHolders.length === 0) {
+        throw new Error('No compatible recipients found. All addresses in this range rejected the ERC-1155 transfer.');
+      }
+
+      setHolders(compatibleHolders);
+      setProgress({ sent: 0, total: compatibleHolders.length });
       setStatus('previewing');
     } catch (err: any) {
       setErrorMsg(err.message || 'Something went wrong');
