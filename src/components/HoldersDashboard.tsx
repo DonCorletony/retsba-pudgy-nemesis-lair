@@ -42,7 +42,7 @@ const formatDateLabel = (dateStr: string): string => {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; tokenLabel?: string }> = ({ password, tokenId = 'retsba', tokenLabel = 'RETSBA' }) => {
+export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; tokenLabel?: string; maxHolders?: number }> = ({ password, tokenId = 'retsba', tokenLabel = 'RETSBA', maxHolders }) => {
   const [holders, setHolders] = useState<Holder[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,7 +74,8 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
       if (fnError || !data?.holders) {
         setError(fnError?.message || data?.error || 'Holder data failed to load.');
       } else {
-        setHolders(data.holders);
+        const allHolders = data.holders as Holder[];
+        setHolders(maxHolders ? allHolders.slice(0, maxHolders) : allHolders);
         setCountdown(REFRESH_INTERVAL);
         fetchSnapshots();
       }
