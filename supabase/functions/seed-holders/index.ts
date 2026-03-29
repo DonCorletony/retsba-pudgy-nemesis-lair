@@ -9,7 +9,8 @@ const corsHeaders = {
 const TOP_N = 1000;
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const ABSCAN_API_URL = "https://api.abscan.org/api";
+const ABSCAN_API_URL = "https://api.etherscan.io/v2/api";
+const ABSCAN_CHAIN_ID = 2741; // Abstract mainnet chain ID
 
 const TOKEN_CONTRACTS: Record<string, string> = {
   retsba: "0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A",
@@ -36,7 +37,7 @@ async function fetchHoldersFromAbscan(contractAddress: string, apiKey: string): 
   const perPage = 1000;
 
   while (allHolders.length < TOP_N) {
-    const url = `${ABSCAN_API_URL}?module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=${page}&offset=${perPage}&apikey=${apiKey}`;
+    const url = `${ABSCAN_API_URL}?chainid=${ABSCAN_CHAIN_ID}&module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=${page}&offset=${perPage}&apikey=${apiKey}`;
     console.log(`Fetching page ${page} from Abscan...`);
 
     const response = await fetch(url);
