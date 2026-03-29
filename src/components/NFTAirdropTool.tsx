@@ -239,25 +239,32 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
   }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken, simulateTransfers]);
 
-  const executeBatchSend = useCallback(async () => {
+  const executeBatchSend = useCallback(async (resumeFromIndex = 0) => {
     if (!address || holders.length === 0) return;
 
     const count = holders.length;
-    const needed = BigInt(count);
+    const needed = BigInt(count - resumeFromIndex);
 
     if (nftBalance === null || nftBalance < needed) {
-      setErrorMsg(`Insufficient NFT balance. You have ${nftBalance?.toString() ?? '0'} but need ${count}.`);
+      setErrorMsg(`Insufficient NFT balance. You have ${nftBalance?.toString() ?? '0'} but need ${needed.toString()}.`);
       setStatus('error');
       return;
     }
 
     setStatus('sending');
-    setTxHashes([]);
-    let totalSent = 0;
+    if (resumeFromIndex === 0) {
+      setTxHashes([]);
+    }
+    let totalSent = resumeFromIndex;
+    setProgress({ sent: totalSent, total: count });
 
     try {
-      for (let i = 0; i < holders.length; i += BATCH_SIZE) {
+      for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
         const chunk = holders.slice(i, i + BATCH_SIZE);
+        const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(holders.length / BATCH_SIZE);
+
+        console.log(`[Airdrop] Sending batch ${batchNum}/${totalBatches} (${chunk.length} transfers)...`);
 
         const calls = chunk.map((holder) => ({
           to: nftContract as `0x${string}`,
@@ -274,7 +281,6 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use EIP-5792 sendCalls (official AGW docs approach)
         const result = await (sendCallsAsync as any)({
           calls,
         });
@@ -283,6 +289,11 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         setTxHashes((prev) => [...prev, batchId]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
+
+        // Small delay between batches to avoid nonce conflicts
+        if (i + BATCH_SIZE < holders.length) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
       }
 
       setStatus('done');
@@ -291,15 +302,15 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         description: `Successfully sent NFTs to ${totalSent} holders`,
       });
     } catch (err: any) {
-      setErrorMsg(err.message || 'Transaction failed');
+      console.error(`[Airdrop] Batch failed at index ${totalSent}:`, err);
+      setErrorMsg(`Batch failed after sending ${totalSent}/${count}. You can resume from where it stopped.`);
+      setProgress({ sent: totalSent, total: count });
       setStatus('error');
-      if (totalSent > 0) {
-        toast({
-          title: 'Airdrop Partially Complete',
-          description: `Sent to ${totalSent}/${count} holders before error`,
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Airdrop Partially Complete',
+        description: `Sent to ${totalSent}/${count} holders. Use "Resume" to continue.`,
+        variant: 'destructive',
+      });
     }
   }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
