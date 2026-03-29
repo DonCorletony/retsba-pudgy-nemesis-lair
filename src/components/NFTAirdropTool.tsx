@@ -140,8 +140,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         }));
 
         // Use EIP-5792 sendCalls (supported by AGW)
-        const result = await sendCallsAsync({
-          calls: calls as any,
+        const result = await (sendCallsAsync as any)({
+          calls,
         });
 
         const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
