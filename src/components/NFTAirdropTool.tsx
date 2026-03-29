@@ -145,7 +145,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         }
 
         // Use AGW native sendTransactionBatch
-        const hash = await agwClient.sendTransactionBatch({
+        const hash = await (agwClient as any).sendTransactionBatch({
           calls: calls as any,
         });
 
@@ -170,7 +170,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         });
       }
     }
-  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
+  }, [address, holders, nftBalance, nftContract, tokenId, toast, agwClient]);
 
   return (
     <div className="space-y-6">
