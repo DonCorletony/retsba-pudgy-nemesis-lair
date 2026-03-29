@@ -14,7 +14,7 @@ const ERC1155_ABI = parseAbi([
   'function balanceOf(address account, uint256 id) view returns (uint256)',
 ]);
 
-const BATCH_SIZE = 50;
+const FALLBACK_BATCH_SIZE = 50;
 const SIMULATE_BATCH_SIZE = 20;
 
 type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
@@ -180,6 +180,25 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
   }, [address, nftContract, tokenId, writeContractAsync, publicClient, toast]);
 
+  const buildTransferCalls = useCallback((batchHolders: HolderEntry[]) => {
+    if (!address) return [];
+
+    return batchHolders.map((holder) => ({
+      to: nftContract as `0x${string}`,
+      data: encodeFunctionData({
+        abi: ERC1155_ABI,
+        functionName: 'safeTransferFrom',
+        args: [
+          address,
+          holder.address as `0x${string}`,
+          BigInt(tokenId),
+          1n,
+          '0x' as `0x${string}`,
+        ],
+      }),
+    }));
+  }, [address, nftContract, tokenId]);
+
   const fetchHolders = useCallback(async () => {
     if (!nftContract || !tokenId || !rankEnd || !isConnected || !address || !publicClient) return;
 
@@ -258,75 +277,77 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     }
     setProgress({ sent: resumeFromIndex, total: count });
 
-    // Build all batch call arrays
-    const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; startIdx: number }> = [];
-    for (let i = resumeFromIndex; i < holders.length; i += BATCH_SIZE) {
-      const chunk = holders.slice(i, i + BATCH_SIZE);
-      const calls = chunk.map((holder) => ({
-        to: nftContract as `0x${string}`,
-        data: encodeFunctionData({
-          abi: ERC1155_ABI,
-          functionName: 'safeTransferFrom',
-          args: [
-            address,
-            holder.address as `0x${string}`,
-            BigInt(tokenId),
-            1n,
-            '0x' as `0x${string}`,
-          ],
-        }),
-      }));
-      batches.push({ calls, startIdx: i });
-    }
+    const remainingHolders = holders.slice(resumeFromIndex);
+    const submitCalls = async (calls: Array<{ to: `0x${string}`; data: `0x${string}` }>) => {
+      const result = await (sendCallsAsync as any)({ calls });
+      return typeof result === 'string' ? result : result?.id ?? 'unknown';
+    };
 
-    console.log(`[Airdrop] Sending ${batches.length} batch(es) in parallel...`);
+    const singleApprovalCalls = buildTransferCalls(remainingHolders);
 
-    // Fire all batches in parallel so all approval requests appear at once
-    const results = await Promise.allSettled(
-      batches.map(async (batch, batchIdx) => {
-        const result = await (sendCallsAsync as any)({ calls: batch.calls });
-        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
-        console.log(`[Airdrop] Batch ${batchIdx + 1} confirmed: ${batchId}`);
-        return { batchId, count: batch.calls.length };
-      })
-    );
+    try {
+      console.log(`[Airdrop] Attempting single wallet approval for ${singleApprovalCalls.length} transfer(s)...`);
+      const batchId = await submitCalls(singleApprovalCalls);
 
-    let totalSent = resumeFromIndex;
-    const newHashes: string[] = [];
-    let failedAt = -1;
-
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
-      if (result.status === 'fulfilled') {
-        totalSent += result.value.count;
-        newHashes.push(result.value.batchId);
-      } else {
-        console.error(`[Airdrop] Batch ${i + 1} failed:`, result.reason);
-        if (failedAt === -1) failedAt = i;
-      }
-    }
-
-    setTxHashes((prev) => [...prev, ...newHashes]);
-    setProgress({ sent: totalSent, total: count });
-
-    const failedCount = results.filter((r) => r.status === 'rejected').length;
-
-    if (failedCount === 0) {
+      setTxHashes((prev) => (resumeFromIndex === 0 ? [batchId] : [...prev, batchId]));
+      setProgress({ sent: count, total: count });
       setStatus('done');
       toast({
         title: 'Airdrop Complete',
-        description: `Successfully sent NFTs to ${totalSent} holders`,
+        description: `Submitted ${remaining} transfer(s) in one wallet approval.`,
       });
-    } else {
-      setErrorMsg(`${failedCount} batch(es) failed. ${totalSent}/${count} NFTs sent.`);
-      setStatus('error');
+      return;
+    } catch (singleApprovalError: any) {
+      console.error('[Airdrop] Single approval attempt failed, falling back to smaller batches:', singleApprovalError);
       toast({
-        title: 'Airdrop Partially Complete',
-        description: `Sent ${totalSent}/${count}. Use "Resume" to retry failed batches.`,
-        variant: 'destructive',
+        title: 'Large batch not accepted',
+        description: `Falling back to ${Math.ceil(remaining / FALLBACK_BATCH_SIZE)} smaller wallet approval(s).`,
       });
     }
-  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
+
+    const batches: Array<{ calls: Array<{ to: `0x${string}`; data: `0x${string}` }>; startIdx: number }> = [];
+    for (let i = resumeFromIndex; i < holders.length; i += FALLBACK_BATCH_SIZE) {
+      const chunk = holders.slice(i, i + FALLBACK_BATCH_SIZE);
+      batches.push({ calls: buildTransferCalls(chunk), startIdx: i });
+    }
+
+    console.log(`[Airdrop] Sending ${batches.length} fallback batch(es)...`);
+
+    let totalSent = resumeFromIndex;
+    const newHashes: string[] = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+
+      try {
+        const batchId = await submitCalls(batch.calls);
+        totalSent += batch.calls.length;
+        newHashes.push(batchId);
+        setTxHashes((prev) => [...prev, batchId]);
+        setProgress({ sent: totalSent, total: count });
+        console.log(`[Airdrop] Fallback batch ${i + 1} confirmed: ${batchId}`);
+      } catch (batchError) {
+        console.error(`[Airdrop] Fallback batch ${i + 1} failed:`, batchError);
+        setErrorMsg(`Batch ${i + 1} failed after ${totalSent}/${count} NFTs were submitted.`);
+        setProgress({ sent: totalSent, total: count });
+        setStatus('error');
+        toast({
+          title: 'Airdrop Paused',
+          description: `Submitted ${totalSent}/${count}. Use "Resume" to continue from the next unsent holder.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    setTxHashes((prev) => [...prev, ...newHashes.filter((hash) => !prev.includes(hash))]);
+    setProgress({ sent: totalSent, total: count });
+    setStatus('done');
+    toast({
+      title: 'Airdrop Complete',
+      description: `Successfully sent NFTs to ${totalSent} holders.`,
+    });
+  }, [address, holders, nftBalance, buildTransferCalls, toast, sendCallsAsync]);
 
   return (
     <div className="space-y-6">
@@ -572,7 +593,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               </div>
 
               <p className="text-sm text-gray-600 text-center">
-                This will send in {Math.ceil(holders.length / BATCH_SIZE)} batch transaction(s) of up to {BATCH_SIZE} transfers each.
+                This will try 1 wallet approval for all {holders.length} transfers first. If the wallet rejects the request size, it will fall back to {Math.ceil(holders.length / FALLBACK_BATCH_SIZE)} smaller batch transaction(s) of up to {FALLBACK_BATCH_SIZE} transfers.
               </p>
 
               <div className="flex gap-3">
