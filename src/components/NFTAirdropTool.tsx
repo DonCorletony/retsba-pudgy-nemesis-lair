@@ -300,16 +300,31 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         setTxHashes((prev) => [...prev, batchId]);
         setProgress({ sent: totalSent, total: count });
         console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
-      } catch (batchError) {
-        console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
-        setErrorMsg(`Batch ${i + 1} failed after ${totalSent}/${count} NFTs were submitted.`);
-        setProgress({ sent: totalSent, total: count });
-        setStatus('error');
-        toast({
-          title: 'Airdrop Paused',
-          description: `Submitted ${totalSent}/${count}. Use "Resume" to continue from the next unsent holder.`,
-          variant: 'destructive',
-        });
+      } catch (batchError: any) {
+        const msg = batchError?.shortMessage || batchError?.message || '';
+        const isUserRejection = /reject|denied|cancel|user refused/i.test(msg);
+        console.warn(`[Airdrop] Batch ${i + 1} issue:`, msg);
+
+        if (isUserRejection) {
+          // User rejected this batch approval — pause quietly without alarming error UI
+          setProgress({ sent: totalSent, total: count });
+          setStatus('confirming');
+          toast({
+            title: 'Batch skipped',
+            description: `You declined batch ${i + 1}. Use "Resume" to retry remaining transfers.`,
+          });
+        } else {
+          // Genuine error
+          console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
+          setErrorMsg(`Batch ${i + 1} encountered an error after ${totalSent}/${count} NFTs were submitted.`);
+          setProgress({ sent: totalSent, total: count });
+          setStatus('error');
+          toast({
+            title: 'Airdrop Paused',
+            description: `Submitted ${totalSent}/${count}. Use "Resume" to continue.`,
+            variant: 'destructive',
+          });
+        }
         return;
       }
     }
@@ -363,6 +378,44 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Resume ({progress.total - progress.sent} remaining)
+                </Button>
+              </div>
+              {txHashes.length > 0 && (
+                <div className="space-y-1 pt-2">
+                  <p className="text-xs text-muted-foreground">Completed batches:</p>
+                  {txHashes.map((hash, i) => (
+                    <a
+                      key={hash}
+                      href={`https://abscan.org/tx/${hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-xs text-primary hover:underline font-mono"
+                    >
+                      Batch {i + 1}: {hash.slice(0, 10)}...{hash.slice(-8)}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {status === 'confirming' && progress.sent > 0 && holders.length > 0 && (
+            <div className="text-center space-y-4 py-8">
+              <Send className="w-12 h-12 text-primary mx-auto" />
+              <p className="text-lg font-bold text-foreground">Airdrop In Progress</p>
+              <p className="text-muted-foreground">
+                Sent <strong>{progress.sent}</strong> / <strong>{progress.total}</strong> NFTs so far.
+              </p>
+              <div className="flex gap-3 max-w-md mx-auto">
+                <Button variant="outline" onClick={resetState} className="flex-1">
+                  Start Over
+                </Button>
+                <Button
+                  onClick={() => executeBatchSend(progress.sent)}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Continue ({progress.total - progress.sent} remaining)
                 </Button>
               </div>
               {txHashes.length > 0 && (
