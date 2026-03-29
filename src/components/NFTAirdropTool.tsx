@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useAccount, usePublicClient } from 'wagmi';
+import { useAccount, usePublicClient, useWriteContract, useSendCalls } from 'wagmi';
 import { useAbstractClient } from '@abstract-foundation/agw-react';
 import { encodeFunctionData, parseAbi, isAddress } from 'viem';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Send, CheckCircle2, AlertCircle, Wallet } from 'lucide-react';
+import { Loader2, Send, CheckCircle2, AlertCircle, Wallet, TestTube } from 'lucide-react';
 
 const ERC1155_ABI = parseAbi([
   'function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes data)',
@@ -16,7 +16,7 @@ const ERC1155_ABI = parseAbi([
 
 const BATCH_SIZE = 50;
 
-type AirdropStatus = 'idle' | 'loading-holders' | 'previewing' | 'confirming' | 'sending' | 'done' | 'error';
+type AirdropStatus = 'idle' | 'loading-holders' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
 
 const TOKEN_OPTIONS = [
   { id: 'retsba', label: '$RETSBA' },
@@ -35,6 +35,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   const { isConnected, address } = useAccount();
   const publicClient = usePublicClient();
   const { data: agwClient } = useAbstractClient();
+  const { writeContractAsync } = useWriteContract();
+  const { sendCallsAsync } = useSendCalls();
   const { toast } = useToast();
 
   const [nftContract, setNftContract] = useState('');
@@ -47,6 +49,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   const [progress, setProgress] = useState({ sent: 0, total: 0 });
   const [errorMsg, setErrorMsg] = useState('');
   const [txHashes, setTxHashes] = useState<string[]>([]);
+  const [testResult, setTestResult] = useState('');
 
   const resetState = () => {
     setStatus('idle');
@@ -55,7 +58,66 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     setProgress({ sent: 0, total: 0 });
     setErrorMsg('');
     setTxHashes([]);
+    setTestResult('');
   };
+
+  // Test a single transfer to the #1 holder to verify the contract works
+  const testSingleTransfer = useCallback(async () => {
+    if (!address || !nftContract || !tokenId || holders.length === 0) return;
+
+    setStatus('testing');
+    setTestResult('');
+    setErrorMsg('');
+
+    const testRecipient = holders[0].address as `0x${string}`;
+
+    try {
+      console.log('[Airdrop Test] Attempting single safeTransferFrom...');
+      console.log('[Airdrop Test] From:', address);
+      console.log('[Airdrop Test] To:', testRecipient);
+      console.log('[Airdrop Test] Contract:', nftContract);
+      console.log('[Airdrop Test] Token ID:', tokenId);
+
+      const hash = await writeContractAsync({
+        address: nftContract as `0x${string}`,
+        abi: ERC1155_ABI,
+        functionName: 'safeTransferFrom',
+        args: [
+          address,
+          testRecipient,
+          BigInt(tokenId),
+          1n,
+          '0x' as `0x${string}`,
+        ],
+        account: address,
+        chain: (agwClient as any)?.chain ?? undefined,
+      });
+
+      setTestResult(`✅ Test transfer succeeded! TX: ${hash}`);
+      setStatus('previewing');
+      toast({
+        title: 'Test Transfer Succeeded',
+        description: `Sent 1 NFT to ${testRecipient.slice(0, 8)}...`,
+      });
+
+      // Refresh balance after test
+      if (publicClient) {
+        const newBalance = await publicClient.readContract({
+          address: nftContract as `0x${string}`,
+          abi: ERC1155_ABI,
+          functionName: 'balanceOf',
+          args: [address, BigInt(tokenId)],
+        });
+        setNftBalance(newBalance as bigint);
+      }
+    } catch (err: any) {
+      console.error('[Airdrop Test] Single transfer failed:', err);
+      const msg = err.shortMessage || err.message || 'Unknown error';
+      setTestResult(`❌ Test transfer failed: ${msg}`);
+      setErrorMsg(`Single transfer failed: ${msg}. This means the NFT contract may have transfer restrictions or compatibility issues on Abstract.`);
+      setStatus('previewing');
+    }
+  }, [address, nftContract, tokenId, holders, writeContractAsync, publicClient, toast]);
 
   const fetchHolders = useCallback(async () => {
     if (!nftContract || !tokenId || !holderCount || !isConnected || !address || !publicClient) return;
@@ -140,16 +202,13 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        if (!agwClient) {
-          throw new Error('AGW client not available');
-        }
-
-        // Use AGW native sendTransactionBatch
-        const hash = await (agwClient as any).sendTransactionBatch({
-          calls: calls as any,
+        // Use EIP-5792 sendCalls (official AGW docs approach)
+        const result = await (sendCallsAsync as any)({
+          calls,
         });
 
-        setTxHashes((prev) => [...prev, hash]);
+        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
+        setTxHashes((prev) => [...prev, batchId]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
       }
@@ -170,7 +229,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         });
       }
     }
-  }, [address, holders, nftBalance, nftContract, tokenId, toast, agwClient]);
+  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
   return (
     <div className="space-y-6">
@@ -278,11 +337,11 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             </div>
           )}
 
-          {status === 'previewing' && (
+          {(status === 'previewing' || status === 'testing') && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
-                 <p className="text-sm text-gray-600">Recipients</p>
+                  <p className="text-sm text-gray-600">Recipients</p>
                   <p className="text-2xl font-bold text-black">{holders.length}</p>
                 </div>
                 <div className="bg-muted/50 rounded-xl p-4 text-center">
@@ -301,8 +360,14 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                 </div>
               </div>
 
+              {testResult && (
+                <div className={`p-3 rounded-lg text-sm font-mono ${testResult.startsWith('✅') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                  {testResult}
+                </div>
+              )}
+
               <div className="bg-muted/30 rounded-xl p-4 max-h-60 overflow-y-auto">
-              <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (top {holders.length}):</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (top {holders.length}):</p>
                 <div className="space-y-1">
                   {holders.slice(0, 20).map((h) => (
                     <div key={h.address} className="flex justify-between text-xs font-mono text-black/80">
@@ -325,6 +390,19 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               <div className="flex gap-3">
                 <Button variant="outline" onClick={resetState} className="flex-1">
                   Cancel
+                </Button>
+                <Button
+                  onClick={testSingleTransfer}
+                  variant="outline"
+                  className="flex-1 border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                  disabled={status === 'testing' || !holders.length}
+                >
+                  {status === 'testing' ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <TestTube className="w-4 h-4 mr-2" />
+                  )}
+                  Test 1 Transfer
                 </Button>
                 <Button
                   onClick={() => setStatus('confirming')}
