@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import FooterSection from '../components/FooterSection';
 import { XPTemplateCMS } from '@/components/XPTemplateCMS';
 import { HoldersDashboard } from '@/components/HoldersDashboard';
+import { NFTAirdropTool } from '@/components/NFTAirdropTool';
 
 const SESSION_KEY = 'retsba_cc_session';
 const PASSWORD_KEY = 'retsba_cc_password';
