@@ -16,6 +16,9 @@ const ERC1155_ABI = parseAbi([
 
 const BATCH_SIZE = 50;
 const SIMULATE_BATCH_SIZE = 20;
+const BATCH_INIT_RETRY_DELAYS_MS = [1200, 2000, 3000];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 type AirdropStatus = 'idle' | 'loading-holders' | 'simulating' | 'previewing' | 'confirming' | 'sending' | 'testing' | 'done' | 'error';
 
@@ -290,31 +293,44 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
 
-      try {
-        setBatchProgress({ current: i + 1, total: batches.length });
-        console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}...`);
-        const result = await (sendCallsAsync as any)({ calls: batch.calls });
-        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
-        totalSent += batch.count;
-        newHashes.push(batchId);
-        setTxHashes((prev) => [...prev, batchId]);
-        setProgress({ sent: totalSent, total: count });
-        console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
-      } catch (batchError: any) {
-        const msg = batchError?.shortMessage || batchError?.message || '';
-        const isUserRejection = /reject|denied|cancel|user refused/i.test(msg);
-        console.warn(`[Airdrop] Batch ${i + 1} issue:`, msg);
+      setBatchProgress({ current: i + 1, total: batches.length });
 
-        if (isUserRejection) {
-          // User rejected this batch approval — pause quietly without alarming error UI
+      for (let attempt = 0; attempt <= BATCH_INIT_RETRY_DELAYS_MS.length; attempt++) {
+        try {
+          console.log(`[Airdrop] Requesting approval for batch ${i + 1} of ${batches.length}${attempt > 0 ? ` (retry ${attempt})` : ''}...`);
+          const result = await (sendCallsAsync as any)({ calls: batch.calls });
+          const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
+          totalSent += batch.count;
+          newHashes.push(batchId);
+          setTxHashes((prev) => [...prev, batchId]);
           setProgress({ sent: totalSent, total: count });
-          setStatus('confirming');
-          toast({
-            title: 'Batch skipped',
-            description: `You declined batch ${i + 1}. Use "Resume" to retry remaining transfers.`,
-          });
-        } else {
-          // Genuine error
+          console.log(`[Airdrop] Batch ${i + 1} confirmed: ${batchId}`);
+          break;
+        } catch (batchError: any) {
+          const msg = batchError?.shortMessage || batchError?.message || '';
+          const isUserRejection = /reject|denied|cancel|user refused/i.test(msg);
+          const isRecoverableInitError = /failed to initialize request/i.test(msg);
+          const hasRetryRemaining = attempt < BATCH_INIT_RETRY_DELAYS_MS.length;
+
+          console.warn(`[Airdrop] Batch ${i + 1} issue:`, msg);
+
+          if (isUserRejection) {
+            setProgress({ sent: totalSent, total: count });
+            setStatus('confirming');
+            toast({
+              title: 'Batch skipped',
+              description: `You declined batch ${i + 1}. Use "Resume" to retry remaining transfers.`,
+            });
+            return;
+          }
+
+          if (isRecoverableInitError && hasRetryRemaining) {
+            const retryDelay = BATCH_INIT_RETRY_DELAYS_MS[attempt];
+            console.warn(`[Airdrop] Wallet not ready for batch ${i + 1}; retrying in ${retryDelay}ms...`);
+            await wait(retryDelay);
+            continue;
+          }
+
           console.error(`[Airdrop] Batch ${i + 1} failed:`, batchError);
           setErrorMsg(`Batch ${i + 1} encountered an error after ${totalSent}/${count} NFTs were submitted.`);
           setProgress({ sent: totalSent, total: count });
@@ -324,8 +340,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
             description: `Submitted ${totalSent}/${count}. Use "Resume" to continue.`,
             variant: 'destructive',
           });
+          return;
         }
-        return;
       }
     }
 
