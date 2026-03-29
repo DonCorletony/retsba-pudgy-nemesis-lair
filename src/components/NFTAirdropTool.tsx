@@ -387,7 +387,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
               )}
 
               <div className="bg-muted/30 rounded-xl p-4 max-h-60 overflow-y-auto">
-                <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (top {holders.length}):</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">Recipient addresses (ranks {holders[0]?.rank}–{holders[holders.length - 1]?.rank}):</p>
                 <div className="space-y-1">
                   {holders.slice(0, 20).map((h) => (
                     <div key={h.address} className="flex justify-between text-xs font-mono text-black/80">
@@ -415,7 +415,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onClick={testSingleTransfer}
                   variant="outline"
                   className="flex-1 border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                  disabled={status === 'testing' || !holders.length}
+                  disabled={status === 'testing'}
                 >
                   {status === 'testing' ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
