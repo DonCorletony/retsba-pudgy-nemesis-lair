@@ -191,8 +191,8 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
 
     const start = parseInt(rankStart);
     const end = parseInt(rankEnd);
-    if (isNaN(start) || isNaN(end) || start < 1 || end > 1001 || start > end) {
-      setErrorMsg('Invalid rank range. Start must be ≤ end, both between 1 and 1,001');
+    if (isNaN(start) || isNaN(end) || start < 1 || end > 1250 || start > end) {
+      setErrorMsg('Invalid rank range. Start must be ≤ end, both between 1 and 1,250');
       setStatus('error');
       return;
     }
@@ -379,7 +379,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onChange={(e) => setRankStart(e.target.value)}
                   type="number"
                   min="1"
-                  max="1001"
+                  max="1250"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onChange={(e) => setRankEnd(e.target.value)}
                   type="number"
                   min="1"
-                  max="1001"
+                  max="1250"
                 />
               </div>
 
