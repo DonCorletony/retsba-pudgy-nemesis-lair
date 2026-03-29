@@ -379,7 +379,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onChange={(e) => setRankStart(e.target.value)}
                   type="number"
                   min="1"
-                  max="1001"
+                  max="1250"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
                   onChange={(e) => setRankEnd(e.target.value)}
                   type="number"
                   min="1"
-                  max="1001"
+                  max="1250"
                 />
               </div>
 
