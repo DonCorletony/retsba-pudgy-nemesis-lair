@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const TOP_N = 1000;
+const TOP_N = 1001;
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dead";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ABSCAN_API_URL = "https://api.etherscan.io/v2/api";
