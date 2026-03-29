@@ -237,7 +237,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
       setErrorMsg(err.message || 'Something went wrong');
       setStatus('error');
     }
-  }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken]);
+  }, [nftContract, tokenId, rankStart, rankEnd, isConnected, address, publicClient, password, selectedToken, simulateTransfers]);
 
   const executeBatchSend = useCallback(async () => {
     if (!address || holders.length === 0) return;
