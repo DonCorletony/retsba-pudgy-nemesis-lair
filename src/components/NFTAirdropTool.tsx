@@ -140,13 +140,16 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use EIP-5792 sendCalls (supported by AGW)
-        const result = await (sendCallsAsync as any)({
-          calls,
+        if (!agwClient) {
+          throw new Error('AGW client not available');
+        }
+
+        // Use AGW native sendTransactionBatch
+        const hash = await agwClient.sendTransactionBatch({
+          calls: calls as any,
         });
 
-        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
-        setTxHashes((prev) => [...prev, batchId]);
+        setTxHashes((prev) => [...prev, hash]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
       }
