@@ -68,7 +68,6 @@ async function getAllTransferLogs(contractAddress: string, tokenId: string): Pro
   const latestBlockHex = await rpcRequest<string>("eth_blockNumber", []);
   const latestBlock = parseHexNumber(latestBlockHex);
   const startBlock = TOKEN_START_BLOCKS[tokenId] ?? 0;
-  const latestBlock = parseHexNumber(latestBlockHex);
 
   const transfers: Array<{ from: string; to: string; value: bigint }> = [];
   let fromBlock = startBlock;
