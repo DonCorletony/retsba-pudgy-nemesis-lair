@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
+import { useAccount, usePublicClient, useSendCalls } from 'wagmi';
 import { encodeFunctionData, parseAbi, isAddress } from 'viem';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ interface HolderEntry {
 export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => {
   const { isConnected, address } = useAccount();
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const { sendCallsAsync } = useSendCalls();
   const { toast } = useToast();
 
   const [nftContract, setNftContract] = useState('');
@@ -105,7 +105,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
   }, [nftContract, tokenId, holderCount, isConnected, address, publicClient, password, selectedToken]);
 
   const executeBatchSend = useCallback(async () => {
-    if (!walletClient || !address || holders.length === 0) return;
+    if (!address || holders.length === 0) return;
 
     const count = holders.length;
     const needed = BigInt(count);
@@ -139,12 +139,13 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
           }),
         }));
 
-        // Use sendCalls for EIP-5792 batch (supported by AGW)
-        const txHash = await (walletClient as any).sendTransactionBatch({
+        // Use EIP-5792 sendCalls (supported by AGW)
+        const result = await (sendCallsAsync as any)({
           calls,
         });
 
-        setTxHashes((prev) => [...prev, txHash]);
+        const batchId = typeof result === 'string' ? result : result?.id ?? 'unknown';
+        setTxHashes((prev) => [...prev, batchId]);
         totalSent += chunk.length;
         setProgress({ sent: totalSent, total: count });
       }
@@ -165,7 +166,7 @@ export const NFTAirdropTool: React.FC<{ password: string }> = ({ password }) => 
         });
       }
     }
-  }, [walletClient, address, holders, nftBalance, nftContract, tokenId, toast]);
+  }, [address, holders, nftBalance, nftContract, tokenId, toast, sendCallsAsync]);
 
   return (
     <div className="space-y-6">
