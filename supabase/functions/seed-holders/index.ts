@@ -93,9 +93,12 @@ serve(async (req) => {
       });
     }
 
-    if (!abscanApiKey) {
-      throw new Error("ABSCAN_API_KEY not configured");
+    const abscanApiKey2 = Deno.env.get("ABSCAN_API_KEY_2");
+    if (!abscanApiKey && !abscanApiKey2) {
+      throw new Error("No ABSCAN_API_KEY configured");
     }
+
+    const apiKeys = [abscanApiKey, abscanApiKey2].filter(Boolean) as string[];
 
     const contractAddress = TOKEN_CONTRACTS[tokenId];
     if (!contractAddress) {
