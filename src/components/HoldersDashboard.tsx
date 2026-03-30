@@ -84,7 +84,7 @@ export const HoldersDashboard: React.FC<{ password: string; tokenId?: string; to
     } finally {
       setLoading(false);
     }
-  }, [password, tokenId, fetchSnapshots]);
+  }, [password, tokenId, maxHolders, fetchSnapshots]);
 
   useEffect(() => {
     fetchHolders();
