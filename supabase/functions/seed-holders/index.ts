@@ -93,9 +93,12 @@ serve(async (req) => {
       });
     }
 
-    if (!abscanApiKey) {
-      throw new Error("ABSCAN_API_KEY not configured");
+    const abscanApiKey2 = Deno.env.get("ABSCAN_API_KEY_2");
+    if (!abscanApiKey && !abscanApiKey2) {
+      throw new Error("No ABSCAN_API_KEY configured");
     }
+
+    const apiKeys = [abscanApiKey, abscanApiKey2].filter(Boolean) as string[];
 
     const contractAddress = TOKEN_CONTRACTS[tokenId];
     if (!contractAddress) {
@@ -107,8 +110,25 @@ serve(async (req) => {
 
     console.log(`Seeding holder cache for ${tokenId} (${contractAddress}) via Abscan API`);
 
-    const holders = await fetchHoldersFromAbscan(contractAddress, abscanApiKey);
-    console.log(`Fetched ${holders.length} holders from Abscan`);
+    let holders: AbscanHolder[] = [];
+    let lastError: Error | null = null;
+
+    for (const key of apiKeys) {
+      try {
+        console.log(`Trying API key ending in ...${key.slice(-4)}`);
+        holders = await fetchHoldersFromAbscan(contractAddress, key);
+        console.log(`Fetched ${holders.length} holders from Abscan`);
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        console.log(`API key ...${key.slice(-4)} failed: ${lastError.message}, trying next...`);
+      }
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
 
     if (holders.length === 0) {
       throw new Error("No holders returned from Abscan API");
