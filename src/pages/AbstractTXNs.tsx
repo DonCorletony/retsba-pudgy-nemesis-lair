@@ -8,6 +8,7 @@ const TOKENS = [
   { id: 'abster', label: 'Abster', contract: '0xc325b7e2736A5202bd860F5974D0AA375E57EdE5' },
   { id: 'god', label: 'God', contract: '0x3D72DDD35cadb4e5B22CDB20b36f98077BE84284' },
   { id: 'polly', label: 'Polly', contract: '0x987CF44F3F5d854eC0703123d7fD003a8b56eBb4' },
+  { id: 'uwu69', label: 'UWU69', contract: '0xAe1454ac3d03124B4b3Fa8E6F9305f78aA004Be6' },
 ] as const;
 
 const AbstractTXNs = () => {

@@ -17,6 +17,7 @@ const TOKEN_CONTRACTS: Record<string, string> = {
   abster: "0xc325b7e2736A5202bd860F5974D0AA375E57EdE5",
   god: "0x3D72DDD35cadb4e5B22CDB20b36f98077BE84284",
   polly: "0x987CF44F3F5d854eC0703123d7fD003a8b56eBb4",
+  uwu69: "0xAe1454ac3d03124B4b3Fa8E6F9305f78aA004Be6",
 };
 
 function getSupabase() {

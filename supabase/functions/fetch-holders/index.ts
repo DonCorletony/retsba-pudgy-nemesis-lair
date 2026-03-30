@@ -11,7 +11,7 @@ const ABSTRACT_RPC_URL = "https://api.mainnet.abs.xyz";
 const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
 const CACHE_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const TX_COUNT_BATCH_SIZE = 100;
-const SUPPORTED_TOKEN_IDS = new Set(["retsba", "abster", "god", "polly"]);
+const SUPPORTED_TOKEN_IDS = new Set(["retsba", "abster", "god", "polly", "uwu69"]);
 
 type CacheRow = {
   rank: number;
