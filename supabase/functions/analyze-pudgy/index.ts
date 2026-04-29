@@ -1266,7 +1266,7 @@ BODY TRAIT EXAMPLES:
 - "Hoodie_Orange" = An ORANGE hoodie with WHITE igloo logo on the front.
 - "Hoodie_Purple" = A PURPLE hoodie with WHITE igloo logo on the front.
 - "Puffer_Orange" = An ORANGE sleeveless puffer jacket. Distinguished from Puffer_Red by its orange color.
-- "Puffer_Blue" = A BLUE sleeveless puffer jacket.
+- "Puffer_Blue" = An ALL-BLUE SLEEVELESS QUILTED puffer vest. ENTIRELY blue from top to bottom (no black anywhere). Has visible HORIZONTAL QUILTED PUFF SEGMENTS like a vest. NO sleeves, NO zipper running down a black center, NO black background. If the garment is BLACK with blue accents → that is Ice_Coat, NOT Puffer_Blue.
 - "Puffer_Green" = A GREEN sleeveless puffer jacket.
 - "Puffer_Black" = A BLACK sleeveless puffer jacket.
 - "Puffer_Red" = A RED sleeveless puffer jacket. Distinguished from Puffer_Orange by its red color.
