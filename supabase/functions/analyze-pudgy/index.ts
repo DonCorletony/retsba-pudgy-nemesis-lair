@@ -1266,7 +1266,7 @@ BODY TRAIT EXAMPLES:
 - "Hoodie_Orange" = An ORANGE hoodie with WHITE igloo logo on the front.
 - "Hoodie_Purple" = A PURPLE hoodie with WHITE igloo logo on the front.
 - "Puffer_Orange" = An ORANGE sleeveless puffer jacket. Distinguished from Puffer_Red by its orange color.
-- "Puffer_Blue" = A BLUE sleeveless puffer jacket.
+- "Puffer_Blue" = An ALL-BLUE SLEEVELESS QUILTED puffer vest. ENTIRELY blue from top to bottom (no black anywhere). Has visible HORIZONTAL QUILTED PUFF SEGMENTS like a vest. NO sleeves, NO zipper running down a black center, NO black background. If the garment is BLACK with blue accents → that is Ice_Coat, NOT Puffer_Blue.
 - "Puffer_Green" = A GREEN sleeveless puffer jacket.
 - "Puffer_Black" = A BLACK sleeveless puffer jacket.
 - "Puffer_Red" = A RED sleeveless puffer jacket. Distinguished from Puffer_Orange by its red color.
@@ -1293,7 +1293,7 @@ BODY TRAIT EXAMPLES:
 - "Poncho_Pink" = A light PINK poncho with darker pink large triangle design on it.
 - "Surfboard_Necklace" = A BLACK string necklace with a BLUE surfboard pendant on it.
 - "Christmas_Lights" = A string of RED and WHITE christmas lights around the neck.
-- "Ice_Coat" = A BLACK akatsuki-style cloak with BLUE details and BLUE zipper down the center.
+- "Ice_Coat" = A BLACK akatsuki-style CLOAK/ROBE with bright CYAN/ICE-BLUE puffy details on the shoulders and a BLUE ZIPPER running down a BLACK center panel. The garment is PREDOMINANTLY BLACK with blue accents — NOT all blue. The cloak DRAPES over the shoulders (it is NOT a quilted vest). If you see a BLACK garment with blue puffy shoulder pads and a center zipper, it is ALWAYS Ice_Coat and NEVER Puffer_Blue.
 - "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW designs on it and YELLOW zipper down the center. This coat is ALWAYS black with yellow details; if the garment is WHITE with a BLACK triangle pattern, that is NEVER "Electric_Coat" and should instead be classified as "Kimono_White".
 - "Tribal_Necklace" = A BLACK string necklace with multiple OFF-WHITE triangle shapes hanging off of it.
 - "Heart" = A lone heart on the Pudgy's chest.
@@ -1944,6 +1944,15 @@ Return ONLY valid JSON in this exact format:
           traits.traits.body = traitName;
           break;
         }
+      }
+    }
+    
+    // BODY OVERRIDE: Puffer_Blue → Ice_Coat when description hints at black cloak / akatsuki / zipper
+    if (traits.traits?.body === "Puffer_Blue") {
+      const cloakHints = ["cloak", "akatsuki", "robe", "zipper", "black coat", "black jacket", "black with blue", "dark coat", "dark jacket"];
+      if (cloakHints.some(h => description.includes(h))) {
+        console.log("BODY OVERRIDE: Puffer_Blue + cloak/akatsuki/zipper hint in description → Ice_Coat");
+        traits.traits.body = "Ice_Coat";
       }
     }
     
