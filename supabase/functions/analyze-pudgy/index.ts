@@ -1947,6 +1947,15 @@ Return ONLY valid JSON in this exact format:
       }
     }
     
+    // BODY OVERRIDE: Puffer_Blue → Ice_Coat when description hints at black cloak / akatsuki / zipper
+    if (traits.traits?.body === "Puffer_Blue") {
+      const cloakHints = ["cloak", "akatsuki", "robe", "zipper", "black coat", "black jacket", "black with blue", "dark coat", "dark jacket"];
+      if (cloakHints.some(h => description.includes(h))) {
+        console.log("BODY OVERRIDE: Puffer_Blue + cloak/akatsuki/zipper hint in description → Ice_Coat");
+        traits.traits.body = "Ice_Coat";
+      }
+    }
+    
     console.log("Final traits after global overrides:", JSON.stringify(traits.traits));
  
     // Validate and normalize the body trait
