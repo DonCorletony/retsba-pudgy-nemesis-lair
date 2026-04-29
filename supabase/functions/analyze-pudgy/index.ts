@@ -1293,7 +1293,7 @@ BODY TRAIT EXAMPLES:
 - "Poncho_Pink" = A light PINK poncho with darker pink large triangle design on it.
 - "Surfboard_Necklace" = A BLACK string necklace with a BLUE surfboard pendant on it.
 - "Christmas_Lights" = A string of RED and WHITE christmas lights around the neck.
-- "Ice_Coat" = A BLACK akatsuki-style cloak with BLUE details and BLUE zipper down the center.
+- "Ice_Coat" = A BLACK akatsuki-style CLOAK/ROBE with bright CYAN/ICE-BLUE puffy details on the shoulders and a BLUE ZIPPER running down a BLACK center panel. The garment is PREDOMINANTLY BLACK with blue accents — NOT all blue. The cloak DRAPES over the shoulders (it is NOT a quilted vest). If you see a BLACK garment with blue puffy shoulder pads and a center zipper, it is ALWAYS Ice_Coat and NEVER Puffer_Blue.
 - "Electric_Coat" = A BLACK akatsuki-style cloak with YELLOW designs on it and YELLOW zipper down the center. This coat is ALWAYS black with yellow details; if the garment is WHITE with a BLACK triangle pattern, that is NEVER "Electric_Coat" and should instead be classified as "Kimono_White".
 - "Tribal_Necklace" = A BLACK string necklace with multiple OFF-WHITE triangle shapes hanging off of it.
 - "Heart" = A lone heart on the Pudgy's chest.
