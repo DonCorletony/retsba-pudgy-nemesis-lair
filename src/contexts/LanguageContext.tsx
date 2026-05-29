@@ -24,7 +24,7 @@ export const LANGUAGES: Language[] = [
 
 type TranslationKey = 
   // Nav
-  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'claim' | 'buyNow'
+  | 'home' | 'about' | 'tradePerps' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'claim' | 'buyNow'
   | 'darkMode' | 'language' | 'signIn' | 'signUp' | 'signInSignUp' | 'signOut'
   | 'profile' | 'search' | 'searchProfiles' | 'searchPlaceholder' | 'noResults' | 'searching'
   // XP Card
