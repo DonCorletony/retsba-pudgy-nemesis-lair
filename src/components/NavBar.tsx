@@ -411,7 +411,16 @@ const NavBar = () => {
                   {t('about').toUpperCase()}
                 </button>
                 <a 
-                  href="https://giphy.com/channel/Retsba" 
+                  href="https://perpetual.retsba.com" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('tradePerps').toUpperCase()}
+                </a>
+                <a 
+                  href="https://giphy.com/channel/Retsba"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
@@ -641,7 +650,16 @@ const NavBar = () => {
               {t('about')}
             </button>
             <a 
-              href="https://giphy.com/channel/Retsba" 
+              href="https://perpetual.retsba.com" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              {t('tradePerps')}
+            </a>
+            <a 
+              href="https://giphy.com/channel/Retsba"
               target="_blank"
               rel="noopener noreferrer"
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
