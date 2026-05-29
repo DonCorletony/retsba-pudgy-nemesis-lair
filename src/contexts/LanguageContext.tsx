@@ -24,7 +24,7 @@ export const LANGUAGES: Language[] = [
 
 type TranslationKey = 
   // Nav
-  | 'home' | 'about' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'claim' | 'buyNow'
+  | 'home' | 'about' | 'tradePerps' | 'giphy' | 'memes' | 'xpCard' | 'pfp' | 'wallpapers' | 'claim' | 'buyNow'
   | 'darkMode' | 'language' | 'signIn' | 'signUp' | 'signInSignUp' | 'signOut'
   | 'profile' | 'search' | 'searchProfiles' | 'searchPlaceholder' | 'noResults' | 'searching'
   // XP Card
@@ -58,6 +58,7 @@ const translations: Translations = {
     // Nav
     home: 'Home',
     about: 'About',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Memes',
     xpCard: 'XP Card',
@@ -154,6 +155,7 @@ const translations: Translations = {
   es: {
     home: 'Inicio',
     about: 'Acerca de',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Memes',
     xpCard: 'Tarjeta XP',
@@ -243,6 +245,7 @@ const translations: Translations = {
   ja: {
     home: 'ホーム',
     about: '概要',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'ミーム',
     xpCard: 'XPカード',
@@ -332,6 +335,7 @@ const translations: Translations = {
   ko: {
     home: '홈',
     about: '소개',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: '밈',
     xpCard: 'XP 카드',
@@ -421,6 +425,7 @@ const translations: Translations = {
   zh: {
     home: '首页',
     about: '关于',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: '表情包',
     xpCard: 'XP卡片',
@@ -510,6 +515,7 @@ const translations: Translations = {
   fr: {
     home: 'Accueil',
     about: 'À propos',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Mèmes',
     xpCard: 'Carte XP',
@@ -599,6 +605,7 @@ const translations: Translations = {
   de: {
     home: 'Startseite',
     about: 'Über uns',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Memes',
     xpCard: 'XP-Karte',
@@ -688,6 +695,7 @@ const translations: Translations = {
   pt: {
     home: 'Início',
     about: 'Sobre',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Memes',
     xpCard: 'Cartão XP',
@@ -777,6 +785,7 @@ const translations: Translations = {
   ru: {
     home: 'Главная',
     about: 'О нас',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'Мемы',
     xpCard: 'XP Карта',
@@ -866,6 +875,7 @@ const translations: Translations = {
   ar: {
     home: 'الرئيسية',
     about: 'حول',
+    tradePerps: 'Trade Perps',
     giphy: 'Giphy',
     memes: 'ميمز',
     xpCard: 'بطاقة XP',
