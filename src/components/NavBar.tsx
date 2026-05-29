@@ -410,6 +410,22 @@ const NavBar = () => {
                 >
                   {t('about').toUpperCase()}
                 </button>
+                <button 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => {
+                    navigateToSection('buy-now');
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {t('buyNow').toUpperCase()}
+                </button>
+                <a 
+                  href="/claim" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('claim').toUpperCase()}
+                </a>
                 <a 
                   href="https://perpetual.retsba.com" 
                   target="_blank"
@@ -420,13 +436,18 @@ const NavBar = () => {
                   {t('tradePerps').toUpperCase()}
                 </a>
                 <a 
-                  href="https://giphy.com/channel/Retsba"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/pfp" 
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t('giphy').toUpperCase()}
+                  {t('pfp').toUpperCase()}
+                </a>
+                <a 
+                  href="/xp" 
+                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('xpCard').toUpperCase()}
                 </a>
                 <a 
                   href="https://memedepot.com/d/retsba" 
@@ -438,18 +459,13 @@ const NavBar = () => {
                   {t('memes').toUpperCase()}
                 </a>
                 <a 
-                  href="/xp" 
+                  href="https://giphy.com/channel/Retsba"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t('xpCard').toUpperCase()}
-                </a>
-                <a 
-                  href="/pfp" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('pfp').toUpperCase()}
+                  {t('giphy').toUpperCase()}
                 </a>
                 <a 
                   href="/wallpapers" 
@@ -458,22 +474,6 @@ const NavBar = () => {
                 >
                   {t('wallpapers').toUpperCase()}
                 </a>
-                <a 
-                  href="/claim" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('claim').toUpperCase()}
-                </a>
-                <button 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                  onClick={() => {
-                    navigateToSection('buy-now');
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  {t('buyNow').toUpperCase()}
-                </button>
                 
                 {/* Auth/Profile Button for Mobile - Hidden temporarily */}
                 {user && (
@@ -649,6 +649,22 @@ const NavBar = () => {
             >
               {t('about')}
             </button>
+            <button 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
+              onClick={() => {
+                navigateToSection('buy-now');
+                setIsDropdownOpen(false);
+              }}
+            >
+              {t('buyNow')}
+            </button>
+            <a 
+              href="/claim" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              {t('claim')}
+            </a>
             <a 
               href="https://perpetual.retsba.com" 
               target="_blank"
@@ -659,13 +675,18 @@ const NavBar = () => {
               {t('tradePerps')}
             </a>
             <a 
-              href="https://giphy.com/channel/Retsba"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/pfp" 
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              {t('giphy')}
+              {t('pfp')}
+            </a>
+            <a 
+              href="/xp" 
+              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              {t('xpCard')}
             </a>
             <a 
               href="https://memedepot.com/d/retsba" 
@@ -677,18 +698,13 @@ const NavBar = () => {
               {t('memes')}
             </a>
             <a 
-              href="/xp" 
+              href="https://giphy.com/channel/Retsba"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              {t('xpCard')}
-            </a>
-            <a 
-              href="/pfp" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
-              onClick={() => setIsDropdownOpen(false)}
-            >
-              {t('pfp')}
+              {t('giphy')}
             </a>
             <a 
               href="/wallpapers" 
@@ -697,22 +713,6 @@ const NavBar = () => {
             >
               {t('wallpapers')}
             </a>
-            <a 
-              href="/claim" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
-              onClick={() => setIsDropdownOpen(false)}
-            >
-              {t('claim')}
-            </a>
-            <button 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
-              onClick={() => {
-                navigateToSection('buy-now');
-                setIsDropdownOpen(false);
-              }}
-            >
-              {t('buyNow')}
-            </button>
             
             {/* Dark Mode Toggle */}
             <div className="flex items-center justify-between py-4 mt-8">
