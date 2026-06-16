@@ -420,15 +420,6 @@ const NavBar = () => {
                   {t('buyNow').toUpperCase()}
                 </button>
                 <a 
-                  href="https://perpetual.retsba.com" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('tradePerps').toUpperCase()}
-                </a>
-                <a 
                   href="/claim" 
                   className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
