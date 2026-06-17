@@ -9,10 +9,10 @@ const FooterSection = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-8 md:mb-0">
-            <img 
-              src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
-              alt="RETSBA" 
-              className="h-16"
+            <img
+              src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png"
+              alt="RETSBA"
+              className="h-[83px]"
             />
           </div>
           

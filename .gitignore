@@ -35,10 +35,15 @@ public/art/*
 !public/art/cut-*.png
 !public/art/scene-*.png
 
-# Ad source originals — keep only the optimized web JPEGs.
+# Ad source originals — keep only the optimized web JPEGs (desktop + mobile).
 public/ads/*
 !public/ads/ad-1.jpg
 !public/ads/summer-2026.jpg
+!public/ads/ad-1-mobile.jpg
+!public/ads/summer-2026-mobile.jpg
+
+# Logo source (un-optimized) — only the web logo ships.
+public/logos/the retsba shop.png
 
 # Merch source folders/originals — keep only the optimized gallery.
 public/merch/*

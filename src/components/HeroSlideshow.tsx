@@ -3,15 +3,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Slide {
-  src: string;
+  srcDesktop: string;
+  srcMobile: string;
   href: string;
   alt: string;
 }
 
-// Front Page Ad 1 shows first; auto-advances to Ad 2. Add more slides here.
+// Ad 1 shows first; auto-advances to Ad 2. Each slide has a desktop (16:9) and a
+// mobile (~square) image; the browser picks one at the 768px breakpoint.
 const SLIDES: Slide[] = [
-  { src: '/ads/ad-1.jpg', href: '#merch', alt: 'Front Page Ad 1' },
-  { src: '/ads/summer-2026.jpg', href: '#merch', alt: 'Shop Summer 2026 Merch' },
+  { srcDesktop: '/ads/ad-1.jpg', srcMobile: '/ads/ad-1-mobile.jpg', href: '#merch', alt: 'The Retsba Shop is live' },
+  { srcDesktop: '/ads/summer-2026.jpg', srcMobile: '/ads/summer-2026-mobile.jpg', href: '#merch', alt: 'Shop Summer 2026 merch' },
 ];
 
 const AUTO_MS = 6000;    // normal auto-advance interval
@@ -25,8 +27,6 @@ const HeroSlideshow = () => {
   const touch = useRef({ x: 0 });
   const n = SLIDES.length;
 
-  // Auto-advance. Runs on every idx change: 6s normally, but 30s for the single
-  // cycle that follows a manual nav, then it settles back to 6s.
   useEffect(() => {
     if (n < 2) return;
     const delay = manualRef.current ? RESUME_MS : AUTO_MS;
@@ -47,7 +47,8 @@ const HeroSlideshow = () => {
         if (n > 1 && Math.abs(dx) > 40) { if (dx < 0) go(1); else go(-1); }
       }}
     >
-      <div className="relative aspect-[16/9]">
+      {/* Mobile ads are ~square; desktop ads are 16:9 — match the container so neither crops. */}
+      <div className="relative aspect-[721/683] md:aspect-[16/9]">
         {SLIDES.map((s, i) => (
           <a
             key={i}
@@ -57,12 +58,15 @@ const HeroSlideshow = () => {
               i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'
             )}
           >
-            <img
-              src={s.src}
-              alt={s.alt}
-              onError={(e) => { e.currentTarget.src = FALLBACK; }}
-              className="w-full h-full object-cover"
-            />
+            <picture>
+              <source media="(max-width: 767px)" srcSet={s.srcMobile} />
+              <img
+                src={s.srcDesktop}
+                alt={s.alt}
+                onError={(e) => { e.currentTarget.src = FALLBACK; }}
+                className="w-full h-full object-cover"
+              />
+            </picture>
           </a>
         ))}
       </div>

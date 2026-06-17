@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
-import SectionHeading from './ui/SectionHeading';
 import Button3D from './ui/Button3D';
 import ProductCard from './ProductCard';
 import MerchLightbox from './MerchLightbox';
@@ -13,7 +12,14 @@ const MerchSection = () => {
   return (
     <section id="merch" className="py-24 md:py-28 bg-retsba relative overflow-hidden">
       <div className="container mx-auto px-4">
-        <SectionHeading size="text-[5.4rem] md:text-[6.75rem]">WEAR THE VILLAIN</SectionHeading>
+        <div className="text-center">
+          <img
+            src="/logos/retsba-shop.png"
+            alt="The Retsba Shop"
+            className="mx-auto w-full max-w-[600px]"
+          />
+          <div className="mx-auto mt-5 h-1.5 w-24 rounded-full bg-ink dark:bg-white" />
+        </div>
         <p className="font-body text-ink dark:text-white text-[1.625rem] text-center max-w-2xl mx-auto mt-6">
           Standard-issue gear from the depths of Anti-Abstract.
         </p>
