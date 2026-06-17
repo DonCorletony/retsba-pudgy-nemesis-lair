@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage, LANGUAGES, LanguageCode } from '@/contexts/LanguageContext';
 import { useMobileNav } from '@/contexts/MobileNavContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -59,6 +60,7 @@ const NavBar = () => {
   const { isOpen: isMobileMenuOpen, setIsOpen: setIsMobileMenuOpen } = useMobileNav();
   const isMobile = useIsMobile();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -257,99 +259,111 @@ const NavBar = () => {
     }
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
+
+  // Bubble → full-width header on scroll; reverts to bubble only at the very top.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 6);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   
   return (
     <>
-      <motion.nav 
-        className="fixed top-0 left-0 w-full z-50 bg-retsba py-2"
+      <motion.nav
+        className={cn(
+          "fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-out",
+          scrolled ? "p-0" : "px-3 pt-3 md:px-5 md:pt-4"
+        )}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => {
-                  if (location.pathname === '/') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  } else {
-                    navigate('/');
-                  }
-                }}
-                className="flex items-center hover:opacity-80 transition-opacity"
-              >
-                <img 
-                  src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
-                  alt="RETSBA" 
-                  className="h-10"
-                />
-              </button>
-              
-              {/* Search Icon */}
-              <button
-                onClick={() => setSearchModalOpen(true)}
-                className="text-white hover:text-gray-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
-              >
-                <Search className="h-5 w-5" />
-              </button>
+        <div className={cn("transition-all duration-300 ease-out", scrolled ? "w-full" : "container mx-auto")}>
+          <div className={cn(
+            "relative flex justify-between items-center bg-white dark:bg-[#1b1d20] px-4 md:px-6 py-2.5 transition-all duration-300 ease-out",
+            scrolled
+              ? "rounded-none shadow-[0_4px_14px_rgba(0,0,0,0.18)]"
+              : "rounded-2xl shadow-[0_6px_0_rgba(0,0,0,0.15)]"
+          )}>
+            {/* Left: Connect AGW (desktop) */}
+            <div className="flex items-center">
+              <div className="hidden md:block">
+                <AGWConnect />
+              </div>
             </div>
+
+            {/* Center: RETSBA logo */}
+            <button
+              onClick={() => {
+                if (location.pathname === '/') {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  navigate('/');
+                }
+              }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="/logos/logo-bordered.png"
+                alt="RETSBA"
+                className="h-10"
+              />
+            </button>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-4">
               {/* Token Balance Counters */}
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+              <div className="flex items-center bg-black/5 dark:bg-white/10 rounded-full px-3 py-1.5 border border-black/10 dark:border-white/20">
                 <div className="relative mr-2">
-                  <img 
-                    src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
+                  <img
+                    src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png"
                     alt="RETSBA Token"
                     className="w-6 h-6 rounded-full"
                   />
                 </div>
-                <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                <span className="text-ink dark:text-white font-medium text-sm min-w-[50px] text-right">
                   {formattedRetsbaBalance}
                 </span>
               </div>
-              
+
               {/* Abstract ETH Balance Counter */}
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+              <div className="flex items-center bg-black/5 dark:bg-white/10 rounded-full px-3 py-1.5 border border-black/10 dark:border-white/20">
                 <div className="relative mr-2">
-                  <img 
-                    src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
+                  <img
+                    src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png"
                     alt="Abstract ETH"
                     className="w-6 h-6 rounded-full"
                   />
-                  <img 
+                  <img
                     src="/lovable-uploads/de3bec85-f2dd-46c7-a561-22069040d3ee.png"
                     alt="Abstract badge"
                     className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
                   />
                 </div>
-                <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                <span className="text-ink dark:text-white font-medium text-sm min-w-[50px] text-right">
                   {formattedEthBalance}
                 </span>
               </div>
-              
-              <AGWConnect />
-              
+
               {/* Hamburger Menu Button */}
-              <button 
+              <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="text-white focus:outline-none p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="text-gray-600 dark:text-gray-300 focus:outline-none p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors"
               >
                 <div className="flex flex-col space-y-1">
-                  <div className="w-5 h-0.5 bg-white"></div>
-                  <div className="w-5 h-0.5 bg-white"></div>
-                  <div className="w-5 h-0.5 bg-white"></div>
+                  <div className="w-5 h-0.5 bg-gray-500 dark:bg-gray-300"></div>
+                  <div className="w-5 h-0.5 bg-gray-500 dark:bg-gray-300"></div>
+                  <div className="w-5 h-0.5 bg-gray-500 dark:bg-gray-300"></div>
                 </div>
               </button>
             </div>
             
             {/* Mobile Menu Button */}
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-white focus:outline-none"
+                className="text-gray-600 dark:text-gray-300 focus:outline-none"
               >
                 {isMobileMenuOpen ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
@@ -368,7 +382,7 @@ const NavBar = () => {
         {/* Mobile Menu - Full screen push-style sidebar */}
         {isMobile && (
           <motion.div 
-            className="md:hidden fixed top-0 right-0 w-full h-full bg-retsba z-[60] overflow-y-auto scrollbar-none"
+            className="md:hidden fixed top-0 right-0 w-full h-full bg-white dark:bg-[#121416] z-[60] overflow-y-auto scrollbar-none"
             initial={{ x: '100%' }}
             animate={{ x: isMobileMenuOpen ? 0 : '100%' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -377,14 +391,14 @@ const NavBar = () => {
             <div className="flex items-center justify-between p-4">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-white hover:text-gray-300 transition-colors p-2"
+                className="text-ink dark:text-white hover:opacity-70 transition-opacity p-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               <img 
-                src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+                src="/logos/logo-bordered.png" 
                 alt="RETSBA" 
                 className="h-8"
               />
@@ -396,13 +410,13 @@ const NavBar = () => {
               <div className="flex flex-col space-y-1.5">
                 <a 
                   href="/" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('home').toUpperCase()}
                 </a>
                 <button 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => {
                     navigateToSection('about');
                     setIsMobileMenuOpen(false);
@@ -411,7 +425,7 @@ const NavBar = () => {
                   {t('about').toUpperCase()}
                 </button>
                 <button 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => {
                     navigateToSection('buy-now');
                     setIsMobileMenuOpen(false);
@@ -421,21 +435,21 @@ const NavBar = () => {
                 </button>
                 <a 
                   href="/claim" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('claim').toUpperCase()}
                 </a>
                 <a 
                   href="/pfp" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('pfp').toUpperCase()}
                 </a>
                 <a 
                   href="/xp" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('xpCard').toUpperCase()}
@@ -444,7 +458,7 @@ const NavBar = () => {
                   href="https://memedepot.com/d/retsba" 
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('memes').toUpperCase()}
@@ -453,14 +467,14 @@ const NavBar = () => {
                   href="https://giphy.com/channel/Retsba"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('giphy').toUpperCase()}
                 </a>
                 <a 
                   href="/wallpapers" 
-                  className="text-stroke text-white hover:text-black transition-colors py-2 text-xl text-left"
+                  className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('wallpapers').toUpperCase()}
@@ -479,7 +493,7 @@ const NavBar = () => {
                 
                 {/* Mobile Token Balance Counters */}
                 <div className="flex flex-col space-y-2 pt-2">
-                  <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                  <div className="flex items-center bg-black/5 dark:bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-black/10 dark:border-white/20">
                     <div className="relative mr-2">
                       <img 
                         src="/lovable-uploads/c8028943-ca48-47ea-9dbd-8378147d5a96.png" 
@@ -487,12 +501,12 @@ const NavBar = () => {
                         className="w-6 h-6 rounded-full"
                       />
                     </div>
-                    <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                    <span className="text-ink dark:text-white font-medium text-sm min-w-[50px] text-right">
                       {formattedRetsbaBalance}
                     </span>
                   </div>
                   
-                  <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
+                  <div className="flex items-center bg-black/5 dark:bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-black/10 dark:border-white/20">
                     <div className="relative mr-2">
                       <img 
                         src="/lovable-uploads/e836e80c-7019-443e-bdf3-bafb4f35aa92.png" 
@@ -505,7 +519,7 @@ const NavBar = () => {
                         className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
                       />
                     </div>
-                    <span className="text-white font-medium text-sm min-w-[50px] text-right">
+                    <span className="text-ink dark:text-white font-medium text-sm min-w-[50px] text-right">
                       {formattedEthBalance}
                     </span>
                   </div>
@@ -516,8 +530,8 @@ const NavBar = () => {
                 </div>
                 
                 {/* Dark Mode Toggle for Mobile */}
-                <div className="flex items-center justify-between py-3 mt-3 border-t border-white/20">
-                  <Label htmlFor="mobile-dark-mode" className="text-white text-lg">
+                <div className="flex items-center justify-between py-3 mt-3 border-t border-black/10 dark:border-white/20">
+                  <Label htmlFor="mobile-dark-mode" className="text-ink dark:text-white text-lg">
                     {t('darkMode')}
                   </Label>
                   <Switch
@@ -529,11 +543,11 @@ const NavBar = () => {
                 
                 {/* Language Selector for Mobile */}
                 <div className="flex items-center justify-between pt-1 pb-3">
-                  <Label className="text-white text-lg">
+                  <Label className="text-ink dark:text-white text-lg">
                     {t('language')}
                   </Label>
                   <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
-                    <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
+                    <SelectTrigger className="w-[120px] bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-ink dark:text-white">
                       <SelectValue>
                         <span className="flex items-center gap-2">
                           <span>{currentLanguage.flag}</span>
@@ -566,7 +580,7 @@ const NavBar = () => {
                         await supabase.auth.signOut();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="text-white/70 hover:text-white text-sm transition-colors"
+                      className="text-ink/60 dark:text-white/70 hover:text-ink dark:hover:text-white text-sm transition-colors"
                     >
                       {t('signOut')}
                     </button>
@@ -588,7 +602,7 @@ const NavBar = () => {
 
       {/* Slide-out Sidebar */}
       <motion.div
-        className="fixed top-0 right-0 h-full w-80 bg-retsba z-50 shadow-2xl overflow-y-auto scrollbar-none"
+        className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-[#121416] z-50 shadow-2xl overflow-y-auto scrollbar-none"
         initial={{ x: '100%' }}
         animate={{ x: isDropdownOpen ? 0 : '100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -597,14 +611,14 @@ const NavBar = () => {
         <div className="flex items-center justify-between p-4">
           <button
             onClick={() => setIsDropdownOpen(false)}
-            className="text-white hover:text-gray-300 transition-colors p-2"
+            className="text-ink dark:text-white hover:opacity-70 transition-opacity p-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <img 
-            src="/lovable-uploads/c194c553-4308-4953-85e4-fc967b5dbacd.png" 
+            src="/logos/logo-bordered.png" 
             alt="RETSBA" 
             className="h-8"
           />
@@ -626,13 +640,13 @@ const NavBar = () => {
           <div className="flex flex-col space-y-3">
             <a 
               href="/" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('home')}
             </a>
             <button 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20 text-left"
               onClick={() => {
                 navigateToSection('about');
                 setIsDropdownOpen(false);
@@ -641,7 +655,7 @@ const NavBar = () => {
               {t('about')}
             </button>
             <button 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20 text-left"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20 text-left"
               onClick={() => {
                 navigateToSection('buy-now');
                 setIsDropdownOpen(false);
@@ -651,21 +665,21 @@ const NavBar = () => {
             </button>
             <a 
               href="/claim" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('claim')}
             </a>
             <a 
               href="/pfp" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('pfp')}
             </a>
             <a 
               href="/xp" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('xpCard')}
@@ -674,7 +688,7 @@ const NavBar = () => {
               href="https://memedepot.com/d/retsba" 
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('memes')}
@@ -683,14 +697,14 @@ const NavBar = () => {
               href="https://giphy.com/channel/Retsba"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('giphy')}
             </a>
             <a 
               href="/wallpapers" 
-              className="text-stroke text-white text-2xl font-bold hover:text-gray-300 transition-colors py-2 border-b border-white/20"
+              className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
               {t('wallpapers')}
@@ -698,7 +712,7 @@ const NavBar = () => {
             
             {/* Dark Mode Toggle */}
             <div className="flex items-center justify-between py-4 mt-8">
-              <Label htmlFor="dark-mode" className="text-white text-lg">
+              <Label htmlFor="dark-mode" className="text-ink dark:text-white text-lg">
                 {t('darkMode')}
               </Label>
               <Switch
@@ -710,11 +724,11 @@ const NavBar = () => {
             
             {/* Language Selector */}
             <div className="flex items-center justify-between pt-1.5 pb-4">
-              <Label className="text-white text-lg">
+              <Label className="text-ink dark:text-white text-lg">
                 {t('language')}
               </Label>
               <Select value={language} onValueChange={(val) => setLanguage(val as LanguageCode)}>
-                <SelectTrigger className="w-[120px] bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="w-[120px] bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-ink dark:text-white">
                   <SelectValue>
                     <span className="flex items-center gap-2">
                       <span>{currentLanguage.flag}</span>
@@ -747,7 +761,7 @@ const NavBar = () => {
                     await supabase.auth.signOut();
                     setIsDropdownOpen(false);
                   }}
-                  className="text-white/70 hover:text-white text-sm transition-colors"
+                  className="text-ink/60 dark:text-white/70 hover:text-ink dark:hover:text-white text-sm transition-colors"
                 >
                   {t('signOut')}
                 </button>

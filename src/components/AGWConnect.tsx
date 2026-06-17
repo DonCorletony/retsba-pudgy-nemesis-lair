@@ -37,7 +37,7 @@ export const AGWConnect = () => {
     return (
       <Button
         onClick={handleDisconnect}
-        className="bg-retsba hover:bg-retsba/90 text-white"
+        className="bg-white dark:bg-[#0a0a0a] text-ink dark:text-white border-2 border-ink dark:border-white shadow-md hover:opacity-90 transition-opacity"
       >
         {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
       </Button>
@@ -47,7 +47,7 @@ export const AGWConnect = () => {
   return (
     <Button
       onClick={handleConnect}
-      className="bg-primary hover:bg-primary/90 text-white"
+      className="bg-white dark:bg-[#0a0a0a] text-ink dark:text-white border-2 border-ink dark:border-white shadow-md hover:opacity-90 transition-opacity"
     >
       {t('connectAGW')} AGW
     </Button>

@@ -22,3 +22,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local tooling / temp (RETSBA migration)
+.claude/
+_art_manifest.txt
+
+# Art source library — only the web-optimized files ship; the ~280 source
+# images (incl. the X posts folder) stay out of the repo and the deploy.
+public/art/*
+!public/art/door-*.png
+!public/art/feature-*.png
+!public/art/cut-*.png
+!public/art/scene-*.png
+
+# Ad source originals — keep only the optimized web JPEGs.
+public/ads/*
+!public/ads/ad-1.jpg
+!public/ads/summer-2026.jpg
+
+# Merch source folders/originals — keep only the optimized gallery.
+public/merch/*
+!public/merch/gallery
+!public/merch/gallery/**

@@ -1,5 +1,22 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Impact&family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* ── Brand fonts (matched to Pudgy Penguins: TT Trailers + Menco) ── */
+@font-face {
+  font-family: 'TT Trailers';
+  src: url('/fonts/TTTrailers-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Menco';
+  src: url('/fonts/Menco-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -7,9 +24,9 @@
 
 @layer base {
   :root {
-    --retsba-color: #EDB6B9;
-    --background: 352 58% 82%;
-    --foreground: 0 0% 100%;
+    --retsba-color: #ffffff;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -77,16 +94,48 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Menco', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-.text-stroke {
-  font-family: 'Anton', 'Impact', sans-serif;
+/* Display / heading type — TT Trailers (matches Pudgy's title face) */
+.text-stroke,
+.font-display {
+  font-family: 'TT Trailers', 'Anton', 'Impact', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
-  font-weight: 400;
-  letter-spacing: 0.02em;
+}
+
+/* White fill + THICK puffy black outline with a hard 3D extrude + soft ground
+   shadow (the Pudgy "sticker" headline look). Stroke + shadows use em units so
+   thickness scales with font-size — big headlines get big outlines.
+   paint-order keeps the stroke behind the fill so letterforms stay full. */
+.text-outline {
+  color: #ffffff;
+  -webkit-text-stroke: 0.085em #0a0a0a;
+  paint-order: stroke fill;
+  filter:
+    drop-shadow(0 0.045em 0 #0a0a0a)
+    drop-shadow(0 0.11em 0.06em rgba(0, 0, 0, 0.35));
+}
+
+/* Medium outline for buttons / subtitles / labels */
+.text-outline-sm {
+  color: #ffffff;
+  -webkit-text-stroke: 0.055em #0a0a0a;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0.03em 0 #0a0a0a);
+}
+
+/* Thin outline to keep white body text crisp on the pink background */
+.text-outline-hair {
+  -webkit-text-stroke: 0.03em #0a0a0a;
+  paint-order: stroke fill;
 }
 
 .pulse-animation {
@@ -125,6 +174,41 @@
 .dark-mode {
   --retsba-color: #121416;
   --primary: 210 11% 8%; /* Very dark gray #121416 in HSL */
+}
+
+/* 3D press-compress pill buttons (the one signature interaction, reused everywhere).
+   Hard offset shadow compresses on :active. */
+.btn-3d {
+  @apply inline-flex items-center justify-center gap-2 rounded-[1.75rem] px-8 py-4
+    font-display text-2xl md:text-3xl transition-all duration-150 select-none cursor-pointer;
+}
+/* Primary — black fill, white outlined label (works on pink AND black grounds). */
+.btn-3d-black {
+  @apply btn-3d text-outline-sm bg-[#0a0a0a] border-4 border-white shadow-[0_8px_0_rgba(0,0,0,0.45)]
+    hover:-translate-y-0.5 hover:shadow-[0_11px_0_rgba(0,0,0,0.45)]
+    active:translate-y-1.5 active:shadow-[0_2px_0_rgba(0,0,0,0.45)];
+}
+/* White fill, solid black label, no outline — keeps the hard 3D shadow. */
+.btn-3d-white {
+  @apply btn-3d text-ink bg-white shadow-[0_8px_0_rgba(0,0,0,0.25)]
+    hover:-translate-y-0.5 hover:shadow-[0_11px_0_rgba(0,0,0,0.25)]
+    active:translate-y-1.5 active:shadow-[0_2px_0_rgba(0,0,0,0.25)];
+}
+
+/* Printed-zine halftone dot texture — the only allowed surface interest besides
+   solid color (replaces cheap gradients). Use as a low-opacity absolute overlay. */
+.halftone {
+  background-image: radial-gradient(rgba(18, 20, 22, 0.12) 1.4px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+
+/* Scrolling marquee ticker (advertises the drop, like Pudgy's) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
 }
 
 /* Hidden scrollbar utility */

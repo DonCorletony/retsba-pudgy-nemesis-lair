@@ -18,8 +18,8 @@ const AboutSection = () => {
       }} transition={{
         duration: 0.6
       }}>
-          <h2 className="text-stroke text-white text-5xl mb-4">{t('aboutTitle')}</h2>
-          <div className="w-24 h-1 bg-black mx-auto"></div>
+          <h2 className="font-display text-outline text-5xl md:text-6xl mb-5 uppercase">{t('aboutTitle')}</h2>
+          <div className="w-24 h-1.5 rounded-full bg-ink dark:bg-white mx-auto"></div>
         </motion.div>
         
         <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -50,8 +50,8 @@ const AboutSection = () => {
           duration: 0.6,
           delay: 0.4
         }}>
-            <h3 className="text-stroke text-white mb-6 text-4xl">{t('aboutSubtitle')}</h3>
-            <p className="text-stroke text-white mb-6 text-2xl">{t('aboutDescription')}</p>
+            <h3 className="font-display text-outline text-3xl md:text-4xl mb-6 uppercase">{t('aboutSubtitle')}</h3>
+            <p className="font-body text-white text-xl md:text-2xl leading-relaxed max-w-xl">{t('aboutDescription')}</p>
           </motion.div>
         </div>
       </div>

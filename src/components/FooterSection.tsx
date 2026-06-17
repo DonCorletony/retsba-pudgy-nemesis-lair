@@ -5,7 +5,7 @@ const FooterSection = () => {
   const { t } = useLanguage();
   
   return (
-    <footer className="bg-retsba py-12">
+    <footer className="py-12">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-8 md:mb-0">
@@ -21,7 +21,7 @@ const FooterSection = () => {
               href="https://www.x.com/retsbaxyz" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-xl hover:text-black transition-colors"
+              className="font-display text-white text-3xl uppercase hover:-translate-y-0.5 hover:text-white/70 transition-all"
             >
               X
             </a>
@@ -29,7 +29,7 @@ const FooterSection = () => {
               href="https://www.t.me/retsbaonabstract" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-xl hover:text-black transition-colors"
+              className="font-display text-white text-3xl uppercase hover:-translate-y-0.5 hover:text-white/70 transition-all"
             >
               Telegram
             </a>
@@ -37,7 +37,7 @@ const FooterSection = () => {
               href="https://giphy.com/channel/Retsba" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-xl hover:text-black transition-colors"
+              className="font-display text-white text-3xl uppercase hover:-translate-y-0.5 hover:text-white/70 transition-all"
             >
               Giphy
             </a>
@@ -45,7 +45,7 @@ const FooterSection = () => {
               href="https://memedepot.com/d/retsba" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-xl hover:text-black transition-colors"
+              className="font-display text-white text-3xl uppercase hover:-translate-y-0.5 hover:text-white/70 transition-all"
             >
               Memes
             </a>
@@ -53,15 +53,15 @@ const FooterSection = () => {
               href="https://dexscreener.com/abstract/0x26e7f241fc81bb168f9f81401184cde74dcc8f31" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="text-stroke text-white text-xl hover:text-black transition-colors"
+              className="font-display text-white text-3xl uppercase hover:-translate-y-0.5 hover:text-white/70 transition-all"
             >
               Dexscreener
             </a>
           </div>
         </div>
         
-        <div className="mt-8 border-t border-black pt-8 text-center">
-          <p className="text-stroke text-white text-xl">
+        <div className="mt-8 border-t border-white/20 pt-8 text-center">
+          <p className="font-body text-white/90 text-base">
             © {new Date().getFullYear()} RETSBA. {t('footerTagline')}
           </p>
         </div>

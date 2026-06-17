@@ -26,6 +26,9 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				retsba: 'var(--retsba-color, #fcc5c3)',
+				fire: '#FF5A1E',
+				'fire-deep': '#B81E00',
+				ink: '#121416',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -66,7 +69,9 @@ export default {
 				}
 			},
 			fontFamily: {
-				villain: ['Anton', 'Impact', 'sans-serif'],
+				display: ['"TT Trailers"', 'Anton', 'Impact', 'sans-serif'],
+				body: ['Menco', 'system-ui', '-apple-system', 'sans-serif'],
+				villain: ['"TT Trailers"', 'Anton', 'Impact', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
