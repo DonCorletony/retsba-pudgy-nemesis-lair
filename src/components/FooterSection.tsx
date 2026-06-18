@@ -5,7 +5,7 @@ const FooterSection = () => {
   const { t } = useLanguage();
   
   return (
-    <footer className="py-12">
+    <footer className="pt-36 pb-12">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-8 md:mb-0">
