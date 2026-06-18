@@ -10,7 +10,7 @@ const MerchSection = () => {
   const [lightbox, setLightbox] = useState<{ item: MerchItem; index: number } | null>(null);
 
   return (
-    <section id="merch" className="py-24 md:py-28 bg-retsba relative overflow-hidden">
+    <section id="merch" className="pt-[72px] md:pt-[84px] pb-14 md:pb-16 bg-retsba relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center">
           <img

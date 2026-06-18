@@ -1,20 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import SectionHeading from './ui/SectionHeading';
 
-// Each door previews what the tool actually MAKES (real PFP output, real XP card,
-// real wallpaper) — not thematic art.
+// Each door previews what the tool actually MAKES, using the uploaded promo art.
 const DOORS = [
-  { label: 'PFP', href: '/pfp', art: '/art/door-pfp.png', caption: 'Make your villain' },
-  { label: 'XP CARD', href: '/xp', art: '/art/door-xp.png', caption: 'Flex your stats' },
-  { label: 'WALLPAPERS', href: '/wallpapers', art: '/art/door-wallpapers.png', caption: 'Deck your screen' },
+  { label: 'PFP CONVERTER', href: '/pfp', art: '/Site pieces/PFP converter.png', caption: 'Retsbafy any Pudgy Penguins NFT' },
+  { label: 'XP CARD', href: '/xp', art: '/Site pieces/XP Card.png', caption: 'Customize your own Abstract XP card' },
+  { label: 'WALLPAPERS', href: '/wallpapers', art: '/Site pieces/Wallpapers.png', caption: 'Download an HD wallpaper for your mobile device' },
 ];
 
 const CollectionsSection = () => (
-  <section className="py-24 md:py-28 bg-retsba">
+  <section className="pt-14 md:pt-16 pb-24 md:pb-28 bg-retsba">
     <div className="container mx-auto px-4">
-      <SectionHeading>GEAR UP</SectionHeading>
+      <div className="text-center">
+        <img
+          src="/Site pieces/become the villain.png"
+          alt="Become the Villain"
+          className="mx-auto w-full max-w-[600px]"
+        />
+        <div className="mx-auto mt-5 h-1.5 w-24 rounded-full bg-ink dark:bg-white" />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-[1000px] mx-auto mt-14">
         {DOORS.map((d, i) => (
