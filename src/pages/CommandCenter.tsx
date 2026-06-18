@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
 import { XPTemplateCMS } from '@/components/XPTemplateCMS';
 import { NFTAirdropTool } from '@/components/NFTAirdropTool';
 
@@ -112,7 +112,7 @@ const CommandCenter = () => {
           <NFTAirdropTool password={storedPassword} />
         </div>
       </div>
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

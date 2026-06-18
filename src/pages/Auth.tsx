@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import FooterSection from '@/components/FooterSection';
+import FooterDiorama from '@/components/FooterDiorama';
 import { useAccount } from 'wagmi';
 import { useIsAGWConnected, validateAGWForAccountCreation } from '@/utils/agwValidation';
 
@@ -266,7 +266,7 @@ const Auth = () => {
           </Card>
         </div>
       </div>
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

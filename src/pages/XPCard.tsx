@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
+import PageTitleLogo from '../components/PageTitleLogo';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -504,16 +505,9 @@ const XPCard = () => {
 
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <section className="pt-16 pb-20">
+      <section className="pt-28 md:pt-36 pb-20">
         <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">{t('xpCard')}</h1>
-          </motion.div>
+          <PageTitleLogo src="/logos/XP CARD.png" alt="Create an XP Card" />
 
           <motion.div
             className="bg-white dark:bg-retsba rounded-2xl p-6 md:p-8 max-w-6xl mx-auto border border-transparent dark:border-white/20"
@@ -729,7 +723,7 @@ const XPCard = () => {
         </div>
       </section>
       
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

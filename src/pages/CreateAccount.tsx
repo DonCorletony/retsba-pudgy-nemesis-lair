@@ -1,5 +1,5 @@
 import React from 'react';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
 
 const CreateAccount = () => {
   return (
@@ -11,7 +11,7 @@ const CreateAccount = () => {
           {/* Account creation form will go here */}
         </div>
       </div>
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

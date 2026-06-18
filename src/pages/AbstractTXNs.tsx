@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
 import { HoldersDashboard } from '@/components/HoldersDashboard';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -123,7 +123,7 @@ const AbstractTXNs = () => {
           <HoldersDashboard password="__abstract_txns__" tokenId={currentToken.id} tokenLabel={currentToken.label} maxHolders={250} />
         </div>
       </div>
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

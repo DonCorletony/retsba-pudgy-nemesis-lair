@@ -4,7 +4,7 @@ import HeroSection from '../components/HeroSection';
 import MerchSection from '../components/MerchSection';
 import CollectionsSection from '../components/CollectionsSection';
 import HowToBuySection from '../components/HowToBuySection';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
 
 const Index = () => {
   return (
@@ -26,24 +26,12 @@ const Index = () => {
       <MerchSection />
       <CollectionsSection />
 
-      {/* Buy Now → footer share one region with a diagonal top edge.
-          EXPERIMENT: background is the TOTAL DOMINION earth photo (with a scrim
-          for text legibility) instead of flat black. */}
-      <div
-        className="relative text-white overflow-hidden"
-        style={{ clipPath: 'polygon(0 0, 100% 100px, 100% 100%, 0 100%)' }}
-      >
-        <img
-          src="/art/feature-dominion.png"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-black/40" />
-        <div className="relative z-10">
-          <HowToBuySection />
-          <FooterSection />
-        </div>
-      </div>
+      {/* Buy Now → footer share one region with a diagonal top edge over the
+          TOTAL DOMINION earth photo. The same treatment wraps every subpage's
+          footer via <FooterDiorama />. */}
+      <FooterDiorama>
+        <HowToBuySection />
+      </FooterDiorama>
     </div>
   );
 };

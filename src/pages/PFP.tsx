@@ -1,24 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
+import PageTitleLogo from '../components/PageTitleLogo';
 import PFPConverter from '../components/PFPConverter';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const PFP = () => {
-  const { t } = useLanguage();
-  
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <section className="pt-16 pb-20">
+      <section className="pt-28 md:pt-36 pb-20">
         <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">{t('pfpTitle')}</h1>
-          </motion.div>
+          <PageTitleLogo src="/logos/PFP converter.png" alt="Profile Picture Converter" />
 
           <motion.div
             className="bg-white dark:bg-retsba rounded-2xl p-6 md:p-8 max-w-5xl mx-auto border border-transparent dark:border-white/20"
@@ -31,64 +22,7 @@ const PFP = () => {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 bg-white/5">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-white mb-12">{t('howItWorks')}</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
-                1
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{t('step1Title')}</h3>
-              <p className="text-white/60">
-                {t('step1Desc')}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
-                2
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{t('step2Title')}</h3>
-              <p className="text-white/60">
-                {t('step2Desc')}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="text-center"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
-                3
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{t('step3Title')}</h3>
-              <p className="text-white/60">
-                {t('step3Desc')}
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };

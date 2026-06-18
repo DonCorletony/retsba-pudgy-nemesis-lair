@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import FooterSection from '../components/FooterSection';
+import FooterDiorama from '../components/FooterDiorama';
+import PageTitleLogo from '../components/PageTitleLogo';
 
 const wallpapers = [
   { src: '/images/wallpaper_1.png', name: 'Retsba Face' },
@@ -13,7 +13,6 @@ const wallpapers = [
 ];
 
 const Wallpapers = () => {
-  const { t } = useLanguage();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [mobileIndex, setMobileIndex] = useState(0);
 
@@ -37,18 +36,9 @@ const Wallpapers = () => {
 
   return (
     <div className="min-h-screen bg-retsba text-white overflow-hidden">
-      <section className="pt-16 pb-20">
+      <section className="pt-28 md:pt-36 pb-20">
         <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-stroke text-white text-5xl md:text-7xl mb-6">
-              {t('wallpapers')}
-            </h1>
-          </motion.div>
+          <PageTitleLogo src="/logos/WALLPAPERS.png" alt="Wallpapers" />
 
           {/* Desktop UI */}
           <motion.div
@@ -194,7 +184,7 @@ const Wallpapers = () => {
         )}
       </AnimatePresence>
 
-      <FooterSection />
+      <FooterDiorama />
     </div>
   );
 };
