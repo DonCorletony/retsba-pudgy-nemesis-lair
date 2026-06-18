@@ -1230,6 +1230,14 @@ FACE TRAIT EXAMPLES:
 - Angular/squad sunglasses → "Squad"
 - Monocle (single eyeglass) → "Monacle"
 
+CRITICAL DISTINCTION - "Goggles" vs "Clout_Goggles" (COMMONLY CONFUSED - READ CAREFULLY):
+These are TWO DIFFERENT face traits. The DECIDING FACTOR is the FRAME COLOR.
+- "Clout_Goggles" = WHITE CLOUT GOGGLES. The frames are WHITE (the small, narrow "clout"/thug-life goggle style), typically with DARK/BLACK rounded lenses. They sit tight on the face like the classic white clout goggles.
+- "Goggles" = BLUE SWIMMING GOGGLES. The frames are BLUE, with rounded blue-tinted lenses, worn like swim goggles.
+- RULE: If the goggle FRAMES are WHITE (or very light/off-white) → it is ALWAYS "Clout_Goggles", NEVER "Goggles".
+- RULE: Only choose "Goggles" if the goggle frames are clearly BLUE.
+- Do NOT default to "Goggles". White-framed clout goggles are a SEPARATE, distinct trait and must be returned as "Clout_Goggles".
+
 IMPORTANT - NECKLACES AND BODY TRAITS CAN BE PARTIALLY HIDDEN:
 When a face trait like "Beard" is present, it may partially cover body traits like necklaces. Look CAREFULLY at the neck/chest area for any visible necklaces or pendants peeking out from behind the beard or other face accessories. Common necklaces include:
 - Surfboard_Necklace: A small wooden/tan surfboard pendant on a string around the neck - may be partially visible under a beard
