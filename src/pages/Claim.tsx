@@ -119,8 +119,8 @@ const Claim = () => {
   };
 
   return (
-    <div className="min-h-screen bg-retsba dark:bg-black">
-      <div className="pt-20 pb-8">
+    <div className="min-h-screen flex flex-col bg-retsba dark:bg-black">
+      <div className="flex-1 pt-20 pb-8">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white">
             {t('claim')}
