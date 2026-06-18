@@ -1,5 +1,5 @@
 import '@rainbow-me/rainbowkit/styles.css';
-import { createConfig, http } from 'wagmi';
+import { createConfig, http, fallback } from 'wagmi';
 import { abstract, mainnet, base, bsc, avalanche, megaeth, monad } from 'viem/chains';
 import { QueryClient } from '@tanstack/react-query';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
@@ -51,6 +51,29 @@ const connectors = connectorsForWallets(walletGroups, {
   projectId,
 });
 
+// Ethereum mainnet's viem DEFAULT rpc is a third-party (https://eth.merkle.io) that
+// frequently rate-limits/blocks browser requests — so useBalance({ chainId: 1 }) silently
+// returned nothing, showing native ETH as a 0 balance with no MAX button, while every other
+// chain (whose viem defaults are official RPCs) worked. Use reliable public endpoints with
+// failover; override with VITE_MAINNET_RPC_URL (e.g. an Alchemy/Infura key) for production.
+const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL as string | undefined;
+const mainnetTransport = fallback([
+  ...(mainnetRpcUrl ? [http(mainnetRpcUrl)] : []),
+  http('https://ethereum-rpc.publicnode.com'),
+  http('https://eth.llamarpc.com'),
+  http('https://cloudflare-eth.com'),
+]);
+
+// BNB Chain has the SAME problem: viem's default is the keyless third-party
+// https://56.rpc.thirdweb.com, which can rate-limit/CORS-fail in the browser (same
+// zero-balance / no-MAX symptom as mainnet). Use official + public endpoints with failover.
+const bscRpcUrl = import.meta.env.VITE_BSC_RPC_URL as string | undefined;
+const bscTransport = fallback([
+  ...(bscRpcUrl ? [http(bscRpcUrl)] : []),
+  http('https://bsc-dataseed.bnbchain.org'),
+  http('https://bsc-rpc.publicnode.com'),
+]);
+
 export const wagmiConfig = createConfig({
   connectors,
   // `abstract` MUST stay as chains[0]: @abstract-foundation/agw-react's useAbstractClient
@@ -63,9 +86,9 @@ export const wagmiConfig = createConfig({
   // own EIP-712 / account-abstraction handling at the connector layer regardless.
   transports: {
     [abstract.id]: http(),
-    [mainnet.id]: http(),
+    [mainnet.id]: mainnetTransport,
     [base.id]: http(),
-    [bsc.id]: http(),
+    [bsc.id]: bscTransport,
     [avalanche.id]: http(),
     [megaeth.id]: http(),
     [monad.id]: http(),
