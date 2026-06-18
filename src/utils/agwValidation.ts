@@ -1,14 +1,18 @@
-import { useAbstractClient } from '@abstract-foundation/agw-react';
+import { useAccount } from 'wagmi';
+
+// The Abstract Global Wallet connector reports this exact id (see
+// @abstract-foundation/agw-react abstractWalletConnector).
+const AGW_CONNECTOR_ID = 'xyz.abs.privy';
 
 /**
- * Hook to check if the current wallet connection is from Abstract Global Wallet (AGW)
+ * Hook to check if the current wallet connection is from Abstract Global Wallet (AGW).
+ * Detect by the active connector id — NOT useAbstractClient(), which returns a client
+ * for any wallet on Abstract and so falsely reports EVM wallets as AGW.
  * @returns boolean indicating if connected wallet is AGW
  */
 export const useIsAGWConnected = (): boolean => {
-  const { data: abstractClient } = useAbstractClient();
-  
-  // If we have an Abstract client, then we're connected via AGW
-  return !!abstractClient;
+  const { connector, isConnected } = useAccount();
+  return isConnected && connector?.id === AGW_CONNECTOR_ID;
 };
 
 /**
