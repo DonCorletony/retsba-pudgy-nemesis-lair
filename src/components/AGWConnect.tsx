@@ -1,55 +1,22 @@
-import React from 'react';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
-import { useAccount, useDisconnect } from 'wagmi';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
+/**
+ * Unified wallet connect button.
+ *
+ * Same export name as before (so NavBar / mobile menu render it unchanged), but it now
+ * opens RainbowKit's single modal that lists Abstract Global Wallet alongside the EVM
+ * wallets (MetaMask/OKX/Rabby/Trust via EIP-6963, Coinbase, and WalletConnect once a
+ * projectId is configured). All from the one wagmi config in src/lib/wagmi.ts.
+ *
+ * Using RainbowKit's default dark-themed button for now; the exact RETSBA black/white
+ * outline look can be reapplied later via <ConnectButton.Custom>.
+ */
 export const AGWConnect = () => {
-  const { login } = useLoginWithAbstract();
-  const { isConnected, address } = useAccount();
-  const { disconnect } = useDisconnect();
-  const { toast } = useToast();
-  const { t } = useLanguage();
-
-  const handleConnect = async () => {
-    try {
-      await login();
-    } catch (error: any) {
-      console.error('AGW connection error:', error);
-      toast({
-        title: "Connection Failed",
-        description: error.message || "Failed to connect to Abstract Global Wallet",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDisconnect = () => {
-    disconnect();
-    toast({
-      title: "Disconnected",
-      description: "Wallet disconnected successfully",
-    });
-  };
-
-  if (isConnected) {
-    return (
-      <Button
-        onClick={handleDisconnect}
-        className="bg-white dark:bg-[#0a0a0a] text-ink dark:text-white border-2 border-ink dark:border-white shadow-md hover:opacity-90 transition-opacity"
-      >
-        {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
-      </Button>
-    );
-  }
-
   return (
-    <Button
-      onClick={handleConnect}
-      className="bg-white dark:bg-[#0a0a0a] text-ink dark:text-white border-2 border-ink dark:border-white shadow-md hover:opacity-90 transition-opacity"
-    >
-      {t('connectAGW')} AGW
-    </Button>
+    <ConnectButton
+      showBalance={false}
+      chainStatus="icon"
+      accountStatus={{ smallScreen: 'avatar', largeScreen: 'address' }}
+    />
   );
 };

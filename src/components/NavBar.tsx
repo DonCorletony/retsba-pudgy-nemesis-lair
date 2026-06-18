@@ -433,12 +433,12 @@ const NavBar = () => {
                 >
                   {t('buyNow').toUpperCase()}
                 </button>
-                <a 
-                  href="/claim" 
+                <a
+                  href="/claim"
                   className="text-stroke text-ink dark:text-white uppercase hover:opacity-60 transition-opacity py-2 text-xl text-left"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t('claim').toUpperCase()}
+                  TRANSACTION SPAMMER 3000
                 </a>
                 <a 
                   href="/pfp" 
@@ -663,12 +663,12 @@ const NavBar = () => {
             >
               {t('buyNow')}
             </button>
-            <a 
-              href="/claim" 
+            <a
+              href="/claim"
               className="text-stroke text-ink dark:text-white uppercase text-2xl font-bold hover:opacity-70 transition-opacity py-2 border-b border-black/10 dark:border-white/20"
               onClick={() => setIsDropdownOpen(false)}
             >
-              {t('claim')}
+              TRANSACTION SPAMMER 3000
             </a>
             <a 
               href="/pfp" 

@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 import FooterDiorama from '../components/FooterDiorama';
+import PageTitleLogo from '../components/PageTitleLogo';
 import { useAccount, useReadContract, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
-import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useIsAGWConnected } from '@/utils/agwValidation';
 import { erc20Abi, formatUnits } from 'viem';
 import { useToast } from '@/hooks/use-toast';
 
 const RETSBA_TOKEN_ADDRESS = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
-const MIN_BALANCE = 10_000;
-const COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hours
-const COOLDOWN_KEY_PREFIX = 'retsba_claim_last_';
+const MIN_BALANCE = 25_000; // must hold strictly MORE than this
+const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+const COOLDOWN_KEY_PREFIX = 'retsba_spam_last_';
 
 const Claim = () => {
-  const { t } = useLanguage();
   const { isConnected, address } = useAccount();
-  const { login } = useLoginWithAbstract();
+  const { openConnectModal } = useConnectModal();
+  const isAGW = useIsAGWConnected();
   const { toast } = useToast();
   const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
 
@@ -40,7 +41,7 @@ const Claim = () => {
     hash: txHash,
   });
 
-  // Cooldown timer - per wallet
+  // Cooldown timer — per wallet (1 hour)
   useEffect(() => {
     const update = () => {
       if (!address) { setCooldownRemaining(null); return; }
@@ -48,27 +49,26 @@ const Claim = () => {
       if (!last) { setCooldownRemaining(null); return; }
       const elapsed = Date.now() - parseInt(last);
       if (elapsed >= COOLDOWN_MS) { setCooldownRemaining(null); return; }
-      const remaining = COOLDOWN_MS - elapsed;
-      const h = Math.floor(remaining / 3600000);
-      const m = Math.floor((remaining % 3600000) / 60000);
-      const s = Math.floor((remaining % 60000) / 1000);
-      setCooldownRemaining(`${h}h ${m}m ${s}s`);
+      const totalSec = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      setCooldownRemaining(`${m}m ${s}s`);
     };
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [address]);
 
-  // Handle successful confirmation
+  // On confirmation, start the 1-hour cooldown for this wallet
   useEffect(() => {
-    if (isConfirmed && txHash) {
-      localStorage.setItem(COOLDOWN_KEY_PREFIX + address!.toLowerCase(), Date.now().toString());
+    if (isConfirmed && txHash && address) {
+      localStorage.setItem(COOLDOWN_KEY_PREFIX + address.toLowerCase(), Date.now().toString());
       toast({
         title: 'Transaction confirmed!',
-        description: 'Your claim transaction has been recorded on Abstract.',
+        description: 'Your transaction is on Abstract. Come back in an hour for another.',
       });
     }
-  }, [isConfirmed, txHash, toast]);
+  }, [isConfirmed, txHash, address, toast]);
 
   const getBalance = (): number => {
     if (!retsbaBalance || retsbaDecimals === undefined) return 0;
@@ -77,15 +77,26 @@ const Claim = () => {
 
   const handleClick = async () => {
     if (!isConnected) {
-      await login();
+      openConnectModal?.();
+      return;
+    }
+
+    // The transaction only works through Abstract Global Wallet.
+    // A non-AGW EVM wallet can connect for trading/balances, but not here.
+    if (!isAGW) {
+      toast({
+        title: 'Abstract Global Wallet required',
+        description: 'The Transaction Spammer only works when connected with Abstract Global Wallet (AGW).',
+        variant: 'destructive',
+      });
       return;
     }
 
     const balance = getBalance();
-    if (balance < MIN_BALANCE) {
+    if (balance <= MIN_BALANCE) {
       toast({
-        title: 'Insufficient balance',
-        description: `You need at least 10,000 $RETSBA to claim. You have ${Math.floor(balance).toLocaleString()}.`,
+        title: 'Not enough $RETSBA',
+        description: `You need more than ${MIN_BALANCE.toLocaleString()} $RETSBA. You have ${Math.floor(balance).toLocaleString()}.`,
         variant: 'destructive',
       });
       return;
@@ -94,16 +105,16 @@ const Claim = () => {
     if (cooldownRemaining) {
       toast({
         title: 'Cooldown active',
-        description: `Please wait ${cooldownRemaining} before claiming again.`,
+        description: `Please wait ${cooldownRemaining} before your next transaction.`,
         variant: 'destructive',
       });
       return;
     }
 
-    // Send zero-value self-transfer (gas sponsored by AGW)
+    // A single zero-value self-transfer — the most basic transaction on Abstract.
     sendTransaction({
       to: address!,
-      value: BigInt(0),
+      value: 0n,
     });
   };
 
@@ -111,28 +122,31 @@ const Claim = () => {
   const isDisabled = isLoading || !!cooldownRemaining;
 
   const getButtonText = () => {
-    if (!isConnected) return 'Connect AGW';
+    if (!isConnected) return 'Connect Wallet';
+    if (!isAGW) return 'Use Abstract Global Wallet';
     if (isPending) return 'Confirm in wallet...';
     if (isConfirming) return 'Confirming...';
     if (cooldownRemaining) return `Cooldown: ${cooldownRemaining}`;
-    return t('claim');
+    return 'Spam Transaction';
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-retsba dark:bg-black">
-      <div className="flex-1 pt-20 pb-8">
+      <div className="flex-1 pt-28 md:pt-36 pb-8">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-center mb-8 text-white">
-            {t('claim')}
-          </h1>
+          <PageTitleLogo
+            src="/logos/transaction spammer 3000.png"
+            alt="Transaction Spammer 3000"
+            heightClass="h-[190px] md:h-[393px]"
+          />
 
           <div className="max-w-md mx-auto bg-white dark:bg-black/90 dark:border dark:border-white/10 rounded-2xl shadow-lg p-10 flex items-center justify-center">
             <button
-              onClick={cooldownRemaining ? undefined : handleClick}
+              onClick={handleClick}
               disabled={isDisabled}
               className={`font-bold text-lg px-10 py-3 rounded-xl transition-colors ${
                 cooldownRemaining
-                  ? 'bg-retsba dark:bg-gray-600 text-white/70 cursor-not-allowed'
+                  ? 'bg-gray-400 dark:bg-gray-600 text-white/80 cursor-not-allowed'
                   : 'bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white'
               }`}
             >
@@ -141,8 +155,8 @@ const Claim = () => {
           </div>
 
           <p className="max-w-md mx-auto text-center text-white/80 text-base mt-6">
-            Users holding 10,000 $RETSBA or more can push this button once every 3 hours to generate
-            a transaction on the Abstract blockchain.
+            Holders of more than {MIN_BALANCE.toLocaleString()} $RETSBA can spam one free transaction
+            onto the Abstract blockchain every hour.
           </p>
         </div>
       </div>
