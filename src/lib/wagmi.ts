@@ -10,6 +10,7 @@ import {
   rabbyWallet,
   okxWallet,
   trustWallet,
+  phantomWallet,
   injectedWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { abstractWallet } from '@abstract-foundation/agw-react/connectors';
@@ -25,26 +26,18 @@ import { abstractWallet } from '@abstract-foundation/agw-react/connectors';
  * works" bug. Keeping everything in this one config is what fixes it.
  */
 
-// Free WalletConnect/Reown projectId from https://cloud.reown.com.
-// Put it in .env as VITE_WC_PROJECT_ID to enable WalletConnect + mobile deep-linking.
-const projectId = import.meta.env.VITE_WC_PROJECT_ID ?? '';
-const hasWalletConnect = projectId.length > 0;
+// WalletConnect/Reown project id. This is a PUBLIC client-side identifier (it ships in the
+// frontend bundle), so embedding it is fine; override per-environment with VITE_WC_PROJECT_ID.
+// A valid projectId is required: RainbowKit 2.x's WC-backed wallets (MetaMask/OKX/Rabby/Trust/
+// WalletConnect) throw at load without one.
+const projectId =
+  (import.meta.env.VITE_WC_PROJECT_ID as string | undefined) || '407a4cb72b0def0fe8c3ae7ef8c2fbfc';
 
-// IMPORTANT: RainbowKit 2.x's walletConnectWallet (and other WC-backed wallets) throw
-// synchronously at module load when projectId is empty, which would white-screen the
-// whole app. So until a projectId is set we only list wallets that don't need it.
-// Browser-extension wallets (MetaMask/OKX/Rabby/Trust) are still auto-detected via
-// EIP-6963 and surface through injectedWallet — they just won't have WC mobile fallback.
-const walletGroups = hasWalletConnect
-  ? [
-      { groupName: 'Abstract', wallets: [abstractWallet] },
-      { groupName: 'Popular', wallets: [metaMaskWallet, coinbaseWallet, walletConnectWallet] },
-      { groupName: 'More', wallets: [rabbyWallet, okxWallet, trustWallet, injectedWallet] },
-    ]
-  : [
-      { groupName: 'Abstract', wallets: [abstractWallet] },
-      { groupName: 'Popular', wallets: [coinbaseWallet, injectedWallet] },
-    ];
+const walletGroups = [
+  { groupName: 'Abstract', wallets: [abstractWallet] },
+  { groupName: 'Popular', wallets: [metaMaskWallet, coinbaseWallet, okxWallet, phantomWallet, walletConnectWallet] },
+  { groupName: 'More', wallets: [rabbyWallet, trustWallet, injectedWallet] },
+];
 
 const connectors = connectorsForWallets(walletGroups, {
   appName: 'RETSBA',
