@@ -114,9 +114,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   });
   const { data: retsbaBalanceRaw, refetch: refetchRetsba } = useReadContract({
     address: RETSBA, abi: erc20Abi, functionName: 'balanceOf',
-    args: address ? [address] : undefined, query: { enabled: !!address },
+    args: address ? [address] : undefined, chainId: ABSTRACT_ID, query: { enabled: !!address },
   });
-  const { data: retsbaDecimals } = useReadContract({ address: RETSBA, abi: erc20Abi, functionName: 'decimals' });
+  const { data: retsbaDecimals } = useReadContract({ address: RETSBA, abi: erc20Abi, functionName: 'decimals', chainId: ABSTRACT_ID });
   const decimals = retsbaDecimals ?? 18;
 
   const inputBal = isSolana ? solBalance : (inputBalance ? Number(formatEther(inputBalance.value)) : 0);

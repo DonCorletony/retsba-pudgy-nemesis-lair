@@ -115,6 +115,9 @@ const NavBar = () => {
     abi: erc20Abi,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
+    // RETSBA lives on Abstract — read there regardless of the wallet's active chain,
+    // or an EVM wallet on mainnet reads a non-existent contract and shows 0.
+    chainId: 2741,
     query: { enabled: !!address },
   });
 
@@ -122,6 +125,7 @@ const NavBar = () => {
     address: RETSBA_TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: 'decimals',
+    chainId: 2741,
   });
 
   // Format balances exactly like TradingInterface
