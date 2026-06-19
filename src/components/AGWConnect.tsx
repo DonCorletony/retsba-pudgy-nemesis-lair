@@ -1,5 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
+import { useLoginWithAbstract } from '@abstract-foundation/agw-react';
 import { ChevronDown, Copy, LogOut, ArrowLeftRight, AlertTriangle } from 'lucide-react';
 import {
   DropdownMenu,
@@ -21,7 +22,16 @@ const pill =
 
 export const AGWConnect = () => {
   const { disconnect } = useDisconnect();
+  const { connector } = useAccount();
+  const { logout } = useLoginWithAbstract();
   const { toast } = useToast();
+
+  // AGW (Privy cross-app connector) keeps its own session — wagmi disconnect() alone
+  // leaves it logged in / silently reconnects. Use AGW's logout() for AGW, wagmi for EVM.
+  const handleDisconnect = () => {
+    if (connector?.id === 'xyz.abs.privy') logout();
+    else disconnect();
+  };
 
   return (
     <ConnectButton.Custom>
@@ -90,7 +100,7 @@ export const AGWConnect = () => {
                 <Copy className="h-4 w-4" /> Copy address
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => disconnect()}
+                onClick={handleDisconnect}
                 className="cursor-pointer gap-2 text-red-600 focus:text-red-600 dark:text-red-400"
               >
                 <LogOut className="h-4 w-4" /> Disconnect
