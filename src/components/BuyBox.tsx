@@ -7,6 +7,7 @@ import {
   useWriteContract,
   useSendTransaction,
   useSwitchChain,
+  useWalletClient,
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { erc20Abi, formatEther, formatUnits, parseEther, parseUnits, isAddress } from 'viem';
@@ -18,8 +19,9 @@ import { getRelayBridgeQuote } from '@/lib/relay';
 import { TokenIcon, ChainIcon } from '@/components/ui/CoinIcon';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { LAMPORTS_PER_SOL, type VersionedTransaction, type SendOptions } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey, type VersionedTransaction, type SendOptions } from '@solana/web3.js';
 import { getSolToRetsbaQuote, quoteRetsbaOut, executeSolToRetsba } from '@/lib/relaySolana';
+import { getEvmTokenQuote, executeEvmBuy } from '@/lib/relayEvm';
 import { useUsdPrices, usdValue, fmtUsd } from '@/lib/prices';
 
 // ---- Abstract contracts (the on-Abstract swap leg) ----
@@ -43,7 +45,8 @@ const routerAbi = [
 // stack (Phase 3) so its action is gated.
 type ChainId = number | 'solana';
 interface ChainOption { id: ChainId; name: string; needsCustomRecipient?: boolean; }
-interface TokenOption { symbol: string; name: string; address: `0x${string}` | 'native'; decimals: number; }
+// address is 'native', a 0x EVM token address, or a base58 SPL mint (Solana).
+interface TokenOption { symbol: string; name: string; address: string; decimals: number; }
 
 const CHAINS: ChainOption[] = [
   { id: ABSTRACT_ID, name: 'Abstract' },
@@ -56,22 +59,49 @@ const CHAINS: ChainOption[] = [
   { id: 143, name: 'Monad' },
 ];
 
+// USDC addresses + decimals are Relay-verified per chain. NOTE: BNB USDC is 18 decimals
+// (Binance-Peg), every other USDC is 6. MegaETH has no USDC (MEGA only). amounts always use
+// parseUnits(amount, token.decimals).
 const TOKENS_BY_CHAIN: Record<string, TokenOption[]> = {
-  [ABSTRACT_ID]: [{ symbol: 'ETH', name: 'Abstract ETH', address: 'native', decimals: 18 }],
-  '1': [{ symbol: 'ETH', name: 'Ethereum', address: 'native', decimals: 18 }],
-  '8453': [{ symbol: 'ETH', name: 'Base ETH', address: 'native', decimals: 18 }],
-  '56': [{ symbol: 'BNB', name: 'BNB', address: 'native', decimals: 18 }],
-  '43114': [{ symbol: 'AVAX', name: 'Avalanche', address: 'native', decimals: 18 }],
-  solana: [{ symbol: 'SOL', name: 'Solana', address: 'native', decimals: 9 }],
-  '4326': [{ symbol: 'ETH', name: 'MegaETH', address: 'native', decimals: 18 }],
-  '143': [{ symbol: 'MON', name: 'Monad', address: 'native', decimals: 18 }],
+  [ABSTRACT_ID]: [
+    { symbol: 'ETH', name: 'Abstract ETH', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin (bridged)', address: '0x84a71ccd554cc1b02749b35d22f684cc8ec987e1', decimals: 6 },
+  ],
+  '1': [
+    { symbol: 'ETH', name: 'Ethereum', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin', address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', decimals: 6 },
+  ],
+  '8453': [
+    { symbol: 'ETH', name: 'Base ETH', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin', address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', decimals: 6 },
+  ],
+  '56': [
+    { symbol: 'BNB', name: 'BNB', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin (Binance-Peg)', address: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', decimals: 18 },
+  ],
+  '43114': [
+    { symbol: 'AVAX', name: 'Avalanche', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin', address: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e', decimals: 6 },
+  ],
+  solana: [
+    { symbol: 'SOL', name: 'Solana', address: 'native', decimals: 9 },
+    { symbol: 'USDC', name: 'USD Coin', address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', decimals: 6 },
+  ],
+  '4326': [
+    { symbol: 'ETH', name: 'MegaETH', address: 'native', decimals: 18 },
+    { symbol: 'MEGA', name: 'MegaETH Token', address: '0x0c833bcdd2dc74d7a8dca82ed011e32d04fe5843', decimals: 18 },
+  ],
+  '143': [
+    { symbol: 'MON', name: 'Monad', address: 'native', decimals: 18 },
+    { symbol: 'USDC', name: 'USD Coin', address: '0x754704bc059f8c67012fed69bc8a327a5aafb603', decimals: 6 },
+  ],
 };
 
 const fmt = (n: number, max = 4) => (n === 0 ? '0' : n.toLocaleString(undefined, { maximumFractionDigits: max }));
 // Clean decimal string for an input field (no commas, capped precision).
 const trimNum = (s: string) => { const n = Number(s); return !n || isNaN(n) ? '' : String(Number(n.toPrecision(8))); };
 
-type Step = 'idle' | 'switching' | 'bridging' | 'waiting' | 'swapping' | 'sol-signing' | 'sol-pending';
+type Step = 'idle' | 'switching' | 'bridging' | 'waiting' | 'swapping' | 'sol-signing' | 'sol-pending' | 'erc20-approving' | 'erc20-executing';
 
 export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) => {
   const { address, isConnected } = useAccount();
@@ -81,6 +111,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const { writeContractAsync } = useWriteContract();
   const { sendTransactionAsync } = useSendTransaction();
   const { switchChainAsync } = useSwitchChain();
+  const { data: walletClient } = useWalletClient();
   const { toast } = useToast();
 
   // Solana wallet (parallel context; hooks must run unconditionally).
@@ -99,9 +130,12 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const [solBalance, setSolBalance] = useState(0);
   const [solBalNonce, setSolBalNonce] = useState(0);
   const solQuoteRef = useRef<Awaited<ReturnType<typeof getSolToRetsbaQuote>> | null>(null);
+  const evmQuoteRef = useRef<Awaited<ReturnType<typeof getEvmTokenQuote>> | null>(null);
+  const [solUsdcBalance, setSolUsdcBalance] = useState(0);
 
   const isAbstractInput = chainId === ABSTRACT_ID;
   const isSolana = chainId === 'solana';
+  const isErc20 = token.address !== 'native'; // USDC (any chain) or MEGA — Relay SDK path
   const busy = step !== 'idle';
 
   const isChainSelectable = (c: ChainOption) => c.id === ABSTRACT_ID || !isAGW;
@@ -109,6 +143,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   // ---- Balances ----
   const { data: inputBalance, refetch: refetchInput } = useBalance({
     address,
+    token: (!isSolana && isErc20) ? (token.address as `0x${string}`) : undefined,
     chainId: typeof chainId === 'number' ? chainId : undefined,
     query: { enabled: !!address && typeof chainId === 'number' },
   });
@@ -119,7 +154,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const { data: retsbaDecimals } = useReadContract({ address: RETSBA, abi: erc20Abi, functionName: 'decimals', chainId: ABSTRACT_ID });
   const decimals = retsbaDecimals ?? 18;
 
-  const inputBal = isSolana ? solBalance : (inputBalance ? Number(formatEther(inputBalance.value)) : 0);
+  // useBalance returns the right decimals for native AND ERC20 (6 for most USDC, 18 for BNB USDC).
+  const evmBal = inputBalance ? Number(formatUnits(inputBalance.value, inputBalance.decimals)) : 0;
+  const inputBal = isSolana ? (isErc20 ? solUsdcBalance : solBalance) : evmBal;
   const retsbaBal = retsbaBalanceRaw ? Number(formatUnits(retsbaBalanceRaw, decimals)) : 0;
 
   // ---- USD markers (spot prices; non-critical, hidden if unavailable) ----
@@ -142,6 +179,22 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     return () => { cancelled = true; };
   }, [isSolana, solConnected, publicKey, connection, solBalNonce]);
 
+  // ---- Solana SPL token balance (e.g. USDC) ----
+  useEffect(() => {
+    if (!isSolana || !isErc20 || !solConnected || !publicKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await connection.getParsedTokenAccountsByOwner(publicKey, { mint: new PublicKey(token.address) });
+        const amt = res.value.reduce((s, a) => s + ((a.account.data as any).parsed?.info?.tokenAmount?.uiAmount || 0), 0);
+        if (!cancelled) setSolUsdcBalance(amt);
+      } catch {
+        if (!cancelled) setSolUsdcBalance(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isSolana, isErc20, solConnected, publicKey, connection, token.address, solBalNonce]);
+
   // ---- Quoting ----
   // Same-chain (Abstract): bidirectional V2. Cross-chain: exact-input only (Relay bridge
   // estimate -> V2), with the RETSBA output shown read-only as an estimate.
@@ -161,10 +214,35 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
           const quote = await getSolToRetsbaQuote({
             user: publicKey.toBase58(),
             recipient: recip,
-            lamports: parseUnits(inputAmount, 9),
+            amount: parseUnits(inputAmount, token.decimals),
+            mint: isErc20 ? token.address : undefined,
           });
           if (cancelled) return;
           solQuoteRef.current = quote;
+          setOutputAmount(trimNum(quoteRetsbaOut(quote) ?? ''));
+          return;
+        }
+
+        // EVM ERC20 (USDC any chain, MEGA on MegaETH, USDC same-chain on Abstract): Relay SDK
+        // direct -> RETSBA. MUST come before isAbstractInput so Abstract USDC isn't sent down
+        // the native parseEther V2 path.
+        if (isErc20) {
+          const v = Number(inputAmount);
+          const recip = (recipient.trim() || address || '');
+          if (!inputAmount || isNaN(v) || v <= 0 || !address || !recip || !isAddress(recip)) {
+            evmQuoteRef.current = null;
+            if (!cancelled) setOutputAmount('');
+            return;
+          }
+          const quote = await getEvmTokenQuote({
+            user: address,
+            recipient: recip as `0x${string}`,
+            originChainId: chainId as number,
+            tokenAddress: token.address,
+            amount: parseUnits(inputAmount, token.decimals),
+          });
+          if (cancelled) return;
+          evmQuoteRef.current = quote;
           setOutputAmount(trimNum(quoteRetsbaOut(quote) ?? ''));
           return;
         }
@@ -195,9 +273,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
       } catch {
         if (!cancelled) (lastEdited === 'in' || !isAbstractInput) ? setOutputAmount('') : setInputAmount('');
       }
-    }, isAbstractInput ? 350 : 600);
+    }, (isAbstractInput && !isErc20) ? 350 : 600);
     return () => { cancelled = true; clearTimeout(handle); };
-  }, [inputAmount, outputAmount, lastEdited, abstractClient, decimals, chainId, isAbstractInput, isSolana, address, publicKey, recipient]);
+  }, [inputAmount, outputAmount, lastEdited, abstractClient, decimals, chainId, isAbstractInput, isSolana, isErc20, token.address, token.decimals, address, publicKey, recipient]);
 
   const recipientInvalid = recipient.trim().length > 0 && !isAddress(recipient.trim());
   const insufficient = !!inputAmount && Number(inputAmount) > inputBal;
@@ -283,7 +361,8 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     const quote = await getSolToRetsbaQuote({
       user: publicKey.toBase58(),
       recipient: to,
-      lamports: parseUnits(inputAmount, 9),
+      amount: parseUnits(inputAmount, token.decimals),
+      mint: isErc20 ? token.address : undefined,
     });
     await executeSolToRetsba({
       quote,
@@ -295,13 +374,32 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     toast({ title: 'Buy complete 🎉', description: 'Bridged from Solana — RETSBA delivered to Abstract.' });
   };
 
+  const doErc20Buy = async (to: `0x${string}`) => {
+    if (!walletClient) throw new Error('Connect an EVM wallet first.');
+    const originId = chainId as number;
+    setStep('switching');
+    await switchChainAsync({ chainId: originId });
+    setStep('erc20-approving');
+    // Fresh quote at click time. Relay's execute auto-submits the ERC20 approve (if allowance
+    // is needed) then the deposit/swap, delivering RETSBA to `to` on Abstract — no own V2 leg.
+    const quote = await getEvmTokenQuote({
+      user: address!,
+      recipient: to,
+      originChainId: originId,
+      tokenAddress: token.address,
+      amount: parseUnits(inputAmount, token.decimals),
+    });
+    await executeEvmBuy({ quote, wallet: walletClient, onProgress: () => setStep('erc20-executing') });
+    toast({ title: 'Buy complete 🎉', description: `Swapped ${token.symbol} into RETSBA on Abstract.` });
+  };
+
   const handleAction = async () => {
     // ---- Solana path: separate wallet, Relay handles SOL -> RETSBA end-to-end ----
     if (isSolana) {
       if (!solConnected) return; // WalletMultiButton handles connecting
       if (solRecipientInvalid) { toast({ title: 'Abstract address needed', description: 'Enter the Abstract (0x) address that should receive your RETSBA.', variant: 'destructive' }); return; }
       if (!inputAmount || Number(inputAmount) <= 0) return;
-      if (insufficient) { toast({ title: 'Insufficient SOL', description: `You only have ${fmt(inputBal)} SOL.`, variant: 'destructive' }); return; }
+      if (insufficient) { toast({ title: `Insufficient ${token.symbol}`, description: `You only have ${fmt(inputBal)} ${token.symbol}.`, variant: 'destructive' }); return; }
       const to = solRecipient as `0x${string}`;
       try {
         await doSolanaBuy(to);
@@ -326,7 +424,8 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
 
     const to = (recipient.trim() ? recipient.trim() : address) as `0x${string}`;
     try {
-      if (isAbstractInput) await doAbstractSwap(to);
+      if (isErc20) await doErc20Buy(to);
+      else if (isAbstractInput) await doAbstractSwap(to);
       else await doCrossChainBuy(to);
       setInputAmount(''); setOutputAmount('');
       setTimeout(() => { refetchInput(); refetchRetsba(); onBalanceRefresh?.(); }, 2500);
@@ -340,10 +439,12 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   };
 
   const statusText = useMemo(() => {
-    if (step === 'switching') return 'Switch to Abstract in your wallet…';
+    if (step === 'switching') return 'Switch network in your wallet…';
     if (step === 'bridging') return 'Confirm the bridge in your wallet…';
     if (step === 'waiting') return 'Bridging to Abstract — this can take a minute…';
     if (step === 'swapping') return 'Confirm the swap in your wallet…';
+    if (step === 'erc20-approving') return 'Approve the token in your wallet…';
+    if (step === 'erc20-executing') return 'Confirm the buy in your wallet…';
     if (step === 'sol-signing') return 'Approve the transaction in your Solana wallet…';
     if (step === 'sol-pending') return 'Bridging from Solana — delivering RETSBA to Abstract…';
     return '';
@@ -355,7 +456,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
       if (!solConnected) return 'Connect Solana Wallet';
       if (solRecipientInvalid) return 'Enter Abstract address';
       if (!inputAmount || Number(inputAmount) <= 0) return 'Enter an amount';
-      if (insufficient) return 'Insufficient SOL';
+      if (insufficient) return `Insufficient ${token.symbol}`;
       return 'Bridge & Buy';
     }
     if (!isConnected) return 'Connect a Wallet';
@@ -415,14 +516,14 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
 
       {/* OUTPUT slot */}
       <div className="rounded-xl border border-black/10 bg-gray-50 p-4">
-        <p className="text-xs font-medium text-gray-500">You receive{!isAbstractInput && ' (estimated)'}</p>
+        <p className="text-xs font-medium text-gray-500">You receive{(!isAbstractInput || isErc20) && ' (estimated)'}</p>
         <div className="mt-1 flex items-center justify-between gap-3">
           <input
             inputMode="decimal" placeholder="0.000"
-            readOnly={!isAbstractInput} disabled={busy}
+            readOnly={!isAbstractInput || isErc20} disabled={busy}
             value={outputAmount}
-            onChange={(e) => { if (isAbstractInput) { setLastEdited('out'); setOutputAmount(e.target.value.replace(/[^0-9.]/g, '')); } }}
-            className={`w-0 flex-1 bg-transparent text-2xl font-semibold text-black outline-none placeholder:text-gray-300 ${!isAbstractInput ? 'cursor-default' : ''}`}
+            onChange={(e) => { if (isAbstractInput && !isErc20) { setLastEdited('out'); setOutputAmount(e.target.value.replace(/[^0-9.]/g, '')); } }}
+            className={`w-0 flex-1 bg-transparent text-2xl font-semibold text-black outline-none placeholder:text-gray-300 ${(!isAbstractInput || isErc20) ? 'cursor-default' : ''}`}
           />
           {outputUsd !== undefined && <span className="shrink-0 text-sm text-gray-400">({fmtUsd(outputUsd)})</span>}
           <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium"><TokenIcon symbol="RETSBA" className="h-5 w-5" />RETSBA</div>

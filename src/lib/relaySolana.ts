@@ -4,8 +4,9 @@
 // the Abstract recipient in a single signable Solana transaction. We therefore use the
 // official Relay SDK (getQuote + execute + adaptSolanaWallet) rather than hand-assembling
 // the VersionedTransaction from the quote's raw instructions + address-lookup-tables.
-import { createClient, getClient, MAINNET_RELAY_API, type Execute } from '@relayprotocol/relay-sdk';
+import { createClient, getClient, MAINNET_RELAY_API, convertViemChainToRelayChain, type Execute } from '@relayprotocol/relay-sdk';
 import { adaptSolanaWallet } from '@relayprotocol/relay-svm-wallet-adapter';
+import { abstract, mainnet, base, bsc, avalanche, megaeth, monad } from 'viem/chains';
 import type { Connection, VersionedTransaction, SendOptions } from '@solana/web3.js';
 
 export const SOLANA_RELAY_CHAIN_ID = 792703809; // Relay's numeric id for Solana mainnet
@@ -14,29 +15,43 @@ const RETSBA = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A';
 const NATIVE_SOL = '11111111111111111111111111111111'; // SystemProgram id = native SOL (9 decimals)
 
 let _client: ReturnType<typeof createClient> | null = null;
-function relayClient() {
+/**
+ * Shared Relay client (also used by relayEvm.ts). The EVM ERC20 execute path needs
+ * client.chains populated or actions.execute throws "chain not found" — so configure all
+ * EVM origin chains synchronously (the Solana adaptSolanaWallet path sends independently).
+ */
+export function relayClient() {
   if (!_client) {
-    _client = createClient({ baseApiUrl: MAINNET_RELAY_API, source: 'retsba.com' });
+    _client = createClient({
+      baseApiUrl: MAINNET_RELAY_API,
+      source: 'retsba.com',
+      chains: [abstract, mainnet, base, bsc, avalanche, megaeth, monad].map(convertViemChainToRelayChain),
+    });
   }
   return getClient();
 }
 
-/** Quote a SOL -> RETSBA(on Abstract) route. `recipient` is the EVM 0x address on Abstract. */
+/**
+ * Quote a Solana -> RETSBA(on Abstract) route. `recipient` is the EVM 0x address on Abstract.
+ * `mint` defaults to native SOL; pass an SPL mint (e.g. USDC) for token origins. `amount` is
+ * in the origin token's base units (9 for SOL, 6 for USDC).
+ */
 export async function getSolToRetsbaQuote(params: {
   user: string;        // base58 Solana pubkey
   recipient: string;   // 0x EVM address on Abstract
-  lamports: bigint;
+  amount: bigint;
+  mint?: string;       // SPL mint; omit for native SOL
 }): Promise<Execute> {
   const client = relayClient();
   return client.actions.getQuote({
     chainId: SOLANA_RELAY_CHAIN_ID,
-    currency: NATIVE_SOL,
+    currency: params.mint ?? NATIVE_SOL,
     toChainId: ABSTRACT_ID,
     toCurrency: RETSBA,
     tradeType: 'EXACT_INPUT',
     user: params.user,
     recipient: params.recipient,
-    amount: params.lamports.toString(),
+    amount: params.amount.toString(),
   });
 }
 
