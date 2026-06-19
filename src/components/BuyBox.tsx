@@ -71,7 +71,7 @@ const fmt = (n: number, max = 4) => (n === 0 ? '0' : n.toLocaleString(undefined,
 // Clean decimal string for an input field (no commas, capped precision).
 const trimNum = (s: string) => { const n = Number(s); return !n || isNaN(n) ? '' : String(Number(n.toPrecision(8))); };
 
-type Step = 'idle' | 'bridging' | 'waiting' | 'swapping' | 'sol-signing' | 'sol-pending';
+type Step = 'idle' | 'switching' | 'bridging' | 'waiting' | 'swapping' | 'sol-signing' | 'sol-pending';
 
 export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) => {
   const { address, isConnected } = useAccount();
@@ -223,6 +223,10 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   };
 
   const doAbstractSwap = async (to: `0x${string}`) => {
+    // A regular EVM wallet may be on another chain; make sure we're on Abstract before the
+    // swap (writeContract pinned to ABSTRACT_ID throws "wrong chain" otherwise). No-op for AGW.
+    setStep('switching');
+    await switchChainAsync({ chainId: ABSTRACT_ID });
     const value = parseEther(inputAmount);
     const amounts = await abstractClient!.readContract({ address: V2_ROUTER, abi: routerAbi, functionName: 'getAmountsOut', args: [value, [WETH, RETSBA]] });
     const amountOutMin = (amounts[1] * (10000n - SLIPPAGE_BPS)) / 10000n;
@@ -336,6 +340,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   };
 
   const statusText = useMemo(() => {
+    if (step === 'switching') return 'Switch to Abstract in your wallet…';
     if (step === 'bridging') return 'Confirm the bridge in your wallet…';
     if (step === 'waiting') return 'Bridging to Abstract — this can take a minute…';
     if (step === 'swapping') return 'Confirm the swap in your wallet…';
