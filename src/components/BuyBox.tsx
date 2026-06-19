@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   useAccount,
   useBalance,
@@ -16,6 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsAGWConnected } from '@/utils/agwValidation';
 import { getRelayBridgeQuote } from '@/lib/relay';
 import { TokenIcon, ChainIcon } from '@/components/ui/CoinIcon';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { LAMPORTS_PER_SOL, type VersionedTransaction, type SendOptions } from '@solana/web3.js';
+import { getSolToRetsbaQuote, quoteRetsbaOut, executeSolToRetsba } from '@/lib/relaySolana';
 
 // ---- Abstract contracts (the on-Abstract swap leg) ----
 const RETSBA = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
@@ -66,7 +70,7 @@ const fmt = (n: number, max = 4) => (n === 0 ? '0' : n.toLocaleString(undefined,
 // Clean decimal string for an input field (no commas, capped precision).
 const trimNum = (s: string) => { const n = Number(s); return !n || isNaN(n) ? '' : String(Number(n.toPrecision(8))); };
 
-type Step = 'idle' | 'bridging' | 'waiting' | 'swapping';
+type Step = 'idle' | 'bridging' | 'waiting' | 'swapping' | 'sol-signing' | 'sol-pending';
 
 export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) => {
   const { address, isConnected } = useAccount();
@@ -78,6 +82,10 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const { switchChainAsync } = useSwitchChain();
   const { toast } = useToast();
 
+  // Solana wallet (parallel context; hooks must run unconditionally).
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction: solSendTransaction, connected: solConnected } = useWallet();
+
   const [chainId, setChainId] = useState<ChainId>(ABSTRACT_ID);
   const [token, setToken] = useState<TokenOption>(TOKENS_BY_CHAIN[ABSTRACT_ID][0]);
   const [inputAmount, setInputAmount] = useState('');
@@ -87,6 +95,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [selectorChain, setSelectorChain] = useState<ChainId>(ABSTRACT_ID);
   const [step, setStep] = useState<Step>('idle');
+  const [solBalance, setSolBalance] = useState(0);
+  const [solBalNonce, setSolBalNonce] = useState(0);
+  const solQuoteRef = useRef<Awaited<ReturnType<typeof getSolToRetsbaQuote>> | null>(null);
 
   const isAbstractInput = chainId === ABSTRACT_ID;
   const isSolana = chainId === 'solana';
@@ -107,8 +118,23 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   const { data: retsbaDecimals } = useReadContract({ address: RETSBA, abi: erc20Abi, functionName: 'decimals' });
   const decimals = retsbaDecimals ?? 18;
 
-  const inputBal = inputBalance ? Number(formatEther(inputBalance.value)) : 0;
+  const inputBal = isSolana ? solBalance : (inputBalance ? Number(formatEther(inputBalance.value)) : 0);
   const retsbaBal = retsbaBalanceRaw ? Number(formatUnits(retsbaBalanceRaw, decimals)) : 0;
+
+  // ---- Solana SOL balance (separate wallet/RPC; bump solBalNonce to refetch) ----
+  useEffect(() => {
+    if (!isSolana || !solConnected || !publicKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const lamports = await connection.getBalance(publicKey);
+        if (!cancelled) setSolBalance(lamports / LAMPORTS_PER_SOL);
+      } catch {
+        if (!cancelled) setSolBalance(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isSolana, solConnected, publicKey, connection, solBalNonce]);
 
   // ---- Quoting ----
   // Same-chain (Abstract): bidirectional V2. Cross-chain: exact-input only (Relay bridge
@@ -118,7 +144,24 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     let cancelled = false;
     const handle = setTimeout(async () => {
       try {
-        if (isSolana) { if (!cancelled) setOutputAmount(''); return; }
+        if (isSolana) {
+          const sv = Number(inputAmount);
+          const recip = (recipient.trim() || address || '');
+          if (!inputAmount || isNaN(sv) || sv <= 0 || !publicKey || !recip || !isAddress(recip)) {
+            solQuoteRef.current = null;
+            if (!cancelled) setOutputAmount('');
+            return;
+          }
+          const quote = await getSolToRetsbaQuote({
+            user: publicKey.toBase58(),
+            recipient: recip,
+            lamports: parseUnits(inputAmount, 9),
+          });
+          if (cancelled) return;
+          solQuoteRef.current = quote;
+          setOutputAmount(trimNum(quoteRetsbaOut(quote) ?? ''));
+          return;
+        }
 
         if (isAbstractInput) {
           if (lastEdited === 'in') {
@@ -148,15 +191,21 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
       }
     }, isAbstractInput ? 350 : 600);
     return () => { cancelled = true; clearTimeout(handle); };
-  }, [inputAmount, outputAmount, lastEdited, abstractClient, decimals, chainId, isAbstractInput, isSolana, address]);
+  }, [inputAmount, outputAmount, lastEdited, abstractClient, decimals, chainId, isAbstractInput, isSolana, address, publicKey, recipient]);
 
   const recipientInvalid = recipient.trim().length > 0 && !isAddress(recipient.trim());
   const insufficient = !!inputAmount && Number(inputAmount) > inputBal;
+  // Solana requires an Abstract 0x recipient (auto-filled from a connected EVM wallet).
+  const solRecipient = recipient.trim() || address || '';
+  const solRecipientInvalid = isSolana && !(solRecipient && isAddress(solRecipient));
 
   const selectChain = (c: ChainOption) => {
     const tk = (TOKENS_BY_CHAIN[String(c.id)] ?? [])[0];
     setChainId(c.id); if (tk) setToken(tk);
     setInputAmount(''); setOutputAmount(''); setLastEdited('in');
+    solQuoteRef.current = null;
+    // Solana delivers RETSBA to an Abstract 0x address — prefill from the EVM wallet if present.
+    if (c.id === 'solana' && address && !recipient.trim()) setRecipient(address);
     setSelectorOpen(false);
   };
 
@@ -217,12 +266,50 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     toast({ title: 'Buy complete 🎉', description: 'Bridged and swapped into RETSBA.' });
   };
 
+  const doSolanaBuy = async (to: `0x${string}`) => {
+    if (!publicKey || !solConnected) throw new Error('Connect a Solana wallet first.');
+    setStep('sol-signing');
+    // Fresh quote at click time so price + recipient are current.
+    const quote = await getSolToRetsbaQuote({
+      user: publicKey.toBase58(),
+      recipient: to,
+      lamports: parseUnits(inputAmount, 9),
+    });
+    await executeSolToRetsba({
+      quote,
+      walletAddress: publicKey.toBase58(),
+      connection,
+      sendTransaction: (tx: VersionedTransaction, options?: SendOptions) => solSendTransaction(tx, connection, options),
+      onProgress: () => setStep('sol-pending'),
+    });
+    toast({ title: 'Buy complete 🎉', description: 'Bridged from Solana — RETSBA delivered to Abstract.' });
+  };
+
   const handleAction = async () => {
-    if (!isConnected) { openConnectModal?.(); return; }
+    // ---- Solana path: separate wallet, Relay handles SOL -> RETSBA end-to-end ----
     if (isSolana) {
-      toast({ title: 'Solana coming next', description: 'Solana support needs a Solana wallet — it’s coming in a later update. For now use Abstract or an EVM chain.' });
+      if (!solConnected) return; // WalletMultiButton handles connecting
+      if (solRecipientInvalid) { toast({ title: 'Abstract address needed', description: 'Enter the Abstract (0x) address that should receive your RETSBA.', variant: 'destructive' }); return; }
+      if (!inputAmount || Number(inputAmount) <= 0) return;
+      if (insufficient) { toast({ title: 'Insufficient SOL', description: `You only have ${fmt(inputBal)} SOL.`, variant: 'destructive' }); return; }
+      const to = solRecipient as `0x${string}`;
+      try {
+        await doSolanaBuy(to);
+        setInputAmount(''); setOutputAmount(''); solQuoteRef.current = null;
+        setSolBalNonce((n) => n + 1);
+        setTimeout(() => { refetchRetsba(); onBalanceRefresh?.(); }, 2500);
+      } catch (err: any) {
+        const msg = err?.shortMessage || err?.message || '';
+        if (/reject|denied|cancel|user refused/i.test(msg)) toast({ title: 'Cancelled', description: 'You declined the transaction.' });
+        else { console.error('Solana buy error:', err); toast({ title: 'Buy failed', description: msg || 'Something went wrong.', variant: 'destructive' }); }
+      } finally {
+        setStep('idle');
+      }
       return;
     }
+
+    // ---- EVM path ----
+    if (!isConnected) { openConnectModal?.(); return; }
     if (recipientInvalid) { toast({ title: 'Invalid address', description: 'That recipient address isn’t valid.', variant: 'destructive' }); return; }
     if (!inputAmount || Number(inputAmount) <= 0 || !abstractClient) return;
     if (insufficient) { toast({ title: 'Insufficient balance', description: `You only have ${fmt(inputBal)} ${token.symbol}.`, variant: 'destructive' }); return; }
@@ -246,35 +333,37 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
     if (step === 'bridging') return 'Confirm the bridge in your wallet…';
     if (step === 'waiting') return 'Bridging to Abstract — this can take a minute…';
     if (step === 'swapping') return 'Confirm the swap in your wallet…';
+    if (step === 'sol-signing') return 'Approve the transaction in your Solana wallet…';
+    if (step === 'sol-pending') return 'Bridging from Solana — delivering RETSBA to Abstract…';
     return '';
   }, [step]);
 
   const buttonText = useMemo(() => {
+    if (busy) return (step === 'waiting' || step === 'sol-pending') ? 'Bridging…' : 'Confirm in wallet…';
+    if (isSolana) {
+      if (!solConnected) return 'Connect Solana Wallet';
+      if (solRecipientInvalid) return 'Enter Abstract address';
+      if (!inputAmount || Number(inputAmount) <= 0) return 'Enter an amount';
+      if (insufficient) return 'Insufficient SOL';
+      return 'Bridge & Buy';
+    }
     if (!isConnected) return 'Connect a Wallet';
-    if (busy) return step === 'waiting' ? 'Bridging…' : 'Confirm in wallet…';
-    if (isSolana) return 'Solana coming soon';
     if (recipientInvalid) return 'Invalid recipient address';
     if (!inputAmount || Number(inputAmount) <= 0) return 'Enter an amount';
     if (insufficient) return `Insufficient ${token.symbol}`;
     return isAbstractInput ? 'Buy RETSBA' : 'Bridge & Buy';
-  }, [isConnected, busy, step, isSolana, recipientInvalid, inputAmount, insufficient, token.symbol, isAbstractInput]);
+  }, [isConnected, busy, step, isSolana, solConnected, solRecipientInvalid, recipientInvalid, inputAmount, insufficient, token.symbol, isAbstractInput]);
 
-  const actionDisabled = busy || recipientInvalid || (!isSolana && (!inputAmount || Number(inputAmount) <= 0 || insufficient));
+  const actionDisabled = busy
+    || (isSolana
+        ? (solRecipientInvalid || !inputAmount || Number(inputAmount) <= 0 || insufficient)
+        : (recipientInvalid || !inputAmount || Number(inputAmount) <= 0 || insufficient));
 
   const selectorTokens = TOKENS_BY_CHAIN[String(selectorChain)] ?? [];
   const chainName = CHAINS.find((c) => c.id === chainId)?.name ?? '';
 
-  // Disconnected: show nothing but a connect prompt.
-  if (!isConnected) {
-    return (
-      <div className="py-6">
-        <button onClick={() => openConnectModal?.()} className="w-full rounded-xl bg-red-600 py-3 font-bold text-white transition-colors hover:bg-red-700">
-          Connect a Wallet
-        </button>
-      </div>
-    );
-  }
-
+  // Always render the swap UI (Uniswap-style); connecting happens in the action area so a
+  // Solana-only user can reach the Solana flow without an EVM wallet first.
   return (
     <div className="space-y-2">
       <h3 className="text-center text-black font-display text-2xl mb-2">Buy RETSBA</h3>
@@ -298,12 +387,10 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
         </div>
         <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
           <span>{chainName}</span>
-          {!isSolana && (
-            <span>
-              Balance: {fmt(inputBal)} {token.symbol}
-              {inputBal > 0 && <button onClick={handleMax} disabled={busy} className="ml-1.5 font-semibold text-red-600 hover:text-red-700">MAX</button>}
-            </span>
-          )}
+          <span>
+            Balance: {fmt(inputBal)} {token.symbol}
+            {inputBal > 0 && <button onClick={handleMax} disabled={busy} className="ml-1.5 font-semibold text-red-600 hover:text-red-700">MAX</button>}
+          </span>
         </div>
       </div>
 
@@ -336,9 +423,10 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
         <input
           value={recipient} disabled={busy} onChange={(e) => setRecipient(e.target.value)}
           placeholder={isSolana ? 'Abstract destination address (required for Solana)' : 'Send to a different wallet (optional)'}
-          className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-black outline-none placeholder:text-gray-400 ${recipientInvalid ? 'border-red-500' : 'border-black/10 focus:border-black/30'}`}
+          className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-black outline-none placeholder:text-gray-400 ${(recipientInvalid || (isSolana && solRecipientInvalid)) ? 'border-red-500' : 'border-black/10 focus:border-black/30'}`}
         />
         {recipientInvalid && <p className="mt-1 text-xs text-red-500">Enter a valid 0x wallet address.</p>}
+        {isSolana && solRecipientInvalid && !recipientInvalid && <p className="mt-1 text-xs text-red-500">Enter the Abstract (0x) address that will receive your RETSBA.</p>}
       </div>
 
       {/* Status line during a cross-chain buy */}
@@ -348,11 +436,22 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
         </div>
       )}
 
-      {/* Action */}
-      <button onClick={handleAction} disabled={actionDisabled}
-        className="mt-1 w-full rounded-xl bg-red-600 py-3 font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
-        {buttonText}
-      </button>
+      {/* Action — connect affordance depends on which chain's wallet is needed */}
+      {isSolana && !solConnected ? (
+        <div className="mt-1 flex justify-center [&_button]:!w-full [&_button]:!justify-center [&_button]:!rounded-xl [&_button]:!bg-red-600 [&_button]:!py-3 [&_button]:!h-auto [&_button]:!font-bold">
+          <WalletMultiButton>Connect Solana Wallet</WalletMultiButton>
+        </div>
+      ) : (!isSolana && !isConnected) ? (
+        <button onClick={() => openConnectModal?.()}
+          className="mt-1 w-full rounded-xl bg-red-600 py-3 font-bold text-white transition-colors hover:bg-red-700">
+          Connect a Wallet
+        </button>
+      ) : (
+        <button onClick={handleAction} disabled={actionDisabled}
+          className="mt-1 w-full rounded-xl bg-red-600 py-3 font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+          {buttonText}
+        </button>
+      )}
 
       {/* Chain + token selector */}
       <Dialog open={selectorOpen} onOpenChange={setSelectorOpen}>
