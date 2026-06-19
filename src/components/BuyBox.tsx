@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useIsAGWConnected } from '@/utils/agwValidation';
 import { getRelayBridgeQuote } from '@/lib/relay';
+import { TokenIcon, ChainIcon } from '@/components/ui/CoinIcon';
 
 // ---- Abstract contracts (the on-Abstract swap leg) ----
 const RETSBA = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
@@ -290,6 +291,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
           />
           <button onClick={() => { setSelectorChain(chainId); setSelectorOpen(true); }} disabled={busy}
             className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium hover:bg-gray-100 transition-colors disabled:opacity-60">
+            <TokenIcon symbol={token.symbol} className="h-5 w-5" />
             {token.symbol}
             <ChevronDown className="h-4 w-4 text-gray-500" />
           </button>
@@ -321,7 +323,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
             onChange={(e) => { if (isAbstractInput) { setLastEdited('out'); setOutputAmount(e.target.value.replace(/[^0-9.]/g, '')); } }}
             className={`w-0 flex-1 bg-transparent text-2xl font-semibold text-black outline-none placeholder:text-gray-300 ${!isAbstractInput ? 'cursor-default' : ''}`}
           />
-          <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium">RETSBA</div>
+          <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium"><TokenIcon symbol="RETSBA" className="h-5 w-5" />RETSBA</div>
         </div>
         <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
           <span>Abstract</span>
@@ -369,7 +371,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
                     className={`flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors ${
                       active ? 'bg-red-50 text-black font-semibold' : selectable ? 'text-black hover:bg-gray-100' : 'text-gray-300 cursor-not-allowed'
                     }`}>
-                    <span>{c.name}</span>
+                    <span className="flex items-center gap-2"><ChainIcon id={c.id} name={c.name} className="h-5 w-5" />{c.name}</span>
                   </button>
                 );
               })}
@@ -380,9 +382,12 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
                 return (
                   <button key={tk.symbol} onClick={() => selectChain(CHAINS.find((c) => c.id === selectorChain)!)}
                     className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-100">
-                    <span className="flex flex-col">
-                      <span className="font-medium text-black">{tk.symbol}</span>
-                      <span className="text-xs text-gray-400">{tk.name}</span>
+                    <span className="flex items-center gap-2.5">
+                      <TokenIcon symbol={tk.symbol} className="h-6 w-6" />
+                      <span className="flex flex-col">
+                        <span className="font-medium text-black">{tk.symbol}</span>
+                        <span className="text-xs text-gray-400">{tk.name}</span>
+                      </span>
                     </span>
                     {active && <Check className="h-4 w-4 text-red-600" />}
                   </button>
