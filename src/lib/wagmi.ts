@@ -74,12 +74,19 @@ const bscTransport = fallback([
   http('https://bsc-rpc.publicnode.com'),
 ]);
 
+// RainbowKit's "Switch Networks" list reads chain.iconUrl. mainnet/base/bsc/avalanche have
+// built-in RainbowKit icons; the custom chains (Abstract/MegaETH/Monad) don't — give them our
+// brand logos so they aren't blank. (Spreading keeps each chain's id/rpc; Abstract stays id 2741.)
+const abstractWithIcon = { ...abstract, iconUrl: '/coin images/abstract blockchain logo.jpg', iconBackground: '#ffffff' };
+const megaethWithIcon = { ...megaeth, iconUrl: '/coin images/megaeth logo.png', iconBackground: '#ffffff' };
+const monadWithIcon = { ...monad, iconUrl: '/coin images/monad logo.ico', iconBackground: '#ffffff' };
+
 export const wagmiConfig = createConfig({
   connectors,
   // `abstract` MUST stay as chains[0]: @abstract-foundation/agw-react's useAbstractClient
   // builds the AGW client for useChains()[0]. Prepending another chain would break it.
   // The rest are bridge ORIGIN chains for cross-chain buys (Relay → Abstract).
-  chains: [abstract, mainnet, base, bsc, avalanche, megaeth, monad],
+  chains: [abstractWithIcon, mainnet, base, bsc, avalanche, megaethWithIcon, monadWithIcon],
   // Use the plain transports MAP form, not viem's client({chain}) form. AGW's
   // useAbstractClient reads `config._internal.transports[chainId]` directly and throws a
   // TypeError if it's undefined — which the client() form leaves it as. AGW applies its
