@@ -5,6 +5,7 @@ import { WagmiProvider } from "wagmi";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { wagmiConfig, queryClient } from "@/lib/wagmi";
+import { SolanaProvider } from "@/lib/solana";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { MobileNavProvider } from "@/contexts/MobileNavContext";
@@ -31,6 +32,7 @@ const App = () => {
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider theme={darkTheme()}>
+            <SolanaProvider>
             <MobileNavProvider>
               <TooltipProvider>
                 <Toaster />
@@ -59,6 +61,7 @@ const App = () => {
                 </BrowserRouter>
               </TooltipProvider>
             </MobileNavProvider>
+            </SolanaProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
