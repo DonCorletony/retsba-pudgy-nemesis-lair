@@ -377,7 +377,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
   // Solana-only user can reach the Solana flow without an EVM wallet first.
   return (
     <div className="space-y-2">
-      <h3 className="text-center text-black font-display text-2xl mb-2">Buy RETSBA</h3>
+      <h3 className="flex items-center justify-center gap-2 text-black font-display text-2xl mb-2">
+        Buy <img src="/logos/logo-bordered.png" alt="RETSBA" className="h-8" />
+      </h3>
 
       {/* INPUT slot */}
       <div className="rounded-xl border border-black/10 bg-gray-50 p-4">
