@@ -20,6 +20,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { LAMPORTS_PER_SOL, type VersionedTransaction, type SendOptions } from '@solana/web3.js';
 import { getSolToRetsbaQuote, quoteRetsbaOut, executeSolToRetsba } from '@/lib/relaySolana';
+import { useUsdPrices, usdValue, fmtUsd } from '@/lib/prices';
 
 // ---- Abstract contracts (the on-Abstract swap leg) ----
 const RETSBA = '0x52629ddBf28AA01Aa22B994Ec9c80273e4Eb5B0A' as `0x${string}`;
@@ -120,6 +121,11 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
 
   const inputBal = isSolana ? solBalance : (inputBalance ? Number(formatEther(inputBalance.value)) : 0);
   const retsbaBal = retsbaBalanceRaw ? Number(formatUnits(retsbaBalanceRaw, decimals)) : 0;
+
+  // ---- USD markers (spot prices; non-critical, hidden if unavailable) ----
+  const { data: usdPrices } = useUsdPrices();
+  const inputUsd = usdValue(inputAmount, token.symbol, usdPrices);
+  const outputUsd = usdValue(outputAmount, 'RETSBA', usdPrices);
 
   // ---- Solana SOL balance (separate wallet/RPC; bump solBalNonce to refetch) ----
   useEffect(() => {
@@ -378,6 +384,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
             onChange={(e) => { setLastEdited('in'); setInputAmount(e.target.value.replace(/[^0-9.]/g, '')); }}
             className="w-0 flex-1 bg-transparent text-2xl font-semibold text-black outline-none placeholder:text-gray-300"
           />
+          {inputUsd !== undefined && <span className="shrink-0 text-sm text-gray-400">({fmtUsd(inputUsd)})</span>}
           <button onClick={() => { setSelectorChain(chainId); setSelectorOpen(true); }} disabled={busy}
             className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium hover:bg-gray-100 transition-colors disabled:opacity-60">
             <TokenIcon symbol={token.symbol} className="h-5 w-5" />
@@ -410,6 +417,7 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
             onChange={(e) => { if (isAbstractInput) { setLastEdited('out'); setOutputAmount(e.target.value.replace(/[^0-9.]/g, '')); } }}
             className={`w-0 flex-1 bg-transparent text-2xl font-semibold text-black outline-none placeholder:text-gray-300 ${!isAbstractInput ? 'cursor-default' : ''}`}
           />
+          {outputUsd !== undefined && <span className="shrink-0 text-sm text-gray-400">({fmtUsd(outputUsd)})</span>}
           <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white border border-black/10 px-3 py-1.5 text-black font-medium"><TokenIcon symbol="RETSBA" className="h-5 w-5" />RETSBA</div>
         </div>
         <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
