@@ -7,6 +7,7 @@
 import { createClient, getClient, MAINNET_RELAY_API, convertViemChainToRelayChain, type Execute } from '@relayprotocol/relay-sdk';
 import { adaptSolanaWallet } from '@relayprotocol/relay-svm-wallet-adapter';
 import { abstract, mainnet, base, bsc, avalanche, megaeth, monad } from 'viem/chains';
+import { robinhood } from './chains';
 import type { Connection, VersionedTransaction, SendOptions } from '@solana/web3.js';
 
 export const SOLANA_RELAY_CHAIN_ID = 792703809; // Relay's numeric id for Solana mainnet
@@ -25,7 +26,7 @@ export function relayClient() {
     _client = createClient({
       baseApiUrl: MAINNET_RELAY_API,
       source: 'retsba.com',
-      chains: [abstract, mainnet, base, bsc, avalanche, megaeth, monad].map(convertViemChainToRelayChain),
+      chains: [abstract, mainnet, base, bsc, avalanche, megaeth, monad, robinhood].map(convertViemChainToRelayChain),
     });
   }
   return getClient();

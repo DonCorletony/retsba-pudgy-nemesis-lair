@@ -8,6 +8,7 @@ const CG_IDS: Record<string, string> = {
   BNB: 'binancecoin',
   AVAX: 'avalanche-2',
   USDC: 'usd-coin',
+  USDG: 'global-dollar', // Paxos Global Dollar (Robinhood Chain's stablecoin)
   RETSBA: 'retsba',
 };
 

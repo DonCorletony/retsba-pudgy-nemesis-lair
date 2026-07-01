@@ -1,6 +1,7 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { createConfig, http, fallback } from 'wagmi';
 import { abstract, mainnet, base, bsc, avalanche, megaeth, monad } from 'viem/chains';
+import { robinhood } from './chains';
 import { QueryClient } from '@tanstack/react-query';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
@@ -79,7 +80,7 @@ export const wagmiConfig = createConfig({
   // `abstract` MUST stay as chains[0]: @abstract-foundation/agw-react's useAbstractClient
   // builds the AGW client for useChains()[0]. Prepending another chain would break it.
   // The rest are bridge ORIGIN chains for cross-chain buys (Relay → Abstract).
-  chains: [abstractWithIcon, mainnet, base, bsc, avalanche, megaethWithIcon, monadWithIcon],
+  chains: [abstractWithIcon, mainnet, base, bsc, avalanche, megaethWithIcon, monadWithIcon, robinhood],
   // Use the plain transports MAP form, not viem's client({chain}) form. AGW's
   // useAbstractClient reads `config._internal.transports[chainId]` directly and throws a
   // TypeError if it's undefined — which the client() form leaves it as. AGW applies its
@@ -92,6 +93,7 @@ export const wagmiConfig = createConfig({
     [avalanche.id]: http(),
     [megaeth.id]: http(),
     [monad.id]: http(),
+    [robinhood.id]: http(),
   },
   ssr: false, // Vite SPA (no SSR)
   // multiInjectedProviderDiscovery defaults to true → EIP-6963 auto-detect + RDNS dedupe.

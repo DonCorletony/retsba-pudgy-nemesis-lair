@@ -57,6 +57,7 @@ const CHAINS: ChainOption[] = [
   { id: 'solana', name: 'Solana', needsCustomRecipient: true },
   { id: 4326, name: 'MegaETH' },
   { id: 143, name: 'Monad' },
+  { id: 4663, name: 'Robinhood' },
 ];
 
 // USDC addresses + decimals are Relay-verified per chain. NOTE: BNB USDC is 18 decimals
@@ -94,6 +95,12 @@ const TOKENS_BY_CHAIN: Record<string, TokenOption[]> = {
   '143': [
     { symbol: 'MON', name: 'Monad', address: 'native', decimals: 18 },
     { symbol: 'USDC', name: 'USD Coin', address: '0x754704bc059f8c67012fed69bc8a327a5aafb603', decimals: 6 },
+  ],
+  // Robinhood Chain (Arbitrum-stack L2, ETH gas). USDG = Global Dollar, its native
+  // stablecoin — address + 6 decimals Relay-verified, bridging enabled.
+  '4663': [
+    { symbol: 'ETH', name: 'Robinhood ETH', address: 'native', decimals: 18 },
+    { symbol: 'USDG', name: 'Global Dollar', address: '0x5fc5360d0400a0fd4f2af552add042d716f1d168', decimals: 6 },
   ],
 };
 
