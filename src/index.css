@@ -92,6 +92,14 @@
     @apply border-border;
   }
 
+  html {
+    /* Reserve the scrollbar's gutter permanently. Without this, opening a modal
+       (Radix locks body scroll and the scrollbar vanishes) widens the page and
+       shifts fixed-centered content horizontally — the buy/token dialog looked
+       off-center left/right while vertical centering stayed correct. */
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Menco', system-ui, -apple-system, 'Segoe UI', sans-serif;
