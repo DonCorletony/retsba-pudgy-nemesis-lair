@@ -11,7 +11,7 @@ import {
 } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { erc20Abi, formatEther, formatUnits, parseEther, parseUnits, isAddress } from 'viem';
-import { ChevronDown, ArrowDown, X, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, ArrowDown, Check, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useIsAGWConnected } from '@/utils/agwValidation';
@@ -579,9 +579,9 @@ export const BuyBox = ({ onBalanceRefresh }: { onBalanceRefresh?: () => void }) 
       {/* Chain + token selector */}
       <Dialog open={selectorOpen} onOpenChange={setSelectorOpen}>
         <DialogContent className="max-w-md bg-white p-0 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
+          {/* DialogContent renders its own close X (top-right) — don't add a second one. */}
+          <div className="border-b border-black/10 px-4 py-3">
             <DialogTitle className="font-semibold text-black">Select network &amp; token</DialogTitle>
-            <button onClick={() => setSelectorOpen(false)} className="text-gray-400 hover:text-black"><X className="h-5 w-5" /></button>
           </div>
           <div className="grid grid-cols-[140px_1fr]">
             <div className="max-h-80 overflow-y-auto border-r border-black/10 py-2">

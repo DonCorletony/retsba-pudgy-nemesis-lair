@@ -74,13 +74,17 @@ const bscTransport = fallback([
 const abstractWithIcon = { ...abstract, iconUrl: '/coin images/abstract blockchain logo.jpg', iconBackground: '#ffffff' };
 const megaethWithIcon = { ...megaeth, iconUrl: '/coin images/megaeth logo.png', iconBackground: '#ffffff' };
 const monadWithIcon = { ...monad, iconUrl: '/coin images/monad logo.ico', iconBackground: '#ffffff' };
+// Base has a RainbowKit built-in icon, but we override with the brand asset so the wallet
+// pill + network switcher match the buy box's selector.
+const baseWithIcon = { ...base, iconUrl: '/coin images/base logo.png', iconBackground: '#ffffff' };
+const robinhoodWithIcon = { ...robinhood, iconUrl: '/coin images/robinhood logo.png', iconBackground: '#ccff00' };
 
 export const wagmiConfig = createConfig({
   connectors,
   // `abstract` MUST stay as chains[0]: @abstract-foundation/agw-react's useAbstractClient
   // builds the AGW client for useChains()[0]. Prepending another chain would break it.
   // The rest are bridge ORIGIN chains for cross-chain buys (Relay → Abstract).
-  chains: [abstractWithIcon, mainnet, base, bsc, avalanche, megaethWithIcon, monadWithIcon, robinhood],
+  chains: [abstractWithIcon, mainnet, baseWithIcon, bsc, avalanche, megaethWithIcon, monadWithIcon, robinhoodWithIcon],
   // Use the plain transports MAP form, not viem's client({chain}) form. AGW's
   // useAbstractClient reads `config._internal.transports[chainId]` directly and throws a
   // TypeError if it's undefined — which the client() form leaves it as. AGW applies its

@@ -16,15 +16,17 @@ const TOKEN_IMAGES: Record<string, string> = {
   MON: `${DIR}/monad logo.ico`,
 };
 
-// Chain id -> logo. NOTE: Base (8453) has no asset yet -> falls back to its initial.
+// Chain id -> logo.
 const CHAIN_IMAGES: Record<string, string> = {
   '2741': `${DIR}/abstract blockchain logo.jpg`,
   '1': `${DIR}/eth coin image and ethereum logo.png`,
+  '8453': `${DIR}/base logo.png`,
   '56': `${DIR}/binance logo.png`,
   '43114': `${DIR}/avax coin image and avalanche logo.png`,
   solana: `${DIR}/SOL coin image and solana logo.png`,
   '4326': `${DIR}/megaeth logo.png`,
   '143': `${DIR}/monad logo.ico`,
+  '4663': `${DIR}/robinhood logo.png`,
 };
 
 export const tokenImage = (symbol: string): string | undefined => TOKEN_IMAGES[symbol];
