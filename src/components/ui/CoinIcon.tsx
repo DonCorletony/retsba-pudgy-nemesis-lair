@@ -14,6 +14,7 @@ const TOKEN_IMAGES: Record<string, string> = {
   SOL: `${DIR}/SOL coin image and solana logo.png`,
   MEGA: `${DIR}/megaeth logo.png`,
   MON: `${DIR}/monad logo.ico`,
+  USDG: `${DIR}/usdg coin image.png`,
 };
 
 // Chain id -> logo.
