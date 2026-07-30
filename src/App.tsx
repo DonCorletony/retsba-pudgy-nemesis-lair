@@ -25,6 +25,7 @@ import CommandCenter from "./pages/CommandCenter";
 import AbstractTXNs from "./pages/AbstractTXNs";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import TestGame from "./pages/TestGame";
 
 const App = () => {
   return (
@@ -55,6 +56,8 @@ const App = () => {
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/commandcenter" element={<CommandCenter />} />
                       <Route path="/abstracttxns" element={<AbstractTXNs />} />
+                      {/* Secret game lab — intentionally unlinked anywhere in the UI. */}
+                      <Route path="/testgame" element={<TestGame />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </MobileNavLayout>
