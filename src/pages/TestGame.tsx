@@ -42,7 +42,7 @@ type ShipKey = (typeof FLEET)[number]['key'];
 
 interface Placed { key: ShipKey; len: number; row: number; col: number; dir: 'v' | 'h'; }
 type Shots = Record<number, 'hit' | 'miss'>;
-type Phase = 'setup' | 'battle' | 'over';
+type Phase = 'idle' | 'setup' | 'battle' | 'over';
 
 const cellsFor = (s: Placed): number[] =>
   Array.from({ length: s.len }, (_, i) => (s.dir === 'v' ? (s.row + i) * GRID + s.col : s.row * GRID + s.col + i));
@@ -193,7 +193,8 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
 /* ---------- page ---------- */
 const TestGame = () => {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<Phase>('setup');
+  // Starts dormant — nothing runs until the player clicks "New match".
+  const [phase, setPhase] = useState<Phase>('idle');
   const [dir, setDir] = useState<'v' | 'h'>('v');
   const [yourFleet, setYourFleet] = useState<Placed[]>([]);
   const [foeFleet, setFoeFleet] = useState<Placed[]>([]);
@@ -248,7 +249,7 @@ const TestGame = () => {
 
   /* master clock */
   useEffect(() => {
-    if (phase === 'over') return;
+    if (phase === 'idle' || phase === 'over') return;
     const id = setInterval(() => setClock((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [phase, turn]);
@@ -312,7 +313,8 @@ const TestGame = () => {
   };
 
   const statusText =
-    phase === 'setup' ? `Place your ${nextShip?.label ?? 'fleet'}${nextShip ? ` (${nextShip.len} cells)` : ''} — auto-deploy at 0:00.`
+    phase === 'idle' ? 'Press New match to begin.'
+    : phase === 'setup' ? `Place your ${nextShip?.label ?? 'fleet'}${nextShip ? ` (${nextShip.len} cells)` : ''} — auto-deploy at 0:00.`
     : phase === 'battle' ? (turn === 'you' ? `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.` : 'Enemy turn…')
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
 
@@ -340,7 +342,7 @@ const TestGame = () => {
       <div className={`${raised} p-0.5 mb-3`}>
         <div className={`${sunken} bg-[#efefef] flex flex-wrap gap-2 items-center justify-between px-3 py-1.5`}>
           <span className="font-mono text-[13px] tracking-widest uppercase">
-            {phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle' : 'Game over'}
+            {phase === 'idle' ? 'Standby' : phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle' : 'Game over'}
           </span>
           <span className="flex items-center gap-3">
             <span className="text-sm">{statusText}</span>
@@ -357,7 +359,7 @@ const TestGame = () => {
         {/* YOUR board */}
         <Board
           title="Your fleet"
-          right={phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
+          right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
           ships={yourFleet} showShips sunk={[]} shots={foeShots}
           clickable={phase === 'setup'}
           outlined={phase === 'setup' || (phase === 'battle' && turn === 'you')}
@@ -402,7 +404,7 @@ const TestGame = () => {
         {/* ENEMY board */}
         <Board
           title="Enemy waters"
-          right={phase === 'setup' ? 'awaiting battle' : `boats left: ${foeBoats}`}
+          right={phase === 'idle' || phase === 'setup' ? 'awaiting battle' : `boats left: ${foeBoats}`}
           ships={foeFleet} showShips={false} sunk={phase === 'setup' ? [] : sunkShips(foeFleet, yourShots)} shots={yourShots}
           clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0}
           outlined={phase === 'battle' && turn === 'foe'}
