@@ -20,6 +20,9 @@ import { useNavigate } from 'react-router-dom';
 
 const GRID = 10;
 const SETUP_SECONDS = 30;
+// explosion.gif is 16 frames / 2080ms — play it once in the struck cell, then
+// settle to the persistent 💥 icon.
+const EXPLOSION_MS = 2100;
 
 const raised =
   'bg-[#c3c3c3] border-2 border-t-white border-l-white border-b-[#5c5c5c] border-r-[#5c5c5c] shadow-[inset_1px_1px_0_#e6e6e6,inset_-1px_-1px_0_#8a8a8a]';
@@ -123,7 +126,7 @@ const Missile = ({ live }: { live: boolean }) => (
 );
 
 /* ---------- board ---------- */
-const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, onCell, onShip }: {
+const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, onCell, onShip, animating }: {
   title: string;
   right: string;
   ships: Placed[];
@@ -134,6 +137,7 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
   outlined: boolean;
   onCell?: (idx: number) => void;
   onShip?: (key: ShipKey) => void;
+  animating?: Record<number, true>;   // cells currently playing the explosion gif
 }) => (
   <div className={`${raised} p-1.5 ${outlined ? 'outline outline-[3px] outline-[#f2c320]' : ''}`}>
     <div className="flex items-center justify-between px-2 py-1.5 font-mono text-[13px] text-black">
@@ -172,8 +176,10 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
               <div key={idx} className="absolute flex items-center justify-center"
                 style={{ left: `${(i % GRID) * 10}%`, top: `${Math.floor(i / GRID) * 10}%`, width: '10%', height: '10%' }}>
                 {kind === 'hit'
-                  /* TODO: swap 💥 for /game/explosion.gif when the asset is re-supplied */
-                  ? <span className="text-[3.2vmin] lg:text-2xl leading-none select-none">💥</span>
+                  ? (animating?.[i]
+                      /* per-cell query string so simultaneous explosions each play from frame 0 */
+                      ? <img src={`/game/explosion.gif?c=${i}`} alt="" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+                      : <span className="text-[3.2vmin] lg:text-2xl leading-none select-none">💥</span>)
                   : <span className="font-black text-red-600 text-[3vmin] lg:text-2xl leading-none select-none" style={{ textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>X</span>}
               </div>
             );
@@ -198,7 +204,20 @@ const TestGame = () => {
   const [clock, setClock] = useState(SETUP_SECONDS);
   const [turnSecs, setTurnSecs] = useState(15);
   const [winner, setWinner] = useState<'you' | 'foe' | null>(null);
+  // Cells currently playing the explosion gif, per board ('you' = your board).
+  const [anim, setAnim] = useState<{ you: Record<number, true>; foe: Record<number, true> }>({ you: {}, foe: {} });
   const foeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const playExplosion = (board: 'you' | 'foe', idx: number) => {
+    setAnim((prev) => ({ ...prev, [board]: { ...prev[board], [idx]: true as const } }));
+    setTimeout(() => {
+      setAnim((prev) => {
+        const cells = { ...prev[board] };
+        delete cells[idx];
+        return { ...prev, [board]: cells };
+      });
+    }, EXPLOSION_MS);
+  };
 
   const yourBoats = boatsRemaining(yourFleet, foeShots);
   const foeBoats = phase === 'setup' ? FLEET.length : boatsRemaining(foeFleet, yourShots);
@@ -211,7 +230,7 @@ const TestGame = () => {
   const newMatch = () => {
     setPhase('setup'); setDir('v'); setYourFleet([]); setFoeFleet([]);
     setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
-    setClock(SETUP_SECONDS); setTurnSecs(15); setWinner(null);
+    setClock(SETUP_SECONDS); setTurnSecs(15); setWinner(null); setAnim({ you: {}, foe: {} });
   };
 
   const beginBattle = (finalFleet: Placed[]) => {
@@ -252,6 +271,7 @@ const TestGame = () => {
         const target = open[Math.floor(Math.random() * open.length)];
         const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
         const next = { ...prev, [target]: isHit ? 'hit' as const : 'miss' as const };
+        if (isHit) playExplosion('you', target);
         remaining -= 1;
         if (boatsRemaining(yourFleet, next) === 0) {
           setWinner('foe'); setPhase('over');
@@ -284,6 +304,7 @@ const TestGame = () => {
     const isHit = new Set(foeFleet.flatMap(cellsFor)).has(idx);
     const next = { ...yourShots, [idx]: isHit ? 'hit' as const : 'miss' as const };
     setYourShots(next);
+    if (isHit) playExplosion('foe', idx);
     const left = shotsLeft - 1;
     setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
@@ -304,9 +325,14 @@ const TestGame = () => {
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
-      {/* Chrome bar — center slot reserved for the BATTLE CHIPS wordmark asset */}
-      <div className={`${raised} flex items-center justify-between px-4 py-3 mb-3`}>
+      {/* Chrome bar with the BATTLE CHIPS wordmark centered */}
+      <div className={`${raised} relative flex items-center justify-between px-4 py-3 mb-3`}>
         <button onClick={() => navigate('/')} className={btn98}>Exit</button>
+        <img
+          src="/game/logo-battlechips.webp"
+          alt="Battle Chips"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-12 md:h-16 w-auto pointer-events-none"
+        />
         <button onClick={newMatch} className={btn98}>New match</button>
       </div>
 
@@ -336,6 +362,7 @@ const TestGame = () => {
           clickable={phase === 'setup'}
           outlined={phase === 'setup' || (phase === 'battle' && turn === 'you')}
           onCell={placeAt} onShip={phase === 'setup' ? removeShip : undefined}
+          animating={anim.you}
         />
 
         {/* center column */}
@@ -380,6 +407,7 @@ const TestGame = () => {
           clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0}
           outlined={phase === 'battle' && turn === 'foe'}
           onCell={fireAt}
+          animating={anim.foe}
         />
       </div>
     </div>
