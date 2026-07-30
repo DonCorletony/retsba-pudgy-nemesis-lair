@@ -396,8 +396,22 @@ const TestGame = () => {
             ))}
           </div>
 
+          {/* Roulette: static base plate, spinning wheel. Slow idle spin for now —
+              bet-triggered spins arrive with the roulette rules. */}
           <div className={`${raised} p-1`}>
-            <div className="bg-[#bdbdbd] aspect-square" />
+            <div className="relative bg-[#bdbdbd] aspect-square overflow-hidden">
+              <img
+                src="/game/roulette-base.png" alt=""
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+              {/* inset centering (not translate) — the spin keyframes own `transform` */}
+              <img
+                src="/game/roulette-wheel.png" alt="Roulette wheel"
+                className="absolute inset-[6%] w-[88%] h-[88%] animate-[spin_12s_linear_infinite]"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
           </div>
         </div>
 
