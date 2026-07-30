@@ -342,10 +342,11 @@ const TestGame = () => {
         <div className="flex flex-col gap-4 order-first lg:order-none">
           {/* twin clocks: left = you, right = enemy; active turn's clock is lit */}
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
-            <div className={`${sunken} bg-[#2a2a2a] h-14 flex-1 flex items-center justify-center`}>
+            {/* inline style: the `sunken` helper's own bg would otherwise fight the dark bg */}
+            <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
               <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />
             </div>
-            <div className={`${sunken} bg-[#2a2a2a] h-14 flex-1 flex items-center justify-center`}>
+            <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
               <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />
             </div>
           </div>
