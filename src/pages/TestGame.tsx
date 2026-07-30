@@ -2,18 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * SECRET game lab (/testgame) — Battleship-with-roulette prototype.
- * Windows 98-inspired UI per the provided mockup: gray chrome, beveled panels,
- * two 10x10 mine boards flanking a roulette column (RED/GREEN/BLACK + wheel area).
- *
- * Implemented so far: private pass-and-play mine setup (15 per player), New match,
- * Exit. Roulette displays/bets/battle phase are placeholders pending game rules.
+ * SECRET game lab (/testgame) — BATTLE CHIPS (battleship × roulette) prototype.
+ * Win98 chrome per mockup. Current increment: real assets — animated ocean grids +
+ * pixel-art fleet placement (5/4/3/3/2) replacing the placeholder mine setup.
+ * Roulette column (timer/displays/bets/wheel) still placeholder pending rules.
  */
 
 const GRID = 10;
-const MINES_PER_PLAYER = 15;
 
-// Win98 bevel helpers. Double bevel approximated with border + inset shadows.
 const raised =
   'bg-[#c3c3c3] border-2 border-t-white border-l-white border-b-[#5c5c5c] border-r-[#5c5c5c] shadow-[inset_1px_1px_0_#e6e6e6,inset_-1px_-1px_0_#8a8a8a]';
 const sunken =
@@ -21,37 +17,90 @@ const sunken =
 const btn98 =
   `${raised} px-5 py-1.5 font-bold text-black text-sm active:border-t-[#5c5c5c] active:border-l-[#5c5c5c] active:border-b-white active:border-r-white select-none`;
 
+// Fleet in placement order. Sprites are drawn VERTICAL; horizontal renders rotate them.
+const FLEET = [
+  { key: 'carrier', label: 'Carrier', len: 5, src: '/game/ship-carrier.png' },
+  { key: 'battleship', label: 'Battleship', len: 4, src: '/game/ship-battleship.png' },
+  { key: 'cruiser', label: 'Cruiser', len: 3, src: '/game/ship-cruiser.png' },
+  { key: 'submarine', label: 'Submarine', len: 3, src: '/game/ship-submarine.png' },
+  { key: 'destroyer', label: 'Destroyer', len: 2, src: '/game/ship-destroyer.png' },
+] as const;
+type ShipKey = (typeof FLEET)[number]['key'];
+
+interface Placed { key: ShipKey; len: number; row: number; col: number; dir: 'v' | 'h'; }
 type Phase = 'setup-p1' | 'setup-p2' | 'ready';
-type Cells = boolean[]; // GRID*GRID mine flags
 
-const emptyCells = (): Cells => Array(GRID * GRID).fill(false);
+const cellsFor = (s: Placed): number[] =>
+  Array.from({ length: s.len }, (_, i) => (s.dir === 'v' ? (s.row + i) * GRID + s.col : s.row * GRID + s.col + i));
 
-// Hoisted (NOT defined inside TestGame): an inline component would get a new identity
-// every render, remounting all 100 cells on each click.
-const Board = ({ player, cells, count, active, onToggle }: {
+const fits = (s: Placed, others: Placed[]): boolean => {
+  if (s.dir === 'v' ? s.row + s.len > GRID : s.col + s.len > GRID) return false;
+  const taken = new Set(others.flatMap(cellsFor));
+  return cellsFor(s).every((c) => !taken.has(c));
+};
+
+const Board = ({ player, ships, active, onCellClick, onShipClick }: {
   player: 1 | 2;
-  cells: Cells;
-  count: number;
+  ships: Placed[];
   active: boolean;
-  onToggle: (player: 1 | 2, idx: number) => void;
+  onCellClick: (player: 1 | 2, idx: number) => void;
+  onShipClick: (player: 1 | 2, key: ShipKey) => void;
 }) => (
-  <div className={`${raised} p-1.5`}>
+  <div className={`${raised} p-1.5 ${active ? 'outline outline-[3px] outline-[#f2c320]' : ''}`}>
     <div className="flex items-center justify-between px-2 py-1.5 font-mono text-[13px] text-black">
-      <span>Player {player} mines</span>
-      <span>{count}/{MINES_PER_PLAYER} mines</span>
+      <span>Player {player} fleet</span>
+      <span>{ships.length}/{FLEET.length} ships</span>
     </div>
     <div className={`${sunken} p-1`}>
-      <div className="grid grid-cols-10 bg-white">
-        {cells.map((mined, i) => (
-          <button
-            key={i}
-            onClick={() => onToggle(player, i)}
-            disabled={!active}
-            className={`aspect-square border border-[#b5b5b5] bg-white ${active ? 'hover:bg-[#eaeaea] cursor-pointer' : 'cursor-default'} flex items-center justify-center`}
-          >
-            {mined && active && <span className="block w-1/2 h-1/2 rounded-full bg-black" />}
-          </button>
-        ))}
+      <div
+        className="relative"
+        style={{ backgroundImage: "url('/game/ocean.gif')", backgroundSize: 'cover', imageRendering: 'pixelated' }}
+      >
+        <div className="grid grid-cols-10">
+          {Array.from({ length: GRID * GRID }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => onCellClick(player, i)}
+              disabled={!active}
+              className={`aspect-square border border-white/60 bg-transparent ${active ? 'hover:bg-white/25 cursor-pointer' : 'cursor-default'}`}
+            />
+          ))}
+        </div>
+        {/* Fleet overlay — only the placing player sees their ships (private setup). */}
+        {active && (
+          <div className="absolute inset-0 pointer-events-none">
+            {ships.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => onShipClick(player, s.key)}
+                title={`Remove ${s.key}`}
+                className="absolute pointer-events-auto cursor-pointer"
+                style={{
+                  left: `${s.col * 10}%`,
+                  top: `${s.row * 10}%`,
+                  width: `${(s.dir === 'h' ? s.len : 1) * 10}%`,
+                  height: `${(s.dir === 'v' ? s.len : 1) * 10}%`,
+                }}
+              >
+                <img
+                  src={FLEET.find((f) => f.key === s.key)!.src}
+                  alt={s.key}
+                  className="absolute object-fill"
+                  style={
+                    s.dir === 'v'
+                      ? { inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }
+                      : {
+                          left: '50%', top: '50%',
+                          width: `${100 / s.len}%`, height: `${s.len * 100}%`,
+                          transform: 'translate(-50%, -50%) rotate(90deg)',
+                          imageRendering: 'pixelated',
+                        }
+                  }
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -60,36 +109,41 @@ const Board = ({ player, cells, count, active, onToggle }: {
 const TestGame = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>('setup-p1');
-  const [p1, setP1] = useState<Cells>(emptyCells);
-  const [p2, setP2] = useState<Cells>(emptyCells);
+  const [fleet1, setFleet1] = useState<Placed[]>([]);
+  const [fleet2, setFleet2] = useState<Placed[]>([]);
+  const [dir, setDir] = useState<'v' | 'h'>('v');
 
-  const p1Count = useMemo(() => p1.filter(Boolean).length, [p1]);
-  const p2Count = useMemo(() => p2.filter(Boolean).length, [p2]);
+  const newMatch = () => { setFleet1([]); setFleet2([]); setDir('v'); setPhase('setup-p1'); };
 
-  const newMatch = () => { setP1(emptyCells()); setP2(emptyCells()); setPhase('setup-p1'); };
+  const activePlayer: 1 | 2 | null = phase === 'setup-p1' ? 1 : phase === 'setup-p2' ? 2 : null;
+  const fleetOf = (p: 1 | 2) => (p === 1 ? fleet1 : fleet2);
 
-  const toggleMine = (player: 1 | 2, idx: number) => {
-    if (player === 1 && phase !== 'setup-p1') return;
-    if (player === 2 && phase !== 'setup-p2') return;
-    const [cells, setCells, count] = player === 1 ? [p1, setP1, p1Count] : [p2, setP2, p2Count];
-    const placing = !cells[idx];
-    if (placing && count >= MINES_PER_PLAYER) return;
-    const next = [...cells];
-    next[idx] = placing;
-    setCells(next);
-    // Auto-advance when the last mine goes down.
-    const newCount = count + (placing ? 1 : -1);
-    if (newCount === MINES_PER_PLAYER) setPhase(player === 1 ? 'setup-p2' : 'ready');
+  // Next unplaced ship (fleet order) for the active player.
+  const nextShip = useMemo(() => {
+    if (!activePlayer) return null;
+    const placed = new Set(fleetOf(activePlayer).map((s) => s.key));
+    return FLEET.find((f) => !placed.has(f.key)) ?? null;
+  }, [phase, fleet1, fleet2]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCellClick = (player: 1 | 2, idx: number) => {
+    if (player !== activePlayer || !nextShip) return;
+    const candidate: Placed = { key: nextShip.key, len: nextShip.len, row: Math.floor(idx / GRID), col: idx % GRID, dir };
+    const current = fleetOf(player);
+    if (!fits(candidate, current)) return; // out of bounds / overlap — ignored
+    const next = [...current, candidate];
+    (player === 1 ? setFleet1 : setFleet2)(next);
+    if (next.length === FLEET.length) setPhase(player === 1 ? 'setup-p2' : 'ready');
+  };
+
+  const handleShipClick = (player: 1 | 2, key: ShipKey) => {
+    if (player !== activePlayer) return;
+    (player === 1 ? setFleet1 : setFleet2)(fleetOf(player).filter((s) => s.key !== key));
   };
 
   const statusText =
-    phase === 'setup-p1' ? `Player 1: place ${MINES_PER_PLAYER - p1Count} more mines.`
-    : phase === 'setup-p2' ? `Player 2: place ${MINES_PER_PLAYER - p2Count} more mines.`
-    : 'Setup complete. Battle phase coming soon.';
-
-  // Private setup: a board's mines are only visible while that player is placing.
-  const showMines = (player: 1 | 2) =>
-    (player === 1 && phase === 'setup-p1') || (player === 2 && phase === 'setup-p2');
+    phase === 'ready'
+      ? 'Setup complete. Battle phase coming soon.'
+      : `Player ${activePlayer}: place your ${nextShip?.label} (${nextShip?.len} cells).`;
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
@@ -101,24 +155,28 @@ const TestGame = () => {
 
       {/* Status strip */}
       <div className={`${raised} p-0.5 mb-3`}>
-        <div className={`${sunken} bg-[#efefef] flex items-center justify-between px-3 py-2`}>
+        <div className={`${sunken} bg-[#efefef] flex flex-wrap gap-2 items-center justify-between px-3 py-1.5`}>
           <span className="font-mono text-[13px] tracking-widest uppercase">Private setup</span>
-          <span className="text-sm">{statusText}</span>
+          <span className="flex items-center gap-3">
+            <span className="text-sm">{statusText}</span>
+            {activePlayer && (
+              <button onClick={() => setDir(dir === 'v' ? 'h' : 'v')} className={`${btn98} !px-3 !py-0.5 text-xs`}>
+                Rotate: {dir === 'v' ? 'Vertical' : 'Horizontal'}
+              </button>
+            )}
+          </span>
         </div>
       </div>
 
       {/* Boards + roulette column */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px_1fr] gap-4 items-start max-w-[1700px] mx-auto">
-        <Board player={1} cells={p1} count={p1Count} active={showMines(1)} onToggle={toggleMine} />
+        <Board player={1} ships={fleet1} active={activePlayer === 1} onCellClick={handleCellClick} onShipClick={handleShipClick} />
 
         <div className="flex flex-col gap-4 order-first lg:order-none">
-          {/* Twin dark displays — purpose TBD with rules (spin result / turn) */}
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
             <div className={`${sunken} bg-[#2a2a2a] h-14 flex-1`} />
             <div className={`${sunken} bg-[#2a2a2a] h-14 flex-1`} />
           </div>
-
-          {/* Roulette bet boxes — static until rules are wired */}
           <div className="grid grid-cols-3 gap-2">
             {([['RED', 'bg-red-600', 'border-red-600'], ['GREEN', 'bg-green-700', 'border-green-700'], ['BLACK', 'bg-black', 'border-black']] as const).map(([label, bg, border]) => (
               <div key={label} className={`border-[3px] ${border}`}>
@@ -127,14 +185,12 @@ const TestGame = () => {
               </div>
             ))}
           </div>
-
-          {/* Big center panel — roulette wheel / action area TBD */}
           <div className={`${raised} p-1`}>
             <div className="bg-[#bdbdbd] aspect-square" />
           </div>
         </div>
 
-        <Board player={2} cells={p2} count={p2Count} active={showMines(2)} onToggle={toggleMine} />
+        <Board player={2} ships={fleet2} active={activePlayer === 2} onCellClick={handleCellClick} onShipClick={handleShipClick} />
       </div>
     </div>
   );
