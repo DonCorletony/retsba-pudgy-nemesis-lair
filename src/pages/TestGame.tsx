@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RotateCw } from 'lucide-react';
 
 /**
  * SECRET game lab (/testgame) — BATTLE CHIPS (battleship × roulette).
@@ -246,34 +247,35 @@ const ShipImg = ({ s }: { s: Placed }) => (
 );
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
+/** Horizontal card strip that sits UNDER a grid, so the boards get the full width. */
 const Rack = ({ cards, playable, onPlay }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void }) => (
-  <div className={`${raised} p-1 w-[64px] md:w-[86px] shrink-0 self-stretch`}>
-    <div className="font-mono text-[9px] text-center text-black/70 pb-1 leading-tight">ACTION<br />CARDS</div>
-    <div className="flex flex-col gap-1">
-      {cards.map((c, i) => {
-        const info = CARD_INFO[c.type];
-        const art = cardArt(c);
-        return (
-          <button
-            key={i}
-            onClick={() => playable && onPlay?.(i)}
-            disabled={!playable}
-            title={`${info.name} (${info.label}) — ${info.blurb}`}
-            className={`${playable ? 'cursor-pointer hover:brightness-110 hover:-translate-y-0.5' : 'cursor-default'} transition-transform`}
-          >
-            {art
-              ? <img src={art} alt={info.name} className="w-full h-auto border border-black/50" style={{ imageRendering: 'pixelated' }} />
-              : (
-                <div className={`${sunken} p-0.5`}>
-                  <div className={`${info.cls} text-white font-bold text-[10px] md:text-xs text-center py-2 leading-none border border-black/40`}>
+  <div className={`${raised} p-1.5`}>
+    <div className="flex items-center gap-2">
+      <span className="font-mono text-[10px] text-black/70 shrink-0 leading-tight">ACTION<br />CARDS</span>
+      <div className={`${sunken} flex-1 flex items-center gap-1.5 p-1 min-h-[76px] md:min-h-[92px] overflow-x-auto`}>
+        {cards.map((c, i) => {
+          const info = CARD_INFO[c.type];
+          const art = cardArt(c);
+          return (
+            <button
+              key={i}
+              onClick={() => playable && onPlay?.(i)}
+              disabled={!playable}
+              title={`${info.name} (${info.label}) — ${info.blurb}`}
+              className={`shrink-0 ${playable ? 'cursor-pointer hover:brightness-110 hover:-translate-y-0.5' : 'cursor-default'} transition-transform`}
+            >
+              {art
+                ? <img src={art} alt={info.name} className="h-[68px] md:h-[84px] w-auto border border-black/50" style={{ imageRendering: 'pixelated' }} />
+                : (
+                  <div className={`${info.cls} text-white font-bold text-[11px] px-3 h-[68px] md:h-[84px] flex items-center justify-center border border-black/40`}>
                     {info.label}
                   </div>
-                </div>
-              )}
-          </button>
-        );
-      })}
-      {cards.length === 0 && <div className="text-center text-[9px] text-black/35 font-mono py-2">empty</div>}
+                )}
+            </button>
+          );
+        })}
+        {cards.length === 0 && <span className="text-[10px] text-black/35 font-mono px-2">empty</span>}
+      </div>
     </div>
   </div>
 );
@@ -724,10 +726,9 @@ const TestGame = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px_1fr] gap-4 items-start max-w-[1700px] mx-auto">
-        {/* YOUR side */}
-        <div className="flex gap-2">
-          <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
-          <div className="flex flex-col gap-2 flex-1 min-w-0">
+        {/* YOUR side — board full width, action cards underneath */}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 min-w-0">
             <Board
               title="Your fleet"
               right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
@@ -749,14 +750,17 @@ const TestGame = () => {
                   </>
                 ) : (
                   <>
-                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate left">◄</button>
                     <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
-                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate right">►</button>
+                    {/* single turn-wheel button: rotates the selected boat clockwise */}
+                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-2.5 flex items-center`} title="Turn boat" aria-label="Turn boat">
+                      <RotateCw className="h-5 w-5" strokeWidth={2.5} />
+                    </button>
                   </>
                 )}
               </div>
             )}
           </div>
+          <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
         </div>
 
         {/* center column */}
@@ -802,7 +806,7 @@ const TestGame = () => {
                   <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
                   {/* dark display panel, matching the clock windows; the dealt card
                       appears here during a spin, otherwise it sits empty */}
-                  <div className="h-20 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#1b1b1b' }}>
+                  <div className="h-24 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#1b1b1b' }}>
                     {card && (() => {
                       const art = cardArt({ type: card, color: key });
                       return art
@@ -827,9 +831,9 @@ const TestGame = () => {
           </div>
         </div>
 
-        {/* ENEMY side */}
-        <div className="flex gap-2">
-          <div className="flex-1 min-w-0">
+        {/* ENEMY side — board full width, their action cards underneath */}
+        <div className="flex flex-col gap-2">
+          <div className="min-w-0">
             <Board
               title="Enemy waters"
               right={phase === 'battle' || phase === 'over' ? `boats left: ${foeBoats}` : 'awaiting battle'}
@@ -845,6 +849,7 @@ const TestGame = () => {
           </div>
           <Rack cards={cards.foe} playable={false} />
         </div>
+
       </div>
     </div>
   );
