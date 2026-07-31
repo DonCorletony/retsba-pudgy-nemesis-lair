@@ -468,7 +468,11 @@ const TestGame = () => {
           const run = isHit ? s.foe + 1 : 0;
           if (run >= HIT_STREAK) {
             const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
-            if (rollColor() === pick) setPowerups((p) => ({ ...p, foe: [...p.foe, pick] }));
+            const spun = rollColor();
+            // Same rule in reverse: a wrong guess hands the card to you.
+            setPowerups((p) => (spun === pick
+              ? { ...p, foe: [...p.foe, spun] }
+              : { ...p, you: [...p.you, spun] }));
             return { ...s, foe: 0 };
           }
           return { ...s, foe: run };
@@ -543,7 +547,11 @@ const TestGame = () => {
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
       playSfx(SFX.highlight); // wheel has landed — outcome revealed
-      if (result === choice) setPowerups((p) => ({ ...p, you: [...p.you, result] }));
+      // The card drawn is the one in the slot the wheel landed on. Guess right and
+      // you keep it; guess wrong and it goes to your opponent instead.
+      setPowerups((p) => (result === choice
+        ? { ...p, you: [...p.you, result] }
+        : { ...p, foe: [...p.foe, result] }));
       setTimeout(() => {
         setBonus(null);
         // resume the paused turn
@@ -600,7 +608,7 @@ const TestGame = () => {
         bonus.stage === 'select' ? `${HIT_STREAK} hits in a row — pick a colour to spin for a powerup!`
         : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
         : bonus.result === bonus.choice ? `${bonus.result}! You win the ${bonus.result} powerup.`
-        : `${bonus.result}. No powerup this time.`
+        : `${bonus.result}. Wrong call — the ${bonus.result} powerup goes to your opponent.`
       )
     : phase === 'battle' ? (turn === 'you' ? `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.` : 'Enemy turn…')
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
