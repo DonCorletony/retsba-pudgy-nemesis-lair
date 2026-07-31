@@ -8,8 +8,8 @@ import { useNavigate } from 'react-router-dom';
  * ◄ ► rotate, PLACE locks it. All five locked → EDIT / DONE. 30s timer; anything
  * unplaced is auto-deployed at 0:00.
  *
- * Battle: 5 shots/15s per turn → 3/10s once either side is down to 2 boats →
- * 1/5s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
+ * Battle: 5 shots/20s per turn → 3/15s once either side is down to 2 boats →
+ * 1/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
  * remaining shots. Yellow outline = whose turn it is.
  *
  * Roulette: SINKING an enemy ship pauses the turn for a spin. Each slot is dealt an
@@ -62,20 +62,38 @@ const playSfx = (src: string) => {
   } catch { /* ignore */ }
 };
 
-/* ---------- action cards ---------- */
+/* ---------- action cards ----------
+   +1 (MISSILE) and +2 (BOMBER) come in red and black variants because they can
+   be dealt into either slot; CLUSTER is green-only. SKIP has no art yet and
+   falls back to a labelled chip. */
 type Card = '+1' | '+2' | 'CLUSTER' | 'SKIP';
-const CARD_INFO: Record<Card, { label: string; blurb: string; cls: string }> = {
-  '+1': { label: '+1', blurb: '1 extra shot this turn', cls: 'bg-[#1d4ed8]' },
-  '+2': { label: '+2', blurb: '2 extra shots this turn', cls: 'bg-[#7c3aed]' },
-  CLUSTER: { label: 'CLUSTER', blurb: 'Next shot hits 5×5', cls: 'bg-[#ea580c]' },
-  SKIP: { label: 'SKIP', blurb: "Skip opponent's turn", cls: 'bg-[#0f766e]' },
+type Color = 'RED' | 'GREEN' | 'BLACK';
+/** A card in a rack remembers the slot colour it came from, for the right art. */
+interface CardInst { type: Card; color: Color }
+
+const CARD_INFO: Record<Card, { label: string; name: string; blurb: string; cls: string }> = {
+  '+1': { label: '+1', name: 'MISSILE', blurb: '1 extra shot this turn', cls: 'bg-[#1d4ed8]' },
+  '+2': { label: '+2', name: 'BOMBER', blurb: '2 extra shots this turn', cls: 'bg-[#7c3aed]' },
+  CLUSTER: { label: '5×5', name: 'CLUSTER', blurb: 'Next shot hits 5×5', cls: 'bg-[#ea580c]' },
+  SKIP: { label: 'SKIP', name: 'SKIP', blurb: "Skip opponent's turn", cls: 'bg-[#0f766e]' },
 };
 
-/* ---------- roulette ---------- */
-type Color = 'RED' | 'GREEN' | 'BLACK';
+const CARD_ART: Record<string, string> = {
+  '+1|RED': '/game/cards/missile-red.png',
+  '+1|BLACK': '/game/cards/missile-black.webp',
+  '+2|RED': '/game/cards/bomber-red.png',
+  '+2|BLACK': '/game/cards/bomber-black.png',
+  'CLUSTER|GREEN': '/game/cards/cluster-green.png',
+  // SKIP|GREEN — artwork pending
+};
+const cardArt = (c: CardInst): string | undefined => CARD_ART[`${c.type}|${c.color}`];
+
+/* ---------- roulette ----------
+   AMERICAN wheel: 38 pockets — 18 red, 18 black, plus 0 and 00 green.
+   So red/black are 18/38 each and green is 2/38 = 1/19. */
 const COLORS: { key: Color; label: string; bg: string; border: string; weight: number }[] = [
   { key: 'RED', label: 'RED', bg: 'bg-red-600', border: 'border-red-600', weight: 18 },
-  { key: 'GREEN', label: 'GREEN', bg: 'bg-green-700', border: 'border-green-700', weight: 1 },
+  { key: 'GREEN', label: 'GREEN', bg: 'bg-green-700', border: 'border-green-700', weight: 2 },
   { key: 'BLACK', label: 'BLACK', bg: 'bg-black', border: 'border-black', weight: 18 },
 ];
 const rollColor = (): Color => {
@@ -154,7 +172,7 @@ const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
   return !!ship && cellsFor(ship).every((c) => shotsAfter[c] === 'hit');
 };
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
-  minBoats <= 1 ? { shots: 1, secs: 5 } : minBoats === 2 ? { shots: 3, secs: 10 } : { shots: 5, secs: 15 };
+  minBoats <= 1 ? { shots: 1, secs: 10 } : minBoats === 2 ? { shots: 3, secs: 15 } : { shots: 5, secs: 20 };
 
 /** 5×5 block centred on idx, clipped to the board. */
 const clusterCells = (idx: number): number[] => {
@@ -200,9 +218,13 @@ const SegClock = ({ seconds, on }: { seconds: number; on: boolean }) => {
   );
 };
 /** M and V have no faithful 7-segment form, so words render as glowing text. */
-const SegWord = ({ word }: { word: string }) => (
+const SegWord = ({ word, flash }: { word: string; flash?: boolean }) => (
   <span className="font-mono font-bold text-[#ff2222] text-2xl tracking-[0.15em] select-none"
-    style={{ transform: 'skewX(-4deg)', textShadow: '0 0 6px rgba(255,34,34,0.85)' }}>{word}</span>
+    style={{
+      transform: 'skewX(-4deg)',
+      textShadow: '0 0 6px rgba(255,34,34,0.85)',
+      animation: flash ? 'bcFlash 0.9s steps(1,end) infinite' : undefined,
+    }}>{word}</span>
 );
 
 const Missile = ({ live }: { live: boolean }) => (
@@ -224,23 +246,30 @@ const ShipImg = ({ s }: { s: Placed }) => (
 );
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
-const Rack = ({ cards, playable, onPlay }: { cards: Card[]; playable: boolean; onPlay?: (i: number) => void }) => (
-  <div className={`${raised} p-1 w-[58px] md:w-[74px] shrink-0 self-stretch`}>
+const Rack = ({ cards, playable, onPlay }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void }) => (
+  <div className={`${raised} p-1 w-[64px] md:w-[86px] shrink-0 self-stretch`}>
     <div className="font-mono text-[9px] text-center text-black/70 pb-1 leading-tight">ACTION<br />CARDS</div>
     <div className="flex flex-col gap-1">
       {cards.map((c, i) => {
-        const info = CARD_INFO[c];
+        const info = CARD_INFO[c.type];
+        const art = cardArt(c);
         return (
           <button
             key={i}
             onClick={() => playable && onPlay?.(i)}
             disabled={!playable}
-            title={`${info.label} — ${info.blurb}`}
-            className={`${sunken} p-0.5 ${playable ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
+            title={`${info.name} (${info.label}) — ${info.blurb}`}
+            className={`${playable ? 'cursor-pointer hover:brightness-110 hover:-translate-y-0.5' : 'cursor-default'} transition-transform`}
           >
-            <div className={`${info.cls} text-white font-bold text-[10px] md:text-xs text-center py-1 leading-none border border-black/40`}>
-              {info.label}
-            </div>
+            {art
+              ? <img src={art} alt={info.name} className="w-full h-auto border border-black/50" style={{ imageRendering: 'pixelated' }} />
+              : (
+                <div className={`${sunken} p-0.5`}>
+                  <div className={`${info.cls} text-white font-bold text-[10px] md:text-xs text-center py-2 leading-none border border-black/40`}>
+                    {info.label}
+                  </div>
+                </div>
+              )}
           </button>
         );
       })}
@@ -357,7 +386,7 @@ const TestGame = () => {
   const [anim, setAnim] = useState<{ you: Record<number, true>; foe: Record<number, true> }>({ you: {}, foe: {} });
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [slots, setSlots] = useState<SlotCards>(dealSlots);
-  const [cards, setCards] = useState<{ you: Card[]; foe: Card[] }>({ you: [], foe: [] });
+  const [cards, setCards] = useState<{ you: CardInst[]; foe: CardInst[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
   const [showBonusPopup, setShowBonusPopup] = useState(false);
   const [showForfeit, setShowForfeit] = useState(false);
@@ -473,9 +502,10 @@ const TestGame = () => {
         const dealt = dealSlots();
         const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
         const spun = rollColor();
+        const card: CardInst = { type: dealt[spun], color: spun };
         setCards((c) => (spun === pick
-          ? { ...c, foe: [...c.foe, dealt[spun]] }
-          : { ...c, you: [...c.you, dealt[spun]] }));
+          ? { ...c, foe: [...c.foe, card] }
+          : { ...c, you: [...c.you, card] }));
       }
       setShotsLeft((sl) => {
         const left = sl - 1;
@@ -539,7 +569,7 @@ const TestGame = () => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
       playSfx(SFX.highlight);
       // the card dealt into the landing slot: yours if right, theirs if wrong
-      const won = slots[result];
+      const won: CardInst = { type: slots[result], color: result };
       setCards((c) => (result === choice ? { ...c, you: [...c.you, won] } : { ...c, foe: [...c.foe, won] }));
       setTimeout(() => {
         setBonus(null);
@@ -559,10 +589,10 @@ const TestGame = () => {
     if (!card) return;
     setCards((c) => ({ ...c, you: c.you.filter((_, k) => k !== i) })); // one-time use
     playSfx(SFX.selected);
-    if (card === '+1') setShotsLeft((s) => s + 1);
-    else if (card === '+2') setShotsLeft((s) => s + 2);
-    else if (card === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
-    else if (card === 'SKIP') setSkipFoeTurn(true);
+    if (card.type === '+1') setShotsLeft((s) => s + 1);
+    else if (card.type === '+2') setShotsLeft((s) => s + 2);
+    else if (card.type === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
+    else if (card.type === 'SKIP') setSkipFoeTurn(true);
   };
 
   /* ---- firing ---- */
@@ -617,8 +647,8 @@ const TestGame = () => {
     : bonus?.who === 'you' ? (
         bonus.stage === 'select' ? 'Ship sunk — pick a colour to win its card!'
         : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
-        : bonus.result === bonus.choice ? `${bonus.result}! You win ${slots[bonus.result!]}.`
-        : `${bonus.result}. Wrong call — ${slots[bonus.result!]} goes to your opponent.`
+        : bonus.result === bonus.choice ? `${bonus.result}! You win the ${CARD_INFO[slots[bonus.result!]].name} card.`
+        : `${bonus.result}. Wrong call — the ${CARD_INFO[slots[bonus.result!]].name} card goes to your opponent.`
       )
     : phase === 'battle' ? (
         turn === 'you'
@@ -648,6 +678,7 @@ const TestGame = () => {
           88%  { transform: scale(1);    opacity: 1; }
           100% { transform: scale(0);    opacity: 0; }
         }
+        @keyframes bcFlash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.07; } }
       `}</style>
       {showBonusPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -731,11 +762,17 @@ const TestGame = () => {
         {/* center column */}
         <div className="flex flex-col gap-4 order-first lg:order-none">
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
+            {/* During a spin the windows read BONUS / SPIN; at match end, GAME / OVER —
+                both flashing. Otherwise they're the turn clocks. */}
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {phase === 'over' ? <SegWord word="GAME" /> : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
+              {bonus ? <SegWord word="BONUS" flash />
+                : phase === 'over' ? <SegWord word="GAME" flash />
+                : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
             </div>
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {phase === 'over' ? <SegWord word="OVER" /> : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
+              {bonus ? <SegWord word="SPIN" flash />
+                : phase === 'over' ? <SegWord word="OVER" flash />
+                : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
             </div>
           </div>
 
@@ -763,10 +800,15 @@ const TestGame = () => {
                   className={`border-[3px] ${border} ${ring} transition-transform duration-150 origin-center ${selecting ? 'cursor-pointer hover:scale-110 hover:z-10 relative' : 'cursor-default'}`}
                 >
                   <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
-                  <div className="bg-[#c3c3c3] h-14 flex items-center justify-center">
-                    {card
-                      ? <span className={`${CARD_INFO[card].cls} text-white font-bold text-[11px] px-1.5 py-1 rounded-sm border border-black/40 leading-none`}>{CARD_INFO[card].label}</span>
-                      : <span className="text-[#8a8a8a] font-bold text-lg">?</span>}
+                  {/* dark display panel, matching the clock windows; the dealt card
+                      appears here during a spin, otherwise it sits empty */}
+                  <div className="h-20 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#1b1b1b' }}>
+                    {card && (() => {
+                      const art = cardArt({ type: card, color: key });
+                      return art
+                        ? <img src={art} alt={CARD_INFO[card].name} className="h-full w-auto" style={{ imageRendering: 'pixelated' }} />
+                        : <span className={`${CARD_INFO[card].cls} text-white font-bold text-[11px] px-1.5 py-1 rounded-sm border border-black/40 leading-none`}>{CARD_INFO[card].label}</span>;
+                    })()}
                   </div>
                 </button>
               );
