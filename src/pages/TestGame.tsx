@@ -4,40 +4,46 @@ import { useNavigate } from 'react-router-dom';
 /**
  * SECRET game lab (/testgame) — BATTLE CHIPS (battleship × roulette).
  *
- * Setup sequence (per spec):
- * - Tap the grid to spawn the next boat where you tapped; it shows OUTLINED IN
- *   YELLOW and can be moved freely (tap a cell OR drag it) until locked.
- * - Under your grid: [◄] [PLACE] [►] — arrows rotate the pending boat 90°,
- *   PLACE locks it. Next grid tap spawns the next boat.
- * - When all 5 are locked the controls become [EDIT] [DONE]. EDIT lets you pick
- *   a boat back up (PLACE/arrows return); DONE locks your board and waits for
- *   the opponent's DONE or the setup timer, whichever comes first (the local
- *   dummy opponent "presses DONE" a few seconds later).
- * - Setup timer expiry still auto-places whatever is missing and begins battle.
+ * Setup: tap the grid to spawn the next boat (outlined yellow), tap/drag to move,
+ * ◄ ► rotate, PLACE locks it. All five locked → EDIT / DONE. 30s timer; anything
+ * unplaced is auto-deployed at 0:00.
  *
- * Battle rules unchanged: 5 shots/15s → 3/10s (either side at 2 boats) → 1/5s
- * (1 boat); explosion gif on hits → persistent icon; yellow outline = whose turn.
+ * Battle: 5 shots/15s per turn → 3/10s once either side is down to 2 boats →
+ * 1/5s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
+ * remaining shots. Yellow outline = whose turn it is.
+ *
+ * Roulette: SINKING an enemy ship pauses the turn for a spin. Each slot is dealt an
+ * action card first (RED/BLACK: +1 or +2 at 50/50 each, independently; GREEN:
+ * Cluster or Skip at 50/50), so you can see what you're playing for. Guess the
+ * landing colour right and that slot's card is yours — guess wrong and it goes
+ * to your opponent.
+ *
+ * Action cards are one-time use and playable any time during your own turn.
+ * Several can be played in a turn but effects don't stack (Cluster/Skip are
+ * armed flags, so a second copy doesn't double them).
  */
 
 const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
+const BONUS_POPUP_MS = 2500;
+const SPIN_MS = 3200;
+const RESULT_MS = 1800;
+const CLUSTER_SIZE = 5; // Cluster card fires a 5x5 blast
 
 /* ---------- audio ----------
    Browsers block audio until the page has had a user gesture; clicking
-   "New match" supplies it, so everything after that is allowed. Playback errors
-   are swallowed — sound is never allowed to break the game. */
+   "New match" supplies it. Playback errors are swallowed — sound is never
+   allowed to break the game. */
 const SFX = {
-  countdown: '/game/sounds/countdown-beep.mp3', // final 3/2/1 of setup and every turn
-  start: '/game/sounds/start-beep.wav',         // marks the start of the battle
-  hit: '/game/sounds/ship-hit.wav',             // shot lands on a ship
-  sunk: '/game/sounds/ship-destroyed.wav',      // that shot finished the ship off
-  bonus: '/game/sounds/bonus-spin.mp3',         // BONUS SPIN! award popup
-  highlight: '/game/sounds/powerup-highlight.wav', // hovering a colour slot
-  selected: '/game/sounds/powerup-selected.wav',   // committing to a colour
+  countdown: '/game/sounds/countdown-beep.mp3',
+  start: '/game/sounds/start-beep.wav',
+  hit: '/game/sounds/ship-hit.wav',
+  sunk: '/game/sounds/ship-destroyed.wav',
+  bonus: '/game/sounds/bonus-spin.mp3',
+  highlight: '/game/sounds/powerup-highlight.wav',
+  selected: '/game/sounds/powerup-selected.wav',
 } as const;
-
-const BONUS_POPUP_MS = 2500;
 
 const audioCache = new Map<string, HTMLAudioElement>();
 const preloadSfx = () => {
@@ -48,7 +54,6 @@ const preloadSfx = () => {
     audioCache.set(src, a);
   }
 };
-/** Clone per play so rapid/overlapping shots don't cut each other off. */
 const playSfx = (src: string) => {
   try {
     const base = audioCache.get(src);
@@ -57,15 +62,16 @@ const playSfx = (src: string) => {
   } catch { /* ignore */ }
 };
 
-/* ---------- roulette bonus ----------
-   Land HIT_STREAK consecutive hits → the turn pauses, the colour boxes flash,
-   you pick a colour, the wheel spins. Guess right → you win that slot's powerup
-   card, which flies to the rack outside your grid. Wrong → nothing. Then the
-   turn resumes automatically. Odds follow a European wheel: 18 red / 18 black /
-   1 green, so green is the rare jackpot. */
-const HIT_STREAK = 3;
-const SPIN_MS = 3200;
-const RESULT_MS = 1800;
+/* ---------- action cards ---------- */
+type Card = '+1' | '+2' | 'CLUSTER' | 'SKIP';
+const CARD_INFO: Record<Card, { label: string; blurb: string; cls: string }> = {
+  '+1': { label: '+1', blurb: '1 extra shot this turn', cls: 'bg-[#1d4ed8]' },
+  '+2': { label: '+2', blurb: '2 extra shots this turn', cls: 'bg-[#7c3aed]' },
+  CLUSTER: { label: 'CLUSTER', blurb: 'Next shot hits 5×5', cls: 'bg-[#ea580c]' },
+  SKIP: { label: 'SKIP', blurb: "Skip opponent's turn", cls: 'bg-[#0f766e]' },
+};
+
+/* ---------- roulette ---------- */
 type Color = 'RED' | 'GREEN' | 'BLACK';
 const COLORS: { key: Color; label: string; bg: string; border: string; weight: number }[] = [
   { key: 'RED', label: 'RED', bg: 'bg-red-600', border: 'border-red-600', weight: 18 },
@@ -78,6 +84,13 @@ const rollColor = (): Color => {
   for (const c of COLORS) { if ((r -= c.weight) < 0) return c.key; }
   return 'BLACK';
 };
+/** Deal the cards sitting in each slot for one spin. Red/black roll independently. */
+type SlotCards = Record<Color, Card>;
+const dealSlots = (): SlotCards => ({
+  RED: Math.random() < 0.5 ? '+1' : '+2',
+  BLACK: Math.random() < 0.5 ? '+1' : '+2',
+  GREEN: Math.random() < 0.5 ? 'CLUSTER' : 'SKIP',
+});
 type BonusStage = 'select' | 'spinning' | 'result';
 interface Bonus { who: 'you' | 'foe'; stage: BonusStage; choice: Color | null; result: Color | null; }
 
@@ -105,15 +118,11 @@ const cellsFor = (s: Placed): number[] =>
   Array.from({ length: s.len }, (_, i) => (s.dir === 'v' ? (s.row + i) * GRID + s.col : s.row * GRID + s.col + i));
 
 const inBounds = (s: Placed): boolean => (s.dir === 'v' ? s.row + s.len <= GRID : s.col + s.len <= GRID) && s.row >= 0 && s.col >= 0;
-
 const overlaps = (s: Placed, others: Placed[]): boolean => {
   const taken = new Set(others.flatMap(cellsFor));
   return cellsFor(s).some((c) => taken.has(c));
 };
-
 const fits = (s: Placed, others: Placed[]): boolean => inBounds(s) && !overlaps(s, others);
-
-/** Clamp an anchor so the ship stays on the board for its orientation. */
 const clamp = (s: Placed): Placed => ({
   ...s,
   row: Math.min(Math.max(s.row, 0), s.dir === 'v' ? GRID - s.len : GRID - 1),
@@ -138,18 +147,24 @@ const autoPlace = (existing: Placed[]): Placed[] => {
 
 const boatsRemaining = (fleet: Placed[], shots: Shots): number =>
   fleet.filter((s) => !cellsFor(s).every((c) => shots[c] === 'hit')).length;
-
 const sunkShips = (fleet: Placed[], shots: Shots): Placed[] =>
   fleet.filter((s) => cellsFor(s).every((c) => shots[c] === 'hit'));
-
-/** Did the shot at `idx` finish off the ship it landed on? */
 const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
   const ship = fleet.find((s) => cellsFor(s).includes(idx));
   return !!ship && cellsFor(ship).every((c) => shotsAfter[c] === 'hit');
 };
-
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
   minBoats <= 1 ? { shots: 1, secs: 5 } : minBoats === 2 ? { shots: 3, secs: 10 } : { shots: 5, secs: 15 };
+
+/** 5×5 block centred on idx, clipped to the board. */
+const clusterCells = (idx: number): number[] => {
+  const r0 = Math.floor(idx / GRID), c0 = idx % GRID, half = Math.floor(CLUSTER_SIZE / 2);
+  const out: number[] = [];
+  for (let r = r0 - half; r <= r0 + half; r++)
+    for (let c = c0 - half; c <= c0 + half; c++)
+      if (r >= 0 && r < GRID && c >= 0 && c < GRID) out.push(r * GRID + c);
+  return out;
+};
 
 /* ---------- 7-segment clock ---------- */
 const SEG: Record<string, string> = {
@@ -184,22 +199,12 @@ const SegClock = ({ seconds, on }: { seconds: number; on: boolean }) => {
     </div>
   );
 };
-
-/**
- * Word for the clock windows (GAME / OVER at match end). Rendered as glowing red
- * text rather than 7-segment digits — M and V have no faithful 7-segment form,
- * so segments would read as gibberish. Same skew/glow keeps the display look.
- */
+/** M and V have no faithful 7-segment form, so words render as glowing text. */
 const SegWord = ({ word }: { word: string }) => (
-  <span
-    className="font-mono font-bold text-[#ff2222] text-2xl tracking-[0.15em] select-none"
-    style={{ transform: 'skewX(-4deg)', textShadow: '0 0 6px rgba(255,34,34,0.85)' }}
-  >
-    {word}
-  </span>
+  <span className="font-mono font-bold text-[#ff2222] text-2xl tracking-[0.15em] select-none"
+    style={{ transform: 'skewX(-4deg)', textShadow: '0 0 6px rgba(255,34,34,0.85)' }}>{word}</span>
 );
 
-/* ---------- missiles (shots left) ---------- */
 const Missile = ({ live }: { live: boolean }) => (
   <svg viewBox="0 0 24 8" className="h-3 w-9">
     <g fill={live ? '#7d7d7d' : '#4b4b4b'} opacity={live ? 1 : 0.45}>
@@ -210,7 +215,6 @@ const Missile = ({ live }: { live: boolean }) => (
   </svg>
 );
 
-/* ---------- ship sprite ---------- */
 const ShipImg = ({ s }: { s: Placed }) => (
   <img src={FLEET.find((f) => f.key === s.key)!.src} alt={s.key}
     className="absolute object-fill"
@@ -219,18 +223,25 @@ const ShipImg = ({ s }: { s: Placed }) => (
       : { left: '50%', top: '50%', width: `${100 / s.len}%`, height: `${s.len * 100}%`, transform: 'translate(-50%, -50%) rotate(90deg)', imageRendering: 'pixelated' }} />
 );
 
-/* ---------- powerup rack (outside edge of each grid) ---------- */
-const Rack = ({ cards }: { cards: Color[] }) => (
-  <div className={`${raised} p-1 w-[52px] md:w-[64px] shrink-0 self-stretch`}>
-    <div className="font-mono text-[9px] text-center text-black/70 pb-1 leading-tight">POWER<br />UPS</div>
+/* ---------- action-card rack (outside edge of each grid) ---------- */
+const Rack = ({ cards, playable, onPlay }: { cards: Card[]; playable: boolean; onPlay?: (i: number) => void }) => (
+  <div className={`${raised} p-1 w-[58px] md:w-[74px] shrink-0 self-stretch`}>
+    <div className="font-mono text-[9px] text-center text-black/70 pb-1 leading-tight">ACTION<br />CARDS</div>
     <div className="flex flex-col gap-1">
       {cards.map((c, i) => {
-        const col = COLORS.find((x) => x.key === c)!;
+        const info = CARD_INFO[c];
         return (
-          /* placeholder until the powerup card art arrives */
-          <div key={i} className={`${sunken} h-10 flex items-center justify-center border-2 ${col.border}`}>
-            <span className={`${col.bg} text-white text-[8px] font-bold px-1 rounded-sm`}>{col.label}</span>
-          </div>
+          <button
+            key={i}
+            onClick={() => playable && onPlay?.(i)}
+            disabled={!playable}
+            title={`${info.label} — ${info.blurb}`}
+            className={`${sunken} p-0.5 ${playable ? 'cursor-pointer hover:brightness-110' : 'cursor-default'}`}
+          >
+            <div className={`${info.cls} text-white font-bold text-[10px] md:text-xs text-center py-1 leading-none border border-black/40`}>
+              {info.label}
+            </div>
+          </button>
         );
       })}
       {cards.length === 0 && <div className="text-center text-[9px] text-black/35 font-mono py-2">empty</div>}
@@ -239,25 +250,16 @@ const Rack = ({ cards }: { cards: Color[] }) => (
 );
 
 /* ---------- board ---------- */
-const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, onCell, onShip, animating, pending, onPendingMove }: {
-  title: string;
-  right: string;
-  ships: Placed[];
-  showShips: boolean;
-  sunk: Placed[];
-  shots: Shots;
-  clickable: boolean;
-  outlined: boolean;
-  onCell?: (idx: number) => void;
-  onShip?: (key: ShipKey) => void;
-  animating?: Record<number, true>;
-  pending?: Placed | null;             // yellow-outlined boat being positioned
-  onPendingMove?: (row: number, col: number) => void;
+const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, onCell, onShip, animating, pending, onPendingMove, crosshair }: {
+  title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
+  clickable: boolean; outlined: boolean;
+  onCell?: (idx: number) => void; onShip?: (key: ShipKey) => void;
+  animating?: Record<number, true>; pending?: Placed | null; onPendingMove?: (row: number, col: number) => void;
+  crosshair?: boolean;
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const dragOffset = useRef<{ dr: number; dc: number } | null>(null);
-
-  const cellFromPointer = (e: React.PointerEvent): { row: number; col: number } | null => {
+  const cellFromPointer = (e: React.PointerEvent) => {
     const rect = gridRef.current?.getBoundingClientRect();
     if (!rect) return null;
     return {
@@ -277,11 +279,10 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
           <div className="grid grid-cols-10">
             {Array.from({ length: GRID * GRID }, (_, i) => (
               <button key={i} onClick={() => onCell?.(i)} disabled={!clickable || shots[i] !== undefined}
-                className={`aspect-square border border-white/60 bg-transparent ${clickable && shots[i] === undefined ? 'hover:bg-white/25 cursor-pointer' : 'cursor-default'}`} />
+                className={`aspect-square border border-white/60 bg-transparent ${clickable && shots[i] === undefined ? `hover:bg-white/25 ${crosshair ? 'cursor-crosshair' : 'cursor-pointer'}` : 'cursor-default'}`} />
             ))}
           </div>
 
-          {/* locked / revealed ships */}
           <div className="absolute inset-0 pointer-events-none">
             {(showShips ? ships : sunk).map((s) => (
               <button key={s.key} onClick={() => onShip?.(s.key)}
@@ -290,7 +291,6 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
                 <ShipImg s={s} />
               </button>
             ))}
-            {/* pending ship — yellow outline, draggable (tap a cell also moves it) */}
             {pending && (
               <div
                 className="absolute pointer-events-auto outline outline-[3px] outline-[#f2c320] cursor-grab active:cursor-grabbing"
@@ -318,7 +318,6 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
             )}
           </div>
 
-          {/* shot markers */}
           <div className="absolute inset-0 pointer-events-none">
             {Object.entries(shots).map(([idx, kind]) => {
               const i = Number(idx);
@@ -344,27 +343,32 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
 const TestGame = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>('idle');
-  const [yourFleet, setYourFleet] = useState<Placed[]>([]);        // LOCKED boats
-  const [pending, setPending] = useState<Placed | null>(null);     // boat being positioned
+  const [yourFleet, setYourFleet] = useState<Placed[]>([]);
+  const [pending, setPending] = useState<Placed | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [waitingDone, setWaitingDone] = useState(false);
   const [foeFleet, setFoeFleet] = useState<Placed[]>([]);
   const [yourShots, setYourShots] = useState<Shots>({});
   const [foeShots, setFoeShots] = useState<Shots>({});
   const [turn, setTurn] = useState<'you' | 'foe'>('you');
-  const [shotsLeft, setShotsLeft] = useState(5);
+  const [shotsLeft, setShotsLeft] = useState(5);   // ACTIVE player's remaining shots
   const [clock, setClock] = useState(SETUP_SECONDS);
   const [winner, setWinner] = useState<'you' | 'foe' | null>(null);
   const [anim, setAnim] = useState<{ you: Record<number, true>; foe: Record<number, true> }>({ you: {}, foe: {} });
-  const [streak, setStreak] = useState<{ you: number; foe: number }>({ you: 0, foe: 0 });
   const [bonus, setBonus] = useState<Bonus | null>(null);
-  const [powerups, setPowerups] = useState<{ you: Color[]; foe: Color[] }>({ you: [], foe: [] });
+  const [slots, setSlots] = useState<SlotCards>(dealSlots);
+  const [cards, setCards] = useState<{ you: Card[]; foe: Card[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
   const [showBonusPopup, setShowBonusPopup] = useState(false);
   const [showForfeit, setShowForfeit] = useState(false);
+  const [clusterArmed, setClusterArmed] = useState(false);   // one-time 5x5, no stacking
+  const [skipFoeTurn, setSkipFoeTurn] = useState(false);     // Skip card, no stacking
+
   const endTurnAfterBonus = useRef(false);
   const foeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const oppDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const foeShotsRef = useRef<Shots>({});
+  useEffect(() => { foeShotsRef.current = foeShots; }, [foeShots]);
 
   const yourBoats = boatsRemaining(yourFleet, foeShots);
   const foeBoats = phase === 'battle' || phase === 'over' ? boatsRemaining(foeFleet, yourShots) : FLEET.length;
@@ -380,35 +384,21 @@ const TestGame = () => {
   const playExplosion = (board: 'you' | 'foe', idx: number) => {
     setAnim((prev) => ({ ...prev, [board]: { ...prev[board], [idx]: true as const } }));
     setTimeout(() => {
-      setAnim((prev) => {
-        const cells = { ...prev[board] };
-        delete cells[idx];
-        return { ...prev, [board]: cells };
-      });
+      setAnim((prev) => { const c = { ...prev[board] }; delete c[idx]; return { ...prev, [board]: c }; });
     }, EXPLOSION_MS);
   };
 
-  /** Wipe the board back to a clean slate. `to` is the phase to land in. */
   const resetTo = (to: Phase) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
     if (foeTimerRef.current) clearInterval(foeTimerRef.current);
     setPhase(to); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
     setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
-    setStreak({ you: 0, foe: 0 }); setBonus(null); setPowerups({ you: [], foe: [] });
-    setShowBonusPopup(false); setShowForfeit(false);
+    setBonus(null); setCards({ you: [], foe: [] });
+    setShowBonusPopup(false); setShowForfeit(false); setClusterArmed(false); setSkipFoeTurn(false);
     endTurnAfterBonus.current = false;
   };
-
-  const newMatch = () => {
-    if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
-    setPhase('setup'); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
-    setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
-    setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
-    setStreak({ you: 0, foe: 0 }); setBonus(null); setPowerups({ you: [], foe: [] });
-    setShowBonusPopup(false);
-    endTurnAfterBonus.current = false;
-  };
+  const newMatch = () => resetTo('setup');
 
   const beginBattle = (locked: Placed[], pend: Placed | null) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
@@ -417,7 +407,7 @@ const TestGame = () => {
     setFoeFleet(autoPlace([]));
     const stage = stageFor(FLEET.length);
     setPhase('battle'); setTurn('you'); setShotsLeft(stage.shots); setClock(stage.secs);
-    playSfx(SFX.start); // 0-second marker — battle begins
+    playSfx(SFX.start);
   };
 
   const startTurn = (who: 'you' | 'foe', yFleet: Placed[], fFleet: Placed[], yShots: Shots, fShots: Shots) => {
@@ -425,16 +415,24 @@ const TestGame = () => {
     setTurn(who); setShotsLeft(stage.shots); setClock(stage.secs);
   };
 
-  /* preload sfx once */
+  /** Hand over after your turn — unless a Skip card is banked, which eats theirs. */
+  const handOver = (yShots: Shots, fShots: Shots) => {
+    if (skipFoeTurn) {
+      setSkipFoeTurn(false);
+      startTurn('you', yourFleet, foeFleet, yShots, fShots);
+    } else {
+      startTurn('foe', yourFleet, foeFleet, yShots, fShots);
+    }
+  };
+
   useEffect(() => { preloadSfx(); }, []);
 
-  /* Countdown beeps on the final 3, 2 and 1 seconds — of the setup timer AND of
-     every turn thereafter. (The start beep stays exclusive to the match start.) */
+  /* countdown beeps: last 3s of setup and of every turn */
   useEffect(() => {
-    if ((phase === 'setup' || phase === 'battle') && !bonus && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
-  }, [clock, phase, bonus]);
+    if ((phase === 'setup' || phase === 'battle') && !bonus && !showForfeit && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
+  }, [clock, phase, bonus, showForfeit]);
 
-  /* master clock — frozen during a roulette bonus or the forfeit prompt */
+  /* master clock — frozen during a bonus or the forfeit prompt */
   useEffect(() => {
     if (phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
     const id = setInterval(() => setClock((c) => c - 1), 1000);
@@ -445,57 +443,56 @@ const TestGame = () => {
   useEffect(() => {
     if (clock > 0 || phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
     if (phase === 'setup') { beginBattle(yourFleet, pending); return; }
-    if (phase === 'battle') startTurn(turn === 'you' ? 'foe' : 'you', yourFleet, foeFleet, yourShots, foeShots);
+    if (phase === 'battle') {
+      if (turn === 'you') handOver(yourShots, foeShots);
+      else startTurn('you', yourFleet, foeFleet, yourShots, foeShots);
+    }
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* dummy opponent fire */
+  /* stand-in opponent: fires once a second, decrementing the shared shot counter
+     so the rocket row reflects THEIR remaining shots too */
   useEffect(() => {
-    if (phase !== 'battle' || turn !== 'foe' || showForfeit) return;
-    let remaining = shotsLeft;
+    if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus) return;
     foeTimerRef.current = setInterval(() => {
-      setFoeShots((prev) => {
-        const open = Array.from({ length: GRID * GRID }, (_, i) => i).filter((i) => prev[i] === undefined);
-        if (open.length === 0 || remaining <= 0) return prev;
-        const target = open[Math.floor(Math.random() * open.length)];
-        const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
-        const next = { ...prev, [target]: isHit ? 'hit' as const : 'miss' as const };
-        if (isHit) {
-          playExplosion('you', target);
-          playSfx(didSink(yourFleet, next, target) ? SFX.sunk : SFX.hit);
-        }
-        // Opponent streak → silent spin (the stand-in doesn't animate the wheel).
-        setStreak((s) => {
-          const run = isHit ? s.foe + 1 : 0;
-          if (run >= HIT_STREAK) {
-            const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
-            const spun = rollColor();
-            // Same rule in reverse: a wrong guess hands the card to you.
-            setPowerups((p) => (spun === pick
-              ? { ...p, foe: [...p.foe, spun] }
-              : { ...p, you: [...p.you, spun] }));
-            return { ...s, foe: 0 };
-          }
-          return { ...s, foe: run };
-        });
-        remaining -= 1;
-        if (boatsRemaining(yourFleet, next) === 0) {
-          setWinner('foe'); setPhase('over');
-        } else if (remaining <= 0) {
-          setTimeout(() => startTurn('you', yourFleet, foeFleet, yourShots, next), 700);
-        }
-        return next;
+      const prev = foeShotsRef.current;
+      const open = Array.from({ length: GRID * GRID }, (_, i) => i).filter((i) => prev[i] === undefined);
+      if (open.length === 0) return;
+      const target = open[Math.floor(Math.random() * open.length)];
+      const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
+      const next: Shots = { ...prev, [target]: isHit ? 'hit' : 'miss' };
+      foeShotsRef.current = next;
+      setFoeShots(next);
+      const sank = isHit && didSink(yourFleet, next, target);
+      if (isHit) {
+        playExplosion('you', target);
+        playSfx(sank ? SFX.sunk : SFX.hit);
+      }
+      // sinking one of your ships earns them a spin (resolved silently); a wrong
+      // call on their end hands the card to you
+      if (sank) {
+        const dealt = dealSlots();
+        const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
+        const spun = rollColor();
+        setCards((c) => (spun === pick
+          ? { ...c, foe: [...c.foe, dealt[spun]] }
+          : { ...c, you: [...c.you, dealt[spun]] }));
+      }
+      setShotsLeft((sl) => {
+        const left = sl - 1;
+        if (boatsRemaining(yourFleet, next) === 0) { setWinner('foe'); setPhase('over'); return 0; }
+        if (left <= 0) setTimeout(() => startTurn('you', yourFleet, foeFleet, yourShots, next), 700);
+        return Math.max(0, left);
       });
     }, 1000);
     return () => { if (foeTimerRef.current) clearInterval(foeTimerRef.current); };
-  }, [phase, turn, showForfeit]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, turn, showForfeit, bonus]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ---- setup interactions ---- */
+  /* ---- setup ---- */
   const tryMovePending = (row: number, col: number) => {
     if (!pending) return;
     const moved = clamp({ ...pending, row, col });
     if (!overlaps(moved, yourFleet)) setPending(moved);
   };
-
   const onYourCell = (idx: number) => {
     if (phase !== 'setup' || waitingDone) return;
     const row = Math.floor(idx / GRID), col = idx % GRID;
@@ -508,7 +505,6 @@ const TestGame = () => {
       if (!overlaps(flat, yourFleet)) setPending(flat);
     }
   };
-
   const pickUp = (key: ShipKey) => {
     if (phase !== 'setup' || waitingDone || pending) return;
     const ship = yourFleet.find((s) => s.key === key);
@@ -516,82 +512,97 @@ const TestGame = () => {
     setYourFleet(yourFleet.filter((s) => s.key !== key));
     setPending(ship);
   };
-
   const rotatePending = () => {
     if (!pending) return;
     const rotated = clamp({ ...pending, dir: pending.dir === 'v' ? 'h' : 'v' });
     if (!overlaps(rotated, yourFleet)) setPending(rotated);
   };
-
   const lockPending = () => {
     if (!pending) return;
     const next = [...yourFleet, pending];
     setYourFleet(next); setPending(null);
     if (next.length === FLEET.length) setEditMode(false);
   };
-
   const pressDone = () => {
     if (!allLocked || waitingDone) return;
     setWaitingDone(true);
-    // Local stand-in for the opponent's DONE (2–6s), capped by the setup clock.
     oppDoneRef.current = setTimeout(() => beginBattle(yourFleet, null), 2000 + Math.random() * 4000);
   };
 
-  /* ---- roulette bonus ---- */
+  /* ---- roulette ---- */
   const chooseColor = (choice: Color) => {
     if (!bonus || bonus.stage !== 'select' || bonus.who !== 'you') return;
     setBonus({ ...bonus, stage: 'spinning', choice });
     const result = rollColor();
-    // several full rotations plus a random landing offset, eased to a stop
     setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
-      playSfx(SFX.highlight); // wheel has landed — outcome revealed
-      // The card drawn is the one in the slot the wheel landed on. Guess right and
-      // you keep it; guess wrong and it goes to your opponent instead.
-      setPowerups((p) => (result === choice
-        ? { ...p, you: [...p.you, result] }
-        : { ...p, foe: [...p.foe, result] }));
+      playSfx(SFX.highlight);
+      // the card dealt into the landing slot: yours if right, theirs if wrong
+      const won = slots[result];
+      setCards((c) => (result === choice ? { ...c, you: [...c.you, won] } : { ...c, foe: [...c.foe, won] }));
       setTimeout(() => {
         setBonus(null);
-        // resume the paused turn
         if (endTurnAfterBonus.current) {
           endTurnAfterBonus.current = false;
-          startTurn('foe', yourFleet, foeFleet, yourShots, foeShots);
+          handOver(yourShots, foeShots);
         }
       }, RESULT_MS);
     }, SPIN_MS);
   };
 
+  /* ---- action cards ---- */
+  const canPlayCards = phase === 'battle' && turn === 'you' && !bonus && !showForfeit;
+  const playCard = (i: number) => {
+    if (!canPlayCards) return;
+    const card = cards.you[i];
+    if (!card) return;
+    setCards((c) => ({ ...c, you: c.you.filter((_, k) => k !== i) })); // one-time use
+    playSfx(SFX.selected);
+    if (card === '+1') setShotsLeft((s) => s + 1);
+    else if (card === '+2') setShotsLeft((s) => s + 2);
+    else if (card === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
+    else if (card === 'SKIP') setSkipFoeTurn(true);
+  };
+
   /* ---- firing ---- */
   const fireAt = (idx: number) => {
-    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || yourShots[idx] !== undefined) return;
-    const isHit = new Set(foeFleet.flatMap(cellsFor)).has(idx);
-    const next = { ...yourShots, [idx]: isHit ? 'hit' as const : 'miss' as const };
-    setYourShots(next);
-    if (isHit) {
-      playExplosion('foe', idx);
-      playSfx(didSink(foeFleet, next, idx) ? SFX.sunk : SFX.hit);
+    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || showForfeit) return;
+    if (yourShots[idx] !== undefined) return;
+
+    const area = clusterArmed ? clusterCells(idx) : [idx];
+    const fresh = area.filter((i) => yourShots[i] === undefined);
+    const foeCells = new Set(foeFleet.flatMap(cellsFor));
+    const next: Shots = { ...yourShots };
+    let anyHit = false;
+    for (const i of fresh) {
+      const hit = foeCells.has(i);
+      next[i] = hit ? 'hit' : 'miss';
+      if (hit) { anyHit = true; playExplosion('foe', i); }
     }
+    setYourShots(next);
+    if (clusterArmed) setClusterArmed(false);
+
+    // one sound per volley: the heavier one wins
+    const sankSomething = fresh.some((i) => next[i] === 'hit' && didSink(foeFleet, next, i));
+    if (anyHit) playSfx(sankSomething ? SFX.sunk : SFX.hit);
+
     const left = shotsLeft - 1;
     setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
 
-    const run = isHit ? streak.you + 1 : 0;
-    if (run >= HIT_STREAK) {
-      // pause the turn for the wheel; remember whether the turn was ending
-      setStreak({ ...streak, you: 0 });
+    // Sinking a ship earns the bonus spin (one per volley, even if a Cluster
+    // takes down more than one).
+    if (sankSomething) {
       endTurnAfterBonus.current = left <= 0;
+      setSlots(dealSlots());                 // deal fresh cards into the slots
       setBonus({ who: 'you', stage: 'select', choice: null, result: null });
-      // BONUS SPIN! announcement — pops, pulses, shrinks away (pointer-transparent
-      // so it never blocks the colour slots underneath).
       setShowBonusPopup(true);
       playSfx(SFX.bonus);
       setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
       return;
     }
-    setStreak({ ...streak, you: run });
-    if (left <= 0) setTimeout(() => startTurn('foe', yourFleet, foeFleet, next, foeShots), 700);
+    if (left <= 0) setTimeout(() => handOver(next, foeShots), 700);
   };
 
   const statusText =
@@ -600,28 +611,32 @@ const TestGame = () => {
         waitingDone ? 'Board locked — waiting for opponent…'
         : pending ? `Position your ${FLEET.find((f) => f.key === pending.key)!.label} — press PLACE to lock it in.`
         : allLocked ? 'Fleet ready — EDIT to adjust, DONE to lock in.'
-        : editMode || yourFleet.length > 0 && !nextShip ? 'Tap a boat to pick it up.'
         : nextShip ? `Tap the grid to spawn your ${nextShip.label} (${nextShip.len} cells).`
         : 'Tap a boat to pick it up.'
       )
     : bonus?.who === 'you' ? (
-        bonus.stage === 'select' ? `${HIT_STREAK} hits in a row — pick a colour to spin for a powerup!`
+        bonus.stage === 'select' ? 'Ship sunk — pick a colour to win its card!'
         : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
-        : bonus.result === bonus.choice ? `${bonus.result}! You win the ${bonus.result} powerup.`
-        : `${bonus.result}. Wrong call — the ${bonus.result} powerup goes to your opponent.`
+        : bonus.result === bonus.choice ? `${bonus.result}! You win ${slots[bonus.result!]}.`
+        : `${bonus.result}. Wrong call — ${slots[bonus.result!]} goes to your opponent.`
       )
-    : phase === 'battle' ? (turn === 'you' ? `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.` : 'Enemy turn…')
+    : phase === 'battle' ? (
+        turn === 'you'
+          ? (clusterArmed ? 'CLUSTER armed — your next shot hits a 5×5 area!' : `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`)
+          : `Enemy turn… ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`
+      )
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
 
-  const maxShots = stageFor(Math.min(yourBoats, foeBoats)).shots;
+  // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
+  const baseShots = stageFor(Math.min(yourBoats, foeBoats)).shots;
+  const rocketSlots = Math.max(baseShots, shotsLeft);
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, streak, bonus, powerups };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, bonus, cards, slots, clusterArmed, skipFoeTurn };
   }
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
-      {/* BONUS SPIN! award popup: snaps open, breathes, then shrinks away. */}
       <style>{`
         @keyframes bcBonusPop {
           0%   { transform: scale(0);    opacity: 0; }
@@ -636,24 +651,18 @@ const TestGame = () => {
       `}</style>
       {showBonusPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <img
-            src="/game/bonus-spin.png"
-            alt="Bonus Spin!"
+          <img src="/game/bonus-spin.png" alt="Bonus Spin!"
             className="w-[80vw] max-w-[560px] drop-shadow-[0_8px_0_rgba(0,0,0,0.35)]"
-            style={{ animation: `bcBonusPop ${BONUS_POPUP_MS}ms ease-in-out forwards` }}
-          />
+            style={{ animation: `bcBonusPop ${BONUS_POPUP_MS}ms ease-in-out forwards` }} />
         </div>
       )}
 
-      {/* Forfeit confirmation — the game is frozen behind it. */}
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div className={`${raised} w-full max-w-sm p-1`}>
             <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1">Forfeit match</div>
             <div className="p-4 text-center">
-              <p className="text-sm text-black mb-4">
-                Are you sure you&apos;d like to forfeit? Funds will not be returned.
-              </p>
+              <p className="text-sm text-black mb-4">Are you sure you&apos;d like to forfeit? Funds will not be returned.</p>
               <div className="flex justify-center gap-3">
                 <button onClick={() => resetTo('idle')} className={btn98}>Yes, Leave</button>
                 <button onClick={() => setShowForfeit(false)} className={btn98}>No, Stay</button>
@@ -665,11 +674,7 @@ const TestGame = () => {
 
       {/* Chrome bar */}
       <div className={`${raised} relative flex items-center justify-between px-4 py-3 mb-3`}>
-        {/* Mid-match this becomes Forfeit (with a confirm); otherwise it leaves the lab. */}
-        <button
-          onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))}
-          className={btn98}
-        >
+        <button onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))} className={btn98}>
           {inGame ? 'Forfeit' : 'Exit'}
         </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
@@ -688,74 +693,67 @@ const TestGame = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px_1fr] gap-4 items-start max-w-[1700px] mx-auto">
-        {/* YOUR side: powerup rack on the outside edge, then board + controls */}
+        {/* YOUR side */}
         <div className="flex gap-2">
-          <Rack cards={powerups.you} />
+          <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
           <div className="flex flex-col gap-2 flex-1 min-w-0">
-          <Board
-            title="Your fleet"
-            right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
-            ships={yourFleet} showShips sunk={[]} shots={foeShots}
-            clickable={phase === 'setup' && !waitingDone}
-            outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'you')}
-            onCell={onYourCell}
-            onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
-            animating={anim.you}
-            pending={phase === 'setup' ? pending : null}
-            onPendingMove={tryMovePending}
-          />
-          {phase === 'setup' && !waitingDone && (
-            <div className="flex items-center justify-center gap-2">
-              {allLocked ? (
-                <>
-                  <button onClick={() => setEditMode(true)} className={btn98} disabled={editMode}>EDIT</button>
-                  <button onClick={pressDone} className={btn98}>DONE</button>
-                </>
-              ) : (
-                <>
-                  <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate left">◄</button>
-                  <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
-                  <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate right">►</button>
-                </>
-              )}
-            </div>
-          )}
+            <Board
+              title="Your fleet"
+              right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
+              ships={yourFleet} showShips sunk={[]} shots={foeShots}
+              clickable={phase === 'setup' && !waitingDone}
+              outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'you')}
+              onCell={onYourCell}
+              onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
+              animating={anim.you}
+              pending={phase === 'setup' ? pending : null}
+              onPendingMove={tryMovePending}
+            />
+            {phase === 'setup' && !waitingDone && (
+              <div className="flex items-center justify-center gap-2">
+                {allLocked ? (
+                  <>
+                    <button onClick={() => setEditMode(true)} className={btn98} disabled={editMode}>EDIT</button>
+                    <button onClick={pressDone} className={btn98}>DONE</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate left">◄</button>
+                    <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
+                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-3`} aria-label="Rotate right">►</button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* center column */}
         <div className="flex flex-col gap-4 order-first lg:order-none">
-          {/* Twin displays: clocks during play (lit for whoever's turn it is),
-              GAME / OVER once the match ends. */}
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {phase === 'over'
-                ? <SegWord word="GAME" />
-                : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
+              {phase === 'over' ? <SegWord word="GAME" /> : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
             </div>
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {phase === 'over'
-                ? <SegWord word="OVER" />
-                : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
+              {phase === 'over' ? <SegWord word="OVER" /> : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
             </div>
           </div>
 
-          <div className="flex justify-center gap-1.5">
-            {Array.from({ length: maxShots }, (_, i) => (
-              <Missile key={i} live={turn === 'you' ? i < shotsLeft : true} />
+          {/* rockets = shots the active player has left */}
+          <div className="flex justify-center gap-1.5 flex-wrap">
+            {Array.from({ length: rocketSlots }, (_, i) => (
+              <Missile key={i} live={i < shotsLeft} />
             ))}
           </div>
 
-          {/* Colour slots — each holds that colour's powerup card. During a bonus
-              they flash yellow; once picked, only the choice stays outlined. */}
+          {/* colour slots — each shows the action card dealt into it for this spin */}
           <div className="grid grid-cols-3 gap-2">
             {COLORS.map(({ key, label, bg, border }) => {
               const selecting = bonus?.who === 'you' && bonus.stage === 'select';
               const chosen = bonus?.choice === key;
               const isWinner = bonus?.stage === 'result' && bonus.result === key;
-              // While selecting, every slot carries the yellow highlight but only the
-              // hovered one expands (no synchronised pulsing).
               const ring = selecting || chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
+              const card = bonus ? slots[key] : null;
               return (
                 <button
                   key={key}
@@ -765,18 +763,19 @@ const TestGame = () => {
                   className={`border-[3px] ${border} ${ring} transition-transform duration-150 origin-center ${selecting ? 'cursor-pointer hover:scale-110 hover:z-10 relative' : 'cursor-default'}`}
                 >
                   <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
-                  {/* powerup card art drops in here */}
-                  <div className="bg-[#c3c3c3] h-14 flex items-center justify-center text-[#8a8a8a] font-bold text-lg">?</div>
+                  <div className="bg-[#c3c3c3] h-14 flex items-center justify-center">
+                    {card
+                      ? <span className={`${CARD_INFO[card].cls} text-white font-bold text-[11px] px-1.5 py-1 rounded-sm border border-black/40 leading-none`}>{CARD_INFO[card].label}</span>
+                      : <span className="text-[#8a8a8a] font-bold text-lg">?</span>}
+                  </div>
                 </button>
               );
             })}
           </div>
 
-          {/* Roulette: static base, spinning wheel (bet-triggered spins come with rules) */}
           <div className={`${raised} p-1`}>
             <div className="relative bg-[#bdbdbd] aspect-square overflow-hidden">
               <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
-              {/* idle: slow loop. bonus: controlled spin that eases to a stop. */}
               <img src="/game/roulette-wheel.png" alt="Roulette wheel"
                 className={`absolute inset-[2.5%] w-[95%] h-[95%] ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
                 style={bonus
@@ -786,7 +785,7 @@ const TestGame = () => {
           </div>
         </div>
 
-        {/* ENEMY side: board, then their powerup rack on the outside edge */}
+        {/* ENEMY side */}
         <div className="flex gap-2">
           <div className="flex-1 min-w-0">
             <Board
@@ -795,13 +794,14 @@ const TestGame = () => {
               ships={foeFleet} showShips={false}
               sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
               shots={yourShots}
-              clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus}
+              clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
               outlined={phase === 'battle' && turn === 'foe'}
               onCell={fireAt}
               animating={anim.foe}
+              crosshair
             />
           </div>
-          <Rack cards={powerups.foe} />
+          <Rack cards={cards.foe} playable={false} />
         </div>
       </div>
     </div>
