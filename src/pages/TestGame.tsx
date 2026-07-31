@@ -23,6 +23,30 @@ const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 
+/* ---------- roulette bonus ----------
+   Land HIT_STREAK consecutive hits → the turn pauses, the colour boxes flash,
+   you pick a colour, the wheel spins. Guess right → you win that slot's powerup
+   card, which flies to the rack outside your grid. Wrong → nothing. Then the
+   turn resumes automatically. Odds follow a European wheel: 18 red / 18 black /
+   1 green, so green is the rare jackpot. */
+const HIT_STREAK = 3;
+const SPIN_MS = 3200;
+const RESULT_MS = 1800;
+type Color = 'RED' | 'GREEN' | 'BLACK';
+const COLORS: { key: Color; label: string; bg: string; border: string; weight: number }[] = [
+  { key: 'RED', label: 'RED', bg: 'bg-red-600', border: 'border-red-600', weight: 18 },
+  { key: 'GREEN', label: 'GREEN', bg: 'bg-green-700', border: 'border-green-700', weight: 1 },
+  { key: 'BLACK', label: 'BLACK', bg: 'bg-black', border: 'border-black', weight: 18 },
+];
+const rollColor = (): Color => {
+  const total = COLORS.reduce((n, c) => n + c.weight, 0);
+  let r = Math.random() * total;
+  for (const c of COLORS) { if ((r -= c.weight) < 0) return c.key; }
+  return 'BLACK';
+};
+type BonusStage = 'select' | 'spinning' | 'result';
+interface Bonus { who: 'you' | 'foe'; stage: BonusStage; choice: Color | null; result: Color | null; }
+
 const raised =
   'bg-[#c3c3c3] border-2 border-t-white border-l-white border-b-[#5c5c5c] border-r-[#5c5c5c] shadow-[inset_1px_1px_0_#e6e6e6,inset_-1px_-1px_0_#8a8a8a]';
 const sunken =
@@ -121,6 +145,20 @@ const SegClock = ({ seconds, on }: { seconds: number; on: boolean }) => {
   );
 };
 
+/**
+ * Word for the clock windows (GAME / OVER at match end). Rendered as glowing red
+ * text rather than 7-segment digits — M and V have no faithful 7-segment form,
+ * so segments would read as gibberish. Same skew/glow keeps the display look.
+ */
+const SegWord = ({ word }: { word: string }) => (
+  <span
+    className="font-mono font-bold text-[#ff2222] text-2xl tracking-[0.15em] select-none"
+    style={{ transform: 'skewX(-4deg)', textShadow: '0 0 6px rgba(255,34,34,0.85)' }}
+  >
+    {word}
+  </span>
+);
+
 /* ---------- missiles (shots left) ---------- */
 const Missile = ({ live }: { live: boolean }) => (
   <svg viewBox="0 0 24 8" className="h-3 w-9">
@@ -139,6 +177,25 @@ const ShipImg = ({ s }: { s: Placed }) => (
     style={s.dir === 'v'
       ? { inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }
       : { left: '50%', top: '50%', width: `${100 / s.len}%`, height: `${s.len * 100}%`, transform: 'translate(-50%, -50%) rotate(90deg)', imageRendering: 'pixelated' }} />
+);
+
+/* ---------- powerup rack (outside edge of each grid) ---------- */
+const Rack = ({ cards }: { cards: Color[] }) => (
+  <div className={`${raised} p-1 w-[52px] md:w-[64px] shrink-0 self-stretch`}>
+    <div className="font-mono text-[9px] text-center text-black/70 pb-1 leading-tight">POWER<br />UPS</div>
+    <div className="flex flex-col gap-1">
+      {cards.map((c, i) => {
+        const col = COLORS.find((x) => x.key === c)!;
+        return (
+          /* placeholder until the powerup card art arrives */
+          <div key={i} className={`${sunken} h-10 flex items-center justify-center border-2 ${col.border}`}>
+            <span className={`${col.bg} text-white text-[8px] font-bold px-1 rounded-sm`}>{col.label}</span>
+          </div>
+        );
+      })}
+      {cards.length === 0 && <div className="text-center text-[9px] text-black/35 font-mono py-2">empty</div>}
+    </div>
+  </div>
 );
 
 /* ---------- board ---------- */
@@ -259,6 +316,11 @@ const TestGame = () => {
   const [clock, setClock] = useState(SETUP_SECONDS);
   const [winner, setWinner] = useState<'you' | 'foe' | null>(null);
   const [anim, setAnim] = useState<{ you: Record<number, true>; foe: Record<number, true> }>({ you: {}, foe: {} });
+  const [streak, setStreak] = useState<{ you: number; foe: number }>({ you: 0, foe: 0 });
+  const [bonus, setBonus] = useState<Bonus | null>(null);
+  const [powerups, setPowerups] = useState<{ you: Color[]; foe: Color[] }>({ you: [], foe: [] });
+  const [wheelAngle, setWheelAngle] = useState(0);
+  const endTurnAfterBonus = useRef(false);
   const foeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const oppDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -288,6 +350,8 @@ const TestGame = () => {
     setPhase('setup'); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
     setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
+    setStreak({ you: 0, foe: 0 }); setBonus(null); setPowerups({ you: [], foe: [] });
+    endTurnAfterBonus.current = false;
   };
 
   const beginBattle = (locked: Placed[], pend: Placed | null) => {
@@ -304,16 +368,16 @@ const TestGame = () => {
     setTurn(who); setShotsLeft(stage.shots); setClock(stage.secs);
   };
 
-  /* master clock */
+  /* master clock — frozen while a roulette bonus is resolving */
   useEffect(() => {
-    if (phase === 'idle' || phase === 'over') return;
+    if (phase === 'idle' || phase === 'over' || bonus) return;
     const id = setInterval(() => setClock((c) => c - 1), 1000);
     return () => clearInterval(id);
-  }, [phase, turn]);
+  }, [phase, turn, bonus]);
 
   /* clock expiry */
   useEffect(() => {
-    if (clock > 0 || phase === 'idle' || phase === 'over') return;
+    if (clock > 0 || phase === 'idle' || phase === 'over' || bonus) return;
     if (phase === 'setup') { beginBattle(yourFleet, pending); return; }
     if (phase === 'battle') startTurn(turn === 'you' ? 'foe' : 'you', yourFleet, foeFleet, yourShots, foeShots);
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -330,6 +394,16 @@ const TestGame = () => {
         const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
         const next = { ...prev, [target]: isHit ? 'hit' as const : 'miss' as const };
         if (isHit) playExplosion('you', target);
+        // Opponent streak → silent spin (the stand-in doesn't animate the wheel).
+        setStreak((s) => {
+          const run = isHit ? s.foe + 1 : 0;
+          if (run >= HIT_STREAK) {
+            const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
+            if (rollColor() === pick) setPowerups((p) => ({ ...p, foe: [...p.foe, pick] }));
+            return { ...s, foe: 0 };
+          }
+          return { ...s, foe: run };
+        });
         remaining -= 1;
         if (boatsRemaining(yourFleet, next) === 0) {
           setWinner('foe'); setPhase('over');
@@ -390,9 +464,30 @@ const TestGame = () => {
     oppDoneRef.current = setTimeout(() => beginBattle(yourFleet, null), 2000 + Math.random() * 4000);
   };
 
+  /* ---- roulette bonus ---- */
+  const chooseColor = (choice: Color) => {
+    if (!bonus || bonus.stage !== 'select' || bonus.who !== 'you') return;
+    setBonus({ ...bonus, stage: 'spinning', choice });
+    const result = rollColor();
+    // several full rotations plus a random landing offset, eased to a stop
+    setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
+    setTimeout(() => {
+      setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
+      if (result === choice) setPowerups((p) => ({ ...p, you: [...p.you, result] }));
+      setTimeout(() => {
+        setBonus(null);
+        // resume the paused turn
+        if (endTurnAfterBonus.current) {
+          endTurnAfterBonus.current = false;
+          startTurn('foe', yourFleet, foeFleet, yourShots, foeShots);
+        }
+      }, RESULT_MS);
+    }, SPIN_MS);
+  };
+
   /* ---- firing ---- */
   const fireAt = (idx: number) => {
-    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || yourShots[idx] !== undefined) return;
+    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || yourShots[idx] !== undefined) return;
     const isHit = new Set(foeFleet.flatMap(cellsFor)).has(idx);
     const next = { ...yourShots, [idx]: isHit ? 'hit' as const : 'miss' as const };
     setYourShots(next);
@@ -400,6 +495,16 @@ const TestGame = () => {
     const left = shotsLeft - 1;
     setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
+
+    const run = isHit ? streak.you + 1 : 0;
+    if (run >= HIT_STREAK) {
+      // pause the turn for the wheel; remember whether the turn was ending
+      setStreak({ ...streak, you: 0 });
+      endTurnAfterBonus.current = left <= 0;
+      setBonus({ who: 'you', stage: 'select', choice: null, result: null });
+      return;
+    }
+    setStreak({ ...streak, you: run });
     if (left <= 0) setTimeout(() => startTurn('foe', yourFleet, foeFleet, next, foeShots), 700);
   };
 
@@ -413,13 +518,19 @@ const TestGame = () => {
         : nextShip ? `Tap the grid to spawn your ${nextShip.label} (${nextShip.len} cells).`
         : 'Tap a boat to pick it up.'
       )
+    : bonus?.who === 'you' ? (
+        bonus.stage === 'select' ? `${HIT_STREAK} hits in a row — pick a colour to spin for a powerup!`
+        : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
+        : bonus.result === bonus.choice ? `${bonus.result}! You win the ${bonus.result} powerup.`
+        : `${bonus.result}. No powerup this time.`
+      )
     : phase === 'battle' ? (turn === 'you' ? `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.` : 'Enemy turn…')
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
 
   const maxShots = stageFor(Math.min(yourBoats, foeBoats)).shots;
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, streak, bonus, powerups };
   }
 
   return (
@@ -443,8 +554,10 @@ const TestGame = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px_1fr] gap-4 items-start max-w-[1700px] mx-auto">
-        {/* YOUR side: board + placement controls beneath */}
-        <div className="flex flex-col gap-2">
+        {/* YOUR side: powerup rack on the outside edge, then board + controls */}
+        <div className="flex gap-2">
+          <Rack cards={powerups.you} />
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
           <Board
             title="Your fleet"
             right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
@@ -473,16 +586,23 @@ const TestGame = () => {
               )}
             </div>
           )}
+          </div>
         </div>
 
         {/* center column */}
         <div className="flex flex-col gap-4 order-first lg:order-none">
+          {/* Twin displays: clocks during play (lit for whoever's turn it is),
+              GAME / OVER once the match ends. */}
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />
+              {phase === 'over'
+                ? <SegWord word="GAME" />
+                : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
             </div>
             <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />
+              {phase === 'over'
+                ? <SegWord word="OVER" />
+                : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
             </div>
           </div>
 
@@ -492,38 +612,62 @@ const TestGame = () => {
             ))}
           </div>
 
+          {/* Colour slots — each holds that colour's powerup card. During a bonus
+              they flash yellow; once picked, only the choice stays outlined. */}
           <div className="grid grid-cols-3 gap-2">
-            {([['RED', 'bg-red-600', 'border-red-600'], ['GREEN', 'bg-green-700', 'border-green-700'], ['BLACK', 'bg-black', 'border-black']] as const).map(([label, bg, border]) => (
-              <div key={label} className={`border-[3px] ${border}`}>
-                <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
-                <div className="bg-[#c3c3c3] h-14" />
-              </div>
-            ))}
+            {COLORS.map(({ key, label, bg, border }) => {
+              const selecting = bonus?.who === 'you' && bonus.stage === 'select';
+              const chosen = bonus?.choice === key;
+              const isWinner = bonus?.stage === 'result' && bonus.result === key;
+              const ring = selecting
+                ? 'outline outline-[3px] outline-[#f2c320] animate-pulse'
+                : chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
+              return (
+                <button
+                  key={key}
+                  onClick={() => chooseColor(key)}
+                  disabled={!selecting}
+                  className={`border-[3px] ${border} ${ring} ${selecting ? 'cursor-pointer' : 'cursor-default'}`}
+                >
+                  <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
+                  {/* powerup card art drops in here */}
+                  <div className="bg-[#c3c3c3] h-14 flex items-center justify-center text-[#8a8a8a] font-bold text-lg">?</div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Roulette: static base, spinning wheel (bet-triggered spins come with rules) */}
           <div className={`${raised} p-1`}>
             <div className="relative bg-[#bdbdbd] aspect-square overflow-hidden">
               <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+              {/* idle: slow loop. bonus: controlled spin that eases to a stop. */}
               <img src="/game/roulette-wheel.png" alt="Roulette wheel"
-                className="absolute inset-[2.5%] w-[95%] h-[95%] animate-[spin_12s_linear_infinite]"
-                style={{ imageRendering: 'pixelated' }} />
+                className={`absolute inset-[2.5%] w-[95%] h-[95%] ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
+                style={bonus
+                  ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
+                  : { imageRendering: 'pixelated' }} />
             </div>
           </div>
         </div>
 
-        {/* ENEMY board */}
-        <Board
-          title="Enemy waters"
-          right={phase === 'battle' || phase === 'over' ? `boats left: ${foeBoats}` : 'awaiting battle'}
-          ships={foeFleet} showShips={false}
-          sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
-          shots={yourShots}
-          clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0}
-          outlined={phase === 'battle' && turn === 'foe'}
-          onCell={fireAt}
-          animating={anim.foe}
-        />
+        {/* ENEMY side: board, then their powerup rack on the outside edge */}
+        <div className="flex gap-2">
+          <div className="flex-1 min-w-0">
+            <Board
+              title="Enemy waters"
+              right={phase === 'battle' || phase === 'over' ? `boats left: ${foeBoats}` : 'awaiting battle'}
+              ships={foeFleet} showShips={false}
+              sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
+              shots={yourShots}
+              clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus}
+              outlined={phase === 'battle' && turn === 'foe'}
+              onCell={fireAt}
+              animating={anim.foe}
+            />
+          </div>
+          <Rack cards={powerups.foe} />
+        </div>
       </div>
     </div>
   );
