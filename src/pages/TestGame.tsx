@@ -23,6 +23,35 @@ const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 
+/* ---------- audio ----------
+   Browsers block audio until the page has had a user gesture; clicking
+   "New match" supplies it, so everything after that is allowed. Playback errors
+   are swallowed — sound is never allowed to break the game. */
+const SFX = {
+  countdown: '/game/sounds/countdown-beep.mp3', // fires at 3, 2 and 1 in setup
+  start: '/game/sounds/start-beep.wav',         // marks the start of the battle
+  hit: '/game/sounds/ship-hit.wav',             // shot lands on a ship
+  sunk: '/game/sounds/ship-destroyed.wav',      // that shot finished the ship off
+} as const;
+
+const audioCache = new Map<string, HTMLAudioElement>();
+const preloadSfx = () => {
+  for (const src of Object.values(SFX)) {
+    if (audioCache.has(src)) continue;
+    const a = new Audio(src);
+    a.preload = 'auto';
+    audioCache.set(src, a);
+  }
+};
+/** Clone per play so rapid/overlapping shots don't cut each other off. */
+const playSfx = (src: string) => {
+  try {
+    const base = audioCache.get(src);
+    const node = (base ? base.cloneNode() : new Audio(src)) as HTMLAudioElement;
+    node.play().catch(() => {});
+  } catch { /* ignore */ }
+};
+
 /* ---------- roulette bonus ----------
    Land HIT_STREAK consecutive hits → the turn pauses, the colour boxes flash,
    you pick a colour, the wheel spins. Guess right → you win that slot's powerup
@@ -107,6 +136,12 @@ const boatsRemaining = (fleet: Placed[], shots: Shots): number =>
 
 const sunkShips = (fleet: Placed[], shots: Shots): Placed[] =>
   fleet.filter((s) => cellsFor(s).every((c) => shots[c] === 'hit'));
+
+/** Did the shot at `idx` finish off the ship it landed on? */
+const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
+  const ship = fleet.find((s) => cellsFor(s).includes(idx));
+  return !!ship && cellsFor(ship).every((c) => shotsAfter[c] === 'hit');
+};
 
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
   minBoats <= 1 ? { shots: 1, secs: 5 } : minBoats === 2 ? { shots: 3, secs: 10 } : { shots: 5, secs: 15 };
@@ -361,12 +396,21 @@ const TestGame = () => {
     setFoeFleet(autoPlace([]));
     const stage = stageFor(FLEET.length);
     setPhase('battle'); setTurn('you'); setShotsLeft(stage.shots); setClock(stage.secs);
+    playSfx(SFX.start); // 0-second marker — battle begins
   };
 
   const startTurn = (who: 'you' | 'foe', yFleet: Placed[], fFleet: Placed[], yShots: Shots, fShots: Shots) => {
     const stage = stageFor(Math.min(boatsRemaining(yFleet, fShots), boatsRemaining(fFleet, yShots)));
     setTurn(who); setShotsLeft(stage.shots); setClock(stage.secs);
   };
+
+  /* preload sfx once */
+  useEffect(() => { preloadSfx(); }, []);
+
+  /* setup countdown beeps on the final 3, 2 and 1 seconds */
+  useEffect(() => {
+    if (phase === 'setup' && !bonus && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
+  }, [clock, phase, bonus]);
 
   /* master clock — frozen while a roulette bonus is resolving */
   useEffect(() => {
@@ -393,7 +437,10 @@ const TestGame = () => {
         const target = open[Math.floor(Math.random() * open.length)];
         const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
         const next = { ...prev, [target]: isHit ? 'hit' as const : 'miss' as const };
-        if (isHit) playExplosion('you', target);
+        if (isHit) {
+          playExplosion('you', target);
+          playSfx(didSink(yourFleet, next, target) ? SFX.sunk : SFX.hit);
+        }
         // Opponent streak → silent spin (the stand-in doesn't animate the wheel).
         setStreak((s) => {
           const run = isHit ? s.foe + 1 : 0;
@@ -491,7 +538,10 @@ const TestGame = () => {
     const isHit = new Set(foeFleet.flatMap(cellsFor)).has(idx);
     const next = { ...yourShots, [idx]: isHit ? 'hit' as const : 'miss' as const };
     setYourShots(next);
-    if (isHit) playExplosion('foe', idx);
+    if (isHit) {
+      playExplosion('foe', idx);
+      playSfx(didSink(foeFleet, next, idx) ? SFX.sunk : SFX.hit);
+    }
     const left = shotsLeft - 1;
     setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
