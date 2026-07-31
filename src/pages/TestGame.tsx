@@ -407,9 +407,10 @@ const TestGame = () => {
   /* preload sfx once */
   useEffect(() => { preloadSfx(); }, []);
 
-  /* setup countdown beeps on the final 3, 2 and 1 seconds */
+  /* Countdown beeps on the final 3, 2 and 1 seconds — of the setup timer AND of
+     every turn thereafter. (The start beep stays exclusive to the match start.) */
   useEffect(() => {
-    if (phase === 'setup' && !bonus && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
+    if ((phase === 'setup' || phase === 'battle') && !bonus && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
   }, [clock, phase, bonus]);
 
   /* master clock — frozen while a roulette bonus is resolving */
