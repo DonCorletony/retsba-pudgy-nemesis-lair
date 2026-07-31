@@ -250,10 +250,12 @@ const ShipImg = ({ s }: { s: Placed }) => (
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
 /** Horizontal card strip that sits UNDER a grid, so the boards get the full width. */
-const Rack = ({ cards, playable, onPlay }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void }) => (
+const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void; label?: string }) => (
   <div className={`${raised} p-1.5`}>
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[10px] text-black/70 shrink-0 leading-tight">ACTION<br />CARDS</span>
+      <span className="font-mono text-[10px] text-black/70 shrink-0 leading-tight">
+        {label ? label.split(' ').map((w, i) => <React.Fragment key={i}>{w}{i === 0 ? <br /> : null}</React.Fragment>) : <>ACTION<br />CARDS</>}
+      </span>
       <div className={`${sunken} flex-1 flex items-center gap-1.5 p-1 min-h-[76px] md:min-h-[92px] overflow-x-auto`}>
         {cards.map((c, i) => {
           const info = CARD_INFO[c.type];
@@ -671,6 +673,146 @@ const TestGame = () => {
     (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, bonus, cards, slots, clusterArmed, skipFoeTurn };
   }
 
+  /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
+  const clocksPanel = (
+    <div className={`${raised} p-2 flex gap-2 justify-center`}>
+      {/* During a spin the windows read BONUS / SPIN; at match end, GAME / OVER —
+          both flashing. Otherwise they're the turn clocks. */}
+      <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+        {bonus ? <SegWord word="BONUS" flash />
+          : phase === 'over' ? <SegWord word="GAME" flash />
+          : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
+      </div>
+      <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+        {bonus ? <SegWord word="SPIN" flash />
+          : phase === 'over' ? <SegWord word="OVER" flash />
+          : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
+      </div>
+    </div>
+  );
+
+  const missileRow = (
+    <div className="flex justify-center gap-1.5 flex-wrap">
+      {Array.from({ length: rocketSlots }, (_, i) => <Missile key={i} live={i < shotsLeft} />)}
+    </div>
+  );
+
+  const colorSlots = (
+    <div className="grid grid-cols-3 gap-2">
+      {COLORS.map(({ key, label, bg, border }) => {
+        const selecting = bonus?.who === 'you' && bonus.stage === 'select';
+        const chosen = bonus?.choice === key;
+        const isWinner = bonus?.stage === 'result' && bonus.result === key;
+        const ring = selecting || chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
+        const card = bonus ? slots[key] : null;
+        return (
+          <button
+            key={key}
+            onClick={() => { playSfx(SFX.selected); chooseColor(key); }}
+            onMouseEnter={() => { if (selecting) playSfx(SFX.highlight); }}
+            disabled={!selecting}
+            className={`border-[3px] ${border} ${ring} transition-transform duration-150 origin-center ${selecting ? 'cursor-pointer hover:scale-110 hover:z-10 relative' : 'cursor-default'}`}
+          >
+            <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
+            {/* dark display panel, matching the clock windows; the dealt card
+                appears here during a spin, otherwise it sits empty */}
+            <div className="h-24 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#1b1b1b' }}>
+              {card && (() => {
+                const art = cardArt({ type: card, color: key });
+                return art
+                  ? <img src={art} alt={CARD_INFO[card].name} className="h-full w-auto" style={{ imageRendering: 'pixelated' }} />
+                  : <span className={`${CARD_INFO[card].cls} text-white font-bold text-[11px] px-1.5 py-1 rounded-sm border border-black/40 leading-none`}>{CARD_INFO[card].label}</span>;
+              })()}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  /** outer/inner classes differ: desktop stretches to fill, mobile is a square block */
+  const wheelPanel = (outerCls: string, innerCls: string) => (
+    <div className={`${raised} p-1 ${outerCls}`}>
+      <div className={`relative bg-[#bdbdbd] overflow-hidden flex items-center justify-center ${innerCls}`}>
+        {/* object-contain on both layers keeps the wheel perfectly round even
+            if the panel isn't exactly square */}
+        <div className="relative h-full w-full">
+          <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+          <img src="/game/roulette-wheel.png" alt="Roulette wheel"
+            className={`absolute inset-[2.5%] w-[95%] h-[95%] object-contain ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
+            style={bonus
+              ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
+              : { imageRendering: 'pixelated' }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const setupControls = (
+    <div className="flex items-center justify-center gap-2">
+      {allLocked ? (
+        <>
+          <button onClick={() => setEditMode(true)} className={btn98} disabled={editMode}>EDIT</button>
+          <button onClick={pressDone} className={btn98}>DONE</button>
+        </>
+      ) : (
+        <>
+          <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
+          {/* single turn-wheel button: rotates the selected boat clockwise */}
+          <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-2.5 flex items-center`} title="Turn boat" aria-label="Turn boat">
+            <RotateCw className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  const yourBoard = (
+    <Board
+      title="Your fleet"
+      right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
+      ships={yourFleet} showShips sunk={[]} shots={foeShots}
+      clickable={phase === 'setup' && !waitingDone}
+      outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'you')}
+      onCell={onYourCell}
+      onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
+      animating={anim.you}
+      pending={phase === 'setup' ? pending : null}
+      onPendingMove={tryMovePending}
+    />
+  );
+
+  const enemyBoard = (
+    <Board
+      title="Enemy waters"
+      right={phase === 'battle' || phase === 'over' ? `boats left: ${foeBoats}` : 'awaiting battle'}
+      ships={foeFleet} showShips={false}
+      sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
+      shots={yourShots}
+      clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
+      outlined={phase === 'battle' && turn === 'foe'}
+      onCell={fireAt}
+      animating={anim.foe}
+      crosshair
+    />
+  );
+
+  /* Mobile shows ONE board at a time: on your turn you need the enemy grid to
+     fire at, on theirs you watch your own fleet take fire. */
+  const mobileBoard = phase === 'battle'
+    ? (turn === 'you' ? enemyBoard : yourBoard)
+    : phase === 'over' ? enemyBoard
+    : yourBoard;
+  const mobileShowRack = waitingDone || phase === 'battle' || phase === 'over';
+  const mobileRackIsYours = phase !== 'battle' || turn === 'you';
+
+  /** Mobile START: begins setup and drops the first boat on the board ready to move. */
+  const mobileStart = () => {
+    resetTo('setup');
+    const f = FLEET[0];
+    setPending({ key: f.key, len: f.len, row: 0, col: 0, dir: 'v' });
+  };
+
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
       <style>{`
@@ -709,14 +851,19 @@ const TestGame = () => {
         </div>
       )}
 
-      {/* Chrome bar */}
-      <div className={`${raised} relative flex items-center justify-between px-4 py-3 mb-3`}>
-        <button onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))} className={btn98}>
+      {/* Chrome bar — buttons stay compact on mobile so the wordmark can't overlap them */}
+      <div className={`${raised} relative flex items-center justify-between gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
+        <button
+          onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))}
+          className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
+        >
           {inGame ? 'Forfeit' : 'Exit'}
         </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-12 md:h-16 w-auto pointer-events-none" />
-        <button onClick={newMatch} className={btn98}>New match</button>
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
+        <button onClick={newMatch} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}>
+          New match
+        </button>
       </div>
 
       {/* Status strip */}
@@ -729,140 +876,62 @@ const TestGame = () => {
         </div>
       </div>
 
-      {/* Columns stretch to a common height so the console's wheel bottoms out
+      {/* ---------- MOBILE: one panel at a time under a fixed clock/missile head ---------- */}
+      <div className="lg:hidden flex flex-col gap-3 max-w-md mx-auto">
+        {clocksPanel}
+
+        {/* START sits where the missiles will live; pressing it begins setup */}
+        {phase === 'idle'
+          ? <button onClick={mobileStart} className={`${btn98} w-full !py-3 text-lg tracking-widest`}>START</button>
+          : missileRow}
+
+        {/* a spin takes over the board slot; otherwise it's whichever board matters now */}
+        {bonus ? (
+          <>
+            {colorSlots}
+            {wheelPanel('', 'aspect-square w-full')}
+          </>
+        ) : mobileBoard}
+
+        {phase === 'setup' && !waitingDone && setupControls}
+
+        {mobileShowRack && (
+          <Rack
+            cards={mobileRackIsYours ? cards.you : cards.foe}
+            playable={mobileRackIsYours && canPlayCards}
+            onPlay={playCard}
+            label={mobileRackIsYours ? 'YOUR CARDS' : 'ENEMY CARDS'}
+          />
+        )}
+      </div>
+
+      {/* ---------- DESKTOP: unchanged three-column console ----------
+          Columns stretch to a common height so the console's wheel bottoms out
           flush with the action-card racks either side. */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,27vw)_1fr] gap-4 items-stretch max-w-[1700px] mx-auto">
+      <div className="hidden lg:grid lg:grid-cols-[1fr_minmax(300px,27vw)_1fr] gap-4 items-stretch max-w-[1700px] mx-auto">
         {/* YOUR side — board full width, action cards underneath */}
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 min-w-0">
-            <Board
-              title="Your fleet"
-              right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
-              ships={yourFleet} showShips sunk={[]} shots={foeShots}
-              clickable={phase === 'setup' && !waitingDone}
-              outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'you')}
-              onCell={onYourCell}
-              onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
-              animating={anim.you}
-              pending={phase === 'setup' ? pending : null}
-              onPendingMove={tryMovePending}
-            />
-            {phase === 'setup' && !waitingDone && (
-              <div className="flex items-center justify-center gap-2">
-                {allLocked ? (
-                  <>
-                    <button onClick={() => setEditMode(true)} className={btn98} disabled={editMode}>EDIT</button>
-                    <button onClick={pressDone} className={btn98}>DONE</button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
-                    {/* single turn-wheel button: rotates the selected boat clockwise */}
-                    <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-2.5 flex items-center`} title="Turn boat" aria-label="Turn boat">
-                      <RotateCw className="h-5 w-5" strokeWidth={2.5} />
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
+            {yourBoard}
+            {phase === 'setup' && !waitingDone && setupControls}
           </div>
           <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
         </div>
 
         {/* center console — fills the column height; the wheel takes whatever
             vertical space the readouts leave, so it ends flush with the racks */}
-        <div className="flex flex-col gap-3 order-first lg:order-none h-full">
-          <div className={`${raised} p-2 flex gap-2 justify-center`}>
-            {/* During a spin the windows read BONUS / SPIN; at match end, GAME / OVER —
-                both flashing. Otherwise they're the turn clocks. */}
-            <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {bonus ? <SegWord word="BONUS" flash />
-                : phase === 'over' ? <SegWord word="GAME" flash />
-                : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
-            </div>
-            <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-              {bonus ? <SegWord word="SPIN" flash />
-                : phase === 'over' ? <SegWord word="OVER" flash />
-                : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
-            </div>
-          </div>
-
-          {/* rockets = shots the active player has left */}
-          <div className="flex justify-center gap-1.5 flex-wrap">
-            {Array.from({ length: rocketSlots }, (_, i) => (
-              <Missile key={i} live={i < shotsLeft} />
-            ))}
-          </div>
-
-          {/* colour slots — each shows the action card dealt into it for this spin */}
-          <div className="grid grid-cols-3 gap-2">
-            {COLORS.map(({ key, label, bg, border }) => {
-              const selecting = bonus?.who === 'you' && bonus.stage === 'select';
-              const chosen = bonus?.choice === key;
-              const isWinner = bonus?.stage === 'result' && bonus.result === key;
-              const ring = selecting || chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
-              const card = bonus ? slots[key] : null;
-              return (
-                <button
-                  key={key}
-                  onClick={() => { playSfx(SFX.selected); chooseColor(key); }}
-                  onMouseEnter={() => { if (selecting) playSfx(SFX.highlight); }}
-                  disabled={!selecting}
-                  className={`border-[3px] ${border} ${ring} transition-transform duration-150 origin-center ${selecting ? 'cursor-pointer hover:scale-110 hover:z-10 relative' : 'cursor-default'}`}
-                >
-                  <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
-                  {/* dark display panel, matching the clock windows; the dealt card
-                      appears here during a spin, otherwise it sits empty */}
-                  <div className="h-24 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#1b1b1b' }}>
-                    {card && (() => {
-                      const art = cardArt({ type: card, color: key });
-                      return art
-                        ? <img src={art} alt={CARD_INFO[card].name} className="h-full w-auto" style={{ imageRendering: 'pixelated' }} />
-                        : <span className={`${CARD_INFO[card].cls} text-white font-bold text-[11px] px-1.5 py-1 rounded-sm border border-black/40 leading-none`}>{CARD_INFO[card].label}</span>;
-                    })()}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* flex-1: soaks up the remaining height so its bottom edge lines up
-              with the racks; the wheel stays square and centred within it */}
-          <div className={`${raised} p-1 flex-1 min-h-0`}>
-            <div className="relative bg-[#bdbdbd] h-full w-full overflow-hidden flex items-center justify-center">
-              {/* object-contain on both layers keeps the wheel perfectly round even
-                  if the panel isn't exactly square */}
-              <div className="relative h-full w-full">
-                <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
-                <img src="/game/roulette-wheel.png" alt="Roulette wheel"
-                  className={`absolute inset-[2.5%] w-[95%] h-[95%] object-contain ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
-                  style={bonus
-                    ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
-                    : { imageRendering: 'pixelated' }} />
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-col gap-3 h-full">
+          {clocksPanel}
+          {missileRow}
+          {colorSlots}
+          {wheelPanel('flex-1 min-h-0', 'h-full w-full')}
         </div>
 
         {/* ENEMY side — board full width, their action cards underneath */}
         <div className="flex flex-col gap-2">
-          <div className="min-w-0">
-            <Board
-              title="Enemy waters"
-              right={phase === 'battle' || phase === 'over' ? `boats left: ${foeBoats}` : 'awaiting battle'}
-              ships={foeFleet} showShips={false}
-              sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
-              shots={yourShots}
-              clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
-              outlined={phase === 'battle' && turn === 'foe'}
-              onCell={fireAt}
-              animating={anim.foe}
-              crosshair
-            />
-          </div>
+          <div className="min-w-0">{enemyBoard}</div>
           <Rack cards={cards.foe} playable={false} />
         </div>
-
       </div>
     </div>
   );
