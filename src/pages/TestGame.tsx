@@ -28,11 +28,16 @@ const EXPLOSION_MS = 2100;
    "New match" supplies it, so everything after that is allowed. Playback errors
    are swallowed — sound is never allowed to break the game. */
 const SFX = {
-  countdown: '/game/sounds/countdown-beep.mp3', // fires at 3, 2 and 1 in setup
+  countdown: '/game/sounds/countdown-beep.mp3', // final 3/2/1 of setup and every turn
   start: '/game/sounds/start-beep.wav',         // marks the start of the battle
   hit: '/game/sounds/ship-hit.wav',             // shot lands on a ship
   sunk: '/game/sounds/ship-destroyed.wav',      // that shot finished the ship off
+  bonus: '/game/sounds/bonus-spin.mp3',         // BONUS SPIN! award popup
+  highlight: '/game/sounds/powerup-highlight.wav', // hovering a colour slot
+  selected: '/game/sounds/powerup-selected.wav',   // committing to a colour
 } as const;
+
+const BONUS_POPUP_MS = 2500;
 
 const audioCache = new Map<string, HTMLAudioElement>();
 const preloadSfx = () => {
@@ -355,6 +360,8 @@ const TestGame = () => {
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [powerups, setPowerups] = useState<{ you: Color[]; foe: Color[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
+  const [showBonusPopup, setShowBonusPopup] = useState(false);
+  const [showForfeit, setShowForfeit] = useState(false);
   const endTurnAfterBonus = useRef(false);
   const foeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const oppDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -368,6 +375,7 @@ const TestGame = () => {
   }, [yourFleet, pending]);
 
   const allLocked = yourFleet.length === FLEET.length && !pending;
+  const inGame = phase === 'setup' || phase === 'battle';
 
   const playExplosion = (board: 'you' | 'foe', idx: number) => {
     setAnim((prev) => ({ ...prev, [board]: { ...prev[board], [idx]: true as const } }));
@@ -380,12 +388,25 @@ const TestGame = () => {
     }, EXPLOSION_MS);
   };
 
+  /** Wipe the board back to a clean slate. `to` is the phase to land in. */
+  const resetTo = (to: Phase) => {
+    if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
+    if (foeTimerRef.current) clearInterval(foeTimerRef.current);
+    setPhase(to); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
+    setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
+    setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
+    setStreak({ you: 0, foe: 0 }); setBonus(null); setPowerups({ you: [], foe: [] });
+    setShowBonusPopup(false); setShowForfeit(false);
+    endTurnAfterBonus.current = false;
+  };
+
   const newMatch = () => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
     setPhase('setup'); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
     setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
     setStreak({ you: 0, foe: 0 }); setBonus(null); setPowerups({ you: [], foe: [] });
+    setShowBonusPopup(false);
     endTurnAfterBonus.current = false;
   };
 
@@ -413,23 +434,23 @@ const TestGame = () => {
     if ((phase === 'setup' || phase === 'battle') && !bonus && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
   }, [clock, phase, bonus]);
 
-  /* master clock — frozen while a roulette bonus is resolving */
+  /* master clock — frozen during a roulette bonus or the forfeit prompt */
   useEffect(() => {
-    if (phase === 'idle' || phase === 'over' || bonus) return;
+    if (phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
     const id = setInterval(() => setClock((c) => c - 1), 1000);
     return () => clearInterval(id);
-  }, [phase, turn, bonus]);
+  }, [phase, turn, bonus, showForfeit]);
 
   /* clock expiry */
   useEffect(() => {
-    if (clock > 0 || phase === 'idle' || phase === 'over' || bonus) return;
+    if (clock > 0 || phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
     if (phase === 'setup') { beginBattle(yourFleet, pending); return; }
     if (phase === 'battle') startTurn(turn === 'you' ? 'foe' : 'you', yourFleet, foeFleet, yourShots, foeShots);
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* dummy opponent fire */
   useEffect(() => {
-    if (phase !== 'battle' || turn !== 'foe') return;
+    if (phase !== 'battle' || turn !== 'foe' || showForfeit) return;
     let remaining = shotsLeft;
     foeTimerRef.current = setInterval(() => {
       setFoeShots((prev) => {
@@ -462,7 +483,7 @@ const TestGame = () => {
       });
     }, 1000);
     return () => { if (foeTimerRef.current) clearInterval(foeTimerRef.current); };
-  }, [phase, turn]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, turn, showForfeit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- setup interactions ---- */
   const tryMovePending = (row: number, col: number) => {
@@ -521,6 +542,7 @@ const TestGame = () => {
     setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
+      playSfx(SFX.highlight); // wheel has landed — outcome revealed
       if (result === choice) setPowerups((p) => ({ ...p, you: [...p.you, result] }));
       setTimeout(() => {
         setBonus(null);
@@ -553,6 +575,11 @@ const TestGame = () => {
       setStreak({ ...streak, you: 0 });
       endTurnAfterBonus.current = left <= 0;
       setBonus({ who: 'you', stage: 'select', choice: null, result: null });
+      // BONUS SPIN! announcement — pops, pulses, shrinks away (pointer-transparent
+      // so it never blocks the colour slots underneath).
+      setShowBonusPopup(true);
+      playSfx(SFX.bonus);
+      setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
       return;
     }
     setStreak({ ...streak, you: run });
@@ -586,9 +613,57 @@ const TestGame = () => {
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
+      {/* BONUS SPIN! award popup: snaps open, breathes, then shrinks away. */}
+      <style>{`
+        @keyframes bcBonusPop {
+          0%   { transform: scale(0);    opacity: 0; }
+          10%  { transform: scale(1.12); opacity: 1; }
+          16%  { transform: scale(1); }
+          34%  { transform: scale(1.06); }
+          52%  { transform: scale(1); }
+          70%  { transform: scale(1.06); }
+          88%  { transform: scale(1);    opacity: 1; }
+          100% { transform: scale(0);    opacity: 0; }
+        }
+      `}</style>
+      {showBonusPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <img
+            src="/game/bonus-spin.png"
+            alt="Bonus Spin!"
+            className="w-[80vw] max-w-[560px] drop-shadow-[0_8px_0_rgba(0,0,0,0.35)]"
+            style={{ animation: `bcBonusPop ${BONUS_POPUP_MS}ms ease-in-out forwards` }}
+          />
+        </div>
+      )}
+
+      {/* Forfeit confirmation — the game is frozen behind it. */}
+      {showForfeit && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className={`${raised} w-full max-w-sm p-1`}>
+            <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1">Forfeit match</div>
+            <div className="p-4 text-center">
+              <p className="text-sm text-black mb-4">
+                Are you sure you&apos;d like to forfeit? Funds will not be returned.
+              </p>
+              <div className="flex justify-center gap-3">
+                <button onClick={() => resetTo('idle')} className={btn98}>Yes, Leave</button>
+                <button onClick={() => setShowForfeit(false)} className={btn98}>No, Stay</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chrome bar */}
       <div className={`${raised} relative flex items-center justify-between px-4 py-3 mb-3`}>
-        <button onClick={() => navigate('/')} className={btn98}>Exit</button>
+        {/* Mid-match this becomes Forfeit (with a confirm); otherwise it leaves the lab. */}
+        <button
+          onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))}
+          className={btn98}
+        >
+          {inGame ? 'Forfeit' : 'Exit'}
+        </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-12 md:h-16 w-auto pointer-events-none" />
         <button onClick={newMatch} className={btn98}>New match</button>
@@ -670,15 +745,16 @@ const TestGame = () => {
               const selecting = bonus?.who === 'you' && bonus.stage === 'select';
               const chosen = bonus?.choice === key;
               const isWinner = bonus?.stage === 'result' && bonus.result === key;
-              const ring = selecting
-                ? 'outline outline-[3px] outline-[#f2c320] animate-pulse'
-                : chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
+              // While selecting, every slot carries the yellow highlight but only the
+              // hovered one expands (no synchronised pulsing).
+              const ring = selecting || chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
               return (
                 <button
                   key={key}
-                  onClick={() => chooseColor(key)}
+                  onClick={() => { playSfx(SFX.selected); chooseColor(key); }}
+                  onMouseEnter={() => { if (selecting) playSfx(SFX.highlight); }}
                   disabled={!selecting}
-                  className={`border-[3px] ${border} ${ring} ${selecting ? 'cursor-pointer' : 'cursor-default'}`}
+                  className={`border-[3px] ${border} ${ring} transition-transform duration-150 origin-center ${selecting ? 'cursor-pointer hover:scale-110 hover:z-10 relative' : 'cursor-default'}`}
                 >
                   <div className={`${bg} text-white text-center font-bold text-xs py-0.5`}>{label}</div>
                   {/* powerup card art drops in here */}
