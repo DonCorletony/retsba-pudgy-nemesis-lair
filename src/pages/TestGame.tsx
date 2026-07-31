@@ -41,6 +41,7 @@ const SFX = {
   start: '/game/sounds/start-beep.wav',
   hit: '/game/sounds/ship-hit.wav',
   sunk: '/game/sounds/ship-destroyed.wav',
+  miss: '/game/sounds/miss.mp3',
   bonus: '/game/sounds/bonus-spin.mp3',
   highlight: '/game/sounds/powerup-highlight.wav',
   selected: '/game/sounds/powerup-selected.wav',
@@ -498,6 +499,8 @@ const TestGame = () => {
       if (isHit) {
         playExplosion('you', target);
         playSfx(sank ? SFX.sunk : SFX.hit);
+      } else {
+        playSfx(SFX.miss);
       }
       // sinking one of your ships earns them a spin (resolved silently); a wrong
       // call on their end hands the card to you
@@ -616,9 +619,9 @@ const TestGame = () => {
     setYourShots(next);
     if (clusterArmed) setClusterArmed(false);
 
-    // one sound per volley: the heavier one wins
+    // one sound per volley: the heaviest outcome wins, else it's a miss
     const sankSomething = fresh.some((i) => next[i] === 'hit' && didSink(foeFleet, next, i));
-    if (anyHit) playSfx(sankSomething ? SFX.sunk : SFX.hit);
+    playSfx(anyHit ? (sankSomething ? SFX.sunk : SFX.hit) : SFX.miss);
 
     const left = shotsLeft - 1;
     setShotsLeft(left);
