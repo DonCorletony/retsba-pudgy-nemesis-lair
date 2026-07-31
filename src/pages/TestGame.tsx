@@ -208,7 +208,7 @@ const SegClock = ({ seconds, on }: { seconds: number; on: boolean }) => {
   const s = Math.max(0, seconds % 60);
   const str = `${m}${String(s).padStart(2, '0')}`;
   return (
-    <div className="flex items-center justify-center gap-[3px] h-9 py-1">
+    <div className="flex items-center justify-center gap-[3px] h-12 py-1">
       <Digit ch={str[0]} on={on} />
       <div className="flex flex-col justify-center gap-1.5 h-full px-[1px]">
         {[0, 1].map((i) => <span key={i} className="block w-1 h-1" style={{ background: on ? '#ff2222' : '#3a0f0f', filter: on ? 'drop-shadow(0 0 2px #ff2222)' : undefined }} />)}
@@ -223,13 +223,14 @@ const SegWord = ({ word, flash }: { word: string; flash?: boolean }) => (
   <span className="font-mono font-bold text-[#ff2222] text-2xl tracking-[0.15em] select-none"
     style={{
       transform: 'skewX(-4deg)',
+      fontSize: 'clamp(1.25rem, 2.1vw, 2rem)',
       textShadow: '0 0 6px rgba(255,34,34,0.85)',
       animation: flash ? 'bcFlash 0.9s steps(1,end) infinite' : undefined,
     }}>{word}</span>
 );
 
 const Missile = ({ live }: { live: boolean }) => (
-  <svg viewBox="0 0 24 8" className="h-3 w-9">
+  <svg viewBox="0 0 24 8" className="h-4 w-12">
     <g fill={live ? '#7d7d7d' : '#4b4b4b'} opacity={live ? 1 : 0.45}>
       <polygon points="0,0 3,2 3,6 0,8" />
       <rect x="3" y="2" width="12" height="4" />
@@ -725,7 +726,9 @@ const TestGame = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px_1fr] gap-4 items-start max-w-[1700px] mx-auto">
+      {/* Columns stretch to a common height so the console's wheel bottoms out
+          flush with the action-card racks either side. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,27vw)_1fr] gap-4 items-stretch max-w-[1700px] mx-auto">
         {/* YOUR side — board full width, action cards underneath */}
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 min-w-0">
@@ -763,17 +766,18 @@ const TestGame = () => {
           <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
         </div>
 
-        {/* center column */}
-        <div className="flex flex-col gap-4 order-first lg:order-none">
+        {/* center console — fills the column height; the wheel takes whatever
+            vertical space the readouts leave, so it ends flush with the racks */}
+        <div className="flex flex-col gap-3 order-first lg:order-none h-full">
           <div className={`${raised} p-2 flex gap-2 justify-center`}>
             {/* During a spin the windows read BONUS / SPIN; at match end, GAME / OVER —
                 both flashing. Otherwise they're the turn clocks. */}
-            <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+            <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
               {bonus ? <SegWord word="BONUS" flash />
                 : phase === 'over' ? <SegWord word="GAME" flash />
                 : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
             </div>
-            <div className={`${sunken} h-14 flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+            <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
               {bonus ? <SegWord word="SPIN" flash />
                 : phase === 'over' ? <SegWord word="OVER" flash />
                 : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
@@ -819,14 +823,20 @@ const TestGame = () => {
             })}
           </div>
 
-          <div className={`${raised} p-1`}>
-            <div className="relative bg-[#bdbdbd] aspect-square overflow-hidden">
-              <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
-              <img src="/game/roulette-wheel.png" alt="Roulette wheel"
-                className={`absolute inset-[2.5%] w-[95%] h-[95%] ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
-                style={bonus
-                  ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
-                  : { imageRendering: 'pixelated' }} />
+          {/* flex-1: soaks up the remaining height so its bottom edge lines up
+              with the racks; the wheel stays square and centred within it */}
+          <div className={`${raised} p-1 flex-1 min-h-0`}>
+            <div className="relative bg-[#bdbdbd] h-full w-full overflow-hidden flex items-center justify-center">
+              {/* object-contain on both layers keeps the wheel perfectly round even
+                  if the panel isn't exactly square */}
+              <div className="relative h-full w-full">
+                <img src="/game/roulette-base.png" alt="" className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+                <img src="/game/roulette-wheel.png" alt="Roulette wheel"
+                  className={`absolute inset-[2.5%] w-[95%] h-[95%] object-contain ${bonus ? '' : 'animate-[spin_12s_linear_infinite]'}`}
+                  style={bonus
+                    ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
+                    : { imageRendering: 'pixelated' }} />
+              </div>
             </div>
           </div>
         </div>
