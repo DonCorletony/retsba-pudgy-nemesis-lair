@@ -10,7 +10,7 @@ import { RotateCw } from 'lucide-react';
  * unplaced is auto-deployed at 0:00.
  *
  * Battle: 5 shots/20s per turn → 3/15s once either side is down to 2 boats →
- * 1/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
+ * 3/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
  * remaining shots. Yellow outline = whose turn it is.
  *
  * Roulette: SINKING an enemy ship pauses the turn for a spin. Each slot is dealt an
@@ -173,8 +173,10 @@ const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
   const ship = fleet.find((s) => cellsFor(s).includes(idx));
   return !!ship && cellsFor(ship).every((c) => shotsAfter[c] === 'hit');
 };
+/* Turn ladder. The last rung keeps 3 shots (a single shot dragged the endgame
+   out) and only tightens the clock. */
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
-  minBoats <= 1 ? { shots: 1, secs: 10 } : minBoats === 2 ? { shots: 3, secs: 15 } : { shots: 5, secs: 20 };
+  minBoats <= 1 ? { shots: 3, secs: 10 } : minBoats === 2 ? { shots: 3, secs: 15 } : { shots: 5, secs: 20 };
 
 /** 5×5 block centred on idx, clipped to the board. */
 const clusterCells = (idx: number): number[] => {
