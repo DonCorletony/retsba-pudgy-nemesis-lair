@@ -5,9 +5,11 @@ import { RotateCw } from 'lucide-react';
 /**
  * SECRET game lab (/testgame) — BATTLE CHIPS (battleship × roulette).
  *
- * Setup: tap the grid to spawn the next boat (outlined yellow), tap/drag to move,
- * ◄ ► rotate, PLACE locks it. All five locked → EDIT / DONE. 30s timer; anything
- * unplaced is auto-deployed at 0:00.
+ * Setup: the next boat is always already on the board, pulsing yellow — drag it or
+ * tap a cell to move, the turn-wheel rotates, PLACE locks it and spawns the one
+ * after it. All five locked → EDIT / DONE. 30s timer; anything unplaced is
+ * auto-deployed at 0:00. (Nothing here waits on an undiscoverable click: new
+ * players stalled on the old "tap the grid to spawn a boat" step.)
  *
  * Battle: 5 shots/20s per turn → 3/15s once either side is down to 2 boats →
  * 3/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
@@ -163,6 +165,29 @@ const autoPlace = (existing: Placed[]): Placed[] => {
     }
   }
   return placed;
+};
+
+/* Drop the next unplaced boat onto a free spot, already selected and ready to be
+   dragged. Nothing about setup should wait on the player discovering a click:
+   there is always a boat on the board asking to be positioned. */
+const spawnNext = (placed: Placed[]): Placed | null => {
+  const used = new Set(placed.map((s) => s.key));
+  const f = FLEET.find((s) => !used.has(s.key));
+  if (!f) return null;
+  const at = (row: number, col: number, dir: 'v' | 'h'): Placed => ({ key: f.key, len: f.len, row, col, dir });
+  // Boats spawn upright so the turn-wheel button has an obvious effect.
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const cand = at(Math.floor(Math.random() * (GRID - f.len + 1)), Math.floor(Math.random() * GRID), 'v');
+    if (fits(cand, placed)) return cand;
+  }
+  // Crowded board — sweep for the first opening in either orientation.
+  for (const dir of ['v', 'h'] as const)
+    for (let row = 0; row < GRID; row++)
+      for (let col = 0; col < GRID; col++) {
+        const cand = at(row, col, dir);
+        if (fits(cand, placed)) return cand;
+      }
+  return null;
 };
 
 const boatsRemaining = (fleet: Placed[], shots: Shots): number =>
@@ -335,6 +360,7 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
                   left: `${pending.col * 10}%`, top: `${pending.row * 10}%`,
                   width: `${(pending.dir === 'h' ? pending.len : 1) * 10}%`, height: `${(pending.dir === 'v' ? pending.len : 1) * 10}%`,
                   touchAction: 'none',
+                  animation: 'bcPulse 1.8s ease-in-out infinite',
                 }}
                 onPointerDown={(e) => {
                   const c = cellFromPointer(e);
@@ -434,6 +460,8 @@ const TestGame = () => {
     setBonus(null); setCards({ you: [], foe: [] });
     setShowBonusPopup(false); setShowForfeit(false); setClusterArmed(false); setSkipFoeTurn(false);
     endTurnAfterBonus.current = false;
+    // Setup opens with the Carrier already on the board — no hidden first click.
+    if (to === 'setup') setPending(spawnNext([]));
   };
   const newMatch = () => resetTo('setup');
 
@@ -560,7 +588,10 @@ const TestGame = () => {
   const lockPending = () => {
     if (!pending) return;
     const next = [...yourFleet, pending];
-    setYourFleet(next); setPending(null);
+    setYourFleet(next);
+    // The following boat spawns immediately, so the player never has to work out
+    // that a grid tap is what summons it. Null once the fleet is complete.
+    setPending(spawnNext(next));
     if (next.length === FLEET.length) setEditMode(false);
   };
   const pressDone = () => {
@@ -649,7 +680,7 @@ const TestGame = () => {
     phase === 'idle' ? 'Press New match to begin.'
     : phase === 'setup' ? (
         waitingDone ? 'Board locked — waiting for opponent…'
-        : pending ? `Position your ${FLEET.find((f) => f.key === pending.key)!.label} — press PLACE to lock it in.`
+        : pending ? `Drag the glowing ${FLEET.find((f) => f.key === pending.key)!.label} where you want it, then press PLACE. (${yourFleet.length + 1} of ${FLEET.length})`
         : allLocked ? 'Fleet ready — EDIT to adjust, DONE to lock in.'
         : nextShip ? `Tap the grid to spawn your ${nextShip.label} (${nextShip.len} cells).`
         : 'Tap a boat to pick it up.'
@@ -808,12 +839,8 @@ const TestGame = () => {
   const mobileShowRack = waitingDone || phase === 'battle' || phase === 'over';
   const mobileRackIsYours = phase !== 'battle' || turn === 'you';
 
-  /** Mobile START: begins setup and drops the first boat on the board ready to move. */
-  const mobileStart = () => {
-    resetTo('setup');
-    const f = FLEET[0];
-    setPending({ key: f.key, len: f.len, row: 0, col: 0, dir: 'v' });
-  };
+  /** Mobile START: same as New match — setup opens with a boat already waiting. */
+  const mobileStart = newMatch;
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
@@ -829,6 +856,12 @@ const TestGame = () => {
           100% { transform: scale(0);    opacity: 0; }
         }
         @keyframes bcFlash { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.07; } }
+        /* Slow breathing glow on the boat you're currently positioning, so the
+           thing you're meant to be moving is never in doubt. */
+        @keyframes bcPulse {
+          0%, 100% { outline-color: #f2c320; box-shadow: 0 0 0 0 rgba(242,195,32,0); }
+          50%      { outline-color: #fff7cc; box-shadow: 0 0 12px 3px rgba(242,195,32,0.65); }
+        }
       `}</style>
       {showBonusPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
