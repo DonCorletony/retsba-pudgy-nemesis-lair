@@ -23,7 +23,9 @@ import { RotateCw } from 'lucide-react';
  * The stand-in opponent hunts on a checkerboard, then works a hit until the ship
  * sinks — see foeTarget.
  *
- * Roulette: SINKING an enemy ship pauses the turn for a spin. Each slot is dealt an
+ * Roulette: SINKING a ship pauses the turn for a spin — for either side, and the
+ * opponent's plays out on screen behind an "OPPONENT'S SPIN" banner rather than
+ * resolving offstage. Each slot is dealt an
  * action card first (RED/BLACK: +1 or +2 at 50/50 each, independently; GREEN:
  * Cluster or Skip at 50/50), so you can see what you're playing for. Guess the
  * landing colour right and that slot's card is yours — guess wrong and it goes
@@ -38,6 +40,7 @@ const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 const BONUS_POPUP_MS = 2500;
+const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel turns
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
 const CLUSTER_SIZE = 5; // Cluster card fires a 5x5 blast
@@ -527,11 +530,15 @@ const TestGame = () => {
   const [cards, setCards] = useState<{ you: CardInst[]; foe: CardInst[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
   const [showBonusPopup, setShowBonusPopup] = useState(false);
+  const [showFoeSpin, setShowFoeSpin] = useState(false);   // "OPPONENT'S SPIN" banner
   const [showForfeit, setShowForfeit] = useState(false);
   const [clusterArmed, setClusterArmed] = useState(false);   // one-time 5x5, no stacking
   const [skipFoeTurn, setSkipFoeTurn] = useState(false);     // Skip card, no stacking
 
   const endTurnAfterBonus = useRef(false);
+  // Their turn can also run out mid-sink; hand back only once the spin has played.
+  const foeEndTurnAfterBonus = useRef(false);
+  const foeSpinResult = useRef<Color | null>(null);
   const foeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const oppDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const foeShotsRef = useRef<Shots>({});
@@ -562,8 +569,11 @@ const TestGame = () => {
     setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
     setBonus(null); setCards({ you: [], foe: [] });
-    setShowBonusPopup(false); setShowForfeit(false); setClusterArmed(false); setSkipFoeTurn(false);
+    setShowBonusPopup(false); setShowFoeSpin(false); setShowForfeit(false);
+    setClusterArmed(false); setSkipFoeTurn(false);
     endTurnAfterBonus.current = false;
+    foeEndTurnAfterBonus.current = false;
+    foeSpinResult.current = null;
     // Setup opens with the Carrier already on the board — no hidden first click.
     if (to === 'setup') setPending(spawnNext([]));
   };
@@ -638,26 +648,71 @@ const TestGame = () => {
       } else {
         playSfx(SFX.miss);
       }
-      // sinking one of your ships earns them a spin (resolved silently); a wrong
-      // call on their end hands the card to you
-      if (sank) {
-        const dealt = dealSlots();
-        const pick = COLORS[Math.floor(Math.random() * COLORS.length)].key;
-        const spun = rollColor();
-        const card: CardInst = { type: dealt[spun], color: spun };
-        setCards((c) => (spun === pick
-          ? { ...c, foe: [...c.foe, card] }
-          : { ...c, you: [...c.you, card] }));
+      // Sinking one of your ships earns them a spin, which now plays out on screen
+      // instead of resolving offstage — no spin if that shot ended the match.
+      const wiped = boatsRemaining(yourFleet, next) === 0;
+      if (sank && !wiped) {
+        setSlots(dealSlots());
+        setBonus({ who: 'foe', stage: 'select', choice: COLORS[Math.floor(Math.random() * COLORS.length)].key, result: null });
+        setShowFoeSpin(true);
+        playSfx(SFX.bonus);
+        // Setting bonus tears down this interval; the foe-spin effect drives it
+        // from here and restarts their turn afterwards.
       }
       setShotsLeft((sl) => {
         const left = sl - 1;
-        if (boatsRemaining(yourFleet, next) === 0) { setWinner('foe'); setPhase('over'); return 0; }
-        if (left <= 0) setTimeout(() => startTurn('you', yourFleet, foeFleet, yourShots, next), 700);
+        if (wiped) { setWinner('foe'); setPhase('over'); return 0; }
+        if (left <= 0) {
+          // Defer the handover past the spin, or the turn would flip mid-wheel.
+          if (sank) foeEndTurnAfterBonus.current = true;
+          else setTimeout(() => startTurn('you', yourFleet, foeFleet, yourShots, next), 700);
+        }
         return Math.max(0, left);
       });
     }, 1000);
     return () => { if (foeTimerRef.current) clearInterval(foeTimerRef.current); };
   }, [phase, turn, showForfeit, bonus]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* The opponent's spin, played out rather than resolved offstage: announce it,
+     turn the wheel, show where it landed, then give them their turn back. Same
+     three stages as chooseColor(), just with their call made for them. */
+  useEffect(() => {
+    if (bonus?.who !== 'foe') return;
+
+    if (bonus.stage === 'select') {
+      const id = setTimeout(() => {
+        setShowFoeSpin(false);
+        foeSpinResult.current = rollColor();
+        setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
+        setBonus((b) => (b?.who === 'foe' ? { ...b, stage: 'spinning' } : b));
+      }, FOE_ANNOUNCE_MS);
+      return () => clearTimeout(id);
+    }
+
+    if (bonus.stage === 'spinning') {
+      const id = setTimeout(() => {
+        const landed = foeSpinResult.current!;
+        playSfx(SFX.highlight);
+        setBonus((b) => (b?.who === 'foe' ? { ...b, stage: 'result', result: landed } : b));
+        // Their call was locked in before the spin; a wrong one hands you the card.
+        const won: CardInst = { type: slots[landed], color: landed };
+        setCards((c) => (landed === bonus.choice
+          ? { ...c, foe: [...c.foe, won] }
+          : { ...c, you: [...c.you, won] }));
+      }, SPIN_MS);
+      return () => clearTimeout(id);
+    }
+
+    const id = setTimeout(() => {
+      setBonus(null);
+      if (foeEndTurnAfterBonus.current) {
+        foeEndTurnAfterBonus.current = false;
+        startTurn('you', yourFleet, foeFleet, yourShots, foeShotsRef.current);
+      }
+      // Otherwise their shots aren't spent: clearing bonus restarts their fire loop.
+    }, RESULT_MS);
+    return () => clearTimeout(id);
+  }, [bonus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- setup ---- */
   const tryMovePending = (row: number, col: number) => {
@@ -794,6 +849,12 @@ const TestGame = () => {
         : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
         : bonus.result === bonus.choice ? `${bonus.result}! You win the ${CARD_INFO[slots[bonus.result!]].name} card.`
         : `${bonus.result}. Wrong call — the ${CARD_INFO[slots[bonus.result!]].name} card goes to your opponent.`
+      )
+    : bonus?.who === 'foe' ? (
+        bonus.stage === 'select' ? 'They sank one of your ships — watch their bonus spin.'
+        : bonus.stage === 'spinning' ? `Spinning… they called ${bonus.choice}.`
+        : bonus.result === bonus.choice ? `${bonus.result}. They called it — the ${CARD_INFO[slots[bonus.result!]].name} card is theirs.`
+        : `${bonus.result}. They called it wrong — the ${CARD_INFO[slots[bonus.result!]].name} card is yours!`
       )
     : phase === 'battle' ? (
         turn === 'you'
@@ -1003,6 +1064,29 @@ const TestGame = () => {
           <img src="/game/bonus-spin.png" alt="Bonus Spin!"
             className="w-[80vw] max-w-[560px] drop-shadow-[0_8px_0_rgba(0,0,0,0.35)]"
             style={{ animation: `bcBonusPop ${BONUS_POPUP_MS}ms ease-in-out forwards` }} />
+        </div>
+      )}
+
+      {/* Their spin gets announced before it turns, so the wheel taking over the
+          screen on someone else's turn reads as part of the game. Styled like the
+          console's readout windows rather than the player's BONUS SPIN! artwork —
+          it should feel like something happening TO you. */}
+      {showFoeSpin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+          <div className={`${raised} p-2`}>
+            <div className={`${sunken} px-6 py-4 md:px-10 md:py-6`} style={{ backgroundColor: '#1b1b1b' }}>
+              <span
+                className="font-mono font-bold text-[#ff2222] tracking-[0.15em] select-none whitespace-nowrap"
+                style={{
+                  fontSize: 'clamp(1.1rem, 4.5vw, 2.75rem)',
+                  textShadow: '0 0 10px rgba(255,34,34,0.85)',
+                  animation: 'bcFlash 0.7s steps(1,end) infinite',
+                }}
+              >
+                OPPONENT&apos;S SPIN
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
