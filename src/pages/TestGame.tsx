@@ -15,6 +15,9 @@ import { RotateCw } from 'lucide-react';
  * 3/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
  * remaining shots. Yellow outline = whose turn it is.
  *
+ * The stand-in opponent hunts on a checkerboard, then works a hit until the ship
+ * sinks — see foeTarget.
+ *
  * Roulette: SINKING an enemy ship pauses the turn for a spin. Each slot is dealt an
  * action card first (RED/BLACK: +1 or +2 at 50/50 each, independently; GREEN:
  * Cluster or Skip at 50/50), so you can see what you're playing for. Guess the
@@ -202,6 +205,97 @@ const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
    out) and only tightens the clock. */
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
   minBoats <= 1 ? { shots: 3, secs: 10 } : minBoats === 2 ? { shots: 3, secs: 15 } : { shots: 5, secs: 20 };
+
+/* ---------- opponent targeting ----------
+   The stand-in foe plays the way a person does: hunt for a lead, then work it
+   until the ship goes down.
+
+   Everything is derived from the board on each shot rather than tracked in a
+   running queue, so the opponent can't drift out of sync with the real state —
+   it re-reads the situation every time and picks up mid-game from any position.
+
+   Fairness: it reads which of ITS OWN hits belong to a ship that has already
+   sunk, which is exactly what "you sank my battleship" tells a human. It never
+   looks at cells it hasn't fired on. */
+
+/** The up-to-four orthogonal neighbours of a cell, clipped to the board. */
+const orthogonal = (idx: number): number[] => {
+  const r = Math.floor(idx / GRID), c = idx % GRID;
+  const out: number[] = [];
+  if (r > 0) out.push(idx - GRID);
+  if (r < GRID - 1) out.push(idx + GRID);
+  if (c > 0) out.push(idx - 1);
+  if (c < GRID - 1) out.push(idx + 1);
+  return out;
+};
+
+/** Flood-fill the run of connected hits containing `start`. */
+const runOfHits = (start: number, pool: Set<number>): number[] => {
+  const seen = new Set([start]);
+  const stack = [start];
+  const out: number[] = [];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    out.push(cur);
+    for (const n of orthogonal(cur)) if (pool.has(n) && !seen.has(n)) { seen.add(n); stack.push(n); }
+  }
+  return out;
+};
+
+const pickOne = (xs: number[]): number => xs[Math.floor(Math.random() * xs.length)];
+
+/** Where the opponent fires next, or null if the board is exhausted. */
+const foeTarget = (fleet: Placed[], shots: Shots): number | null => {
+  const isOpen = (i: number) => shots[i] === undefined;
+  const downed = new Set(sunkShips(fleet, shots).flatMap(cellsFor));
+  // Hits on ships still afloat — the live leads worth chasing.
+  const leads = new Set(
+    Object.keys(shots).map(Number).filter((i) => shots[i] === 'hit' && !downed.has(i)),
+  );
+
+  // TARGET — finish what we started before looking anywhere else.
+  const done = new Set<number>();
+  for (const lead of leads) {
+    if (done.has(lead)) continue;
+    const run = runOfHits(lead, leads);
+    run.forEach((c) => done.add(c));
+
+    const rows = new Set(run.map((c) => Math.floor(c / GRID)));
+    const cols = new Set(run.map((c) => c % GRID));
+    let candidates: number[];
+
+    if (run.length > 1 && rows.size === 1) {
+      // Two hits in a row means the ship lies flat: press on past either end.
+      const row = Math.floor(run[0] / GRID);
+      const cs = run.map((c) => c % GRID).sort((a, b) => a - b);
+      candidates = [];
+      if (cs[0] > 0) candidates.push(row * GRID + cs[0] - 1);
+      if (cs[cs.length - 1] < GRID - 1) candidates.push(row * GRID + cs[cs.length - 1] + 1);
+    } else if (run.length > 1 && cols.size === 1) {
+      const col = run[0] % GRID;
+      const rs = run.map((c) => Math.floor(c / GRID)).sort((a, b) => a - b);
+      candidates = [];
+      if (rs[0] > 0) candidates.push((rs[0] - 1) * GRID + col);
+      if (rs[rs.length - 1] < GRID - 1) candidates.push((rs[rs.length - 1] + 1) * GRID + col);
+    } else {
+      // A single hit gives no direction yet, so probe all four sides. An L-shaped
+      // run means two ships are touching, and the same probe untangles it.
+      candidates = run.flatMap(orthogonal);
+    }
+
+    const usable = candidates.filter(isOpen);
+    if (usable.length) return pickOne(usable);
+    // Ship is boxed in by earlier shots — try the next lead instead.
+  }
+
+  // HUNT — no live leads, so go looking. Firing only on one colour of a
+  // checkerboard halves the search without ever missing a ship, since the
+  // shortest boat is 2 cells and must cover both colours.
+  const open = Array.from({ length: GRID * GRID }, (_, i) => i).filter(isOpen);
+  if (!open.length) return null;
+  const checker = open.filter((i) => (Math.floor(i / GRID) + (i % GRID)) % 2 === 0);
+  return pickOne(checker.length ? checker : open);
+};
 
 /** 5×5 block centred on idx, clipped to the board. */
 const clusterCells = (idx: number): number[] => {
@@ -514,15 +608,15 @@ const TestGame = () => {
     }
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* stand-in opponent: fires once a second, decrementing the shared shot counter
-     so the rocket row reflects THEIR remaining shots too */
+  /* stand-in opponent: fires once a second (see foeTarget for how it aims),
+     decrementing the shared shot counter so the rocket row reflects THEIR
+     remaining shots too */
   useEffect(() => {
     if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus) return;
     foeTimerRef.current = setInterval(() => {
       const prev = foeShotsRef.current;
-      const open = Array.from({ length: GRID * GRID }, (_, i) => i).filter((i) => prev[i] === undefined);
-      if (open.length === 0) return;
-      const target = open[Math.floor(Math.random() * open.length)];
+      const target = foeTarget(yourFleet, prev);
+      if (target === null) return;
       const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
       const next: Shots = { ...prev, [target]: isHit ? 'hit' : 'miss' };
       foeShotsRef.current = next;
@@ -703,7 +797,7 @@ const TestGame = () => {
   const rocketSlots = Math.max(baseShots, shotsLeft);
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, bonus, cards, slots, clusterArmed, skipFoeTurn };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
