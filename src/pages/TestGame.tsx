@@ -13,7 +13,12 @@ import { RotateCw } from 'lucide-react';
  *
  * Battle: 5 shots/20s per turn → 3/15s once either side is down to 2 boats →
  * 3/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
- * remaining shots. Yellow outline = whose turn it is.
+ * remaining shots.
+ *
+ * Yellow outline marks the board that matters right now, NOT whose turn it is —
+ * on your turn that's enemy waters (where you fire), on theirs it's your own
+ * fleet (where the shots are landing). Pulsing specifically means "your move",
+ * the same signal the boat being placed uses during setup.
  *
  * The stand-in opponent hunts on a checkerboard, then works a hit until the ship
  * sinks — see foeTarget.
@@ -406,9 +411,9 @@ const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable:
 );
 
 /* ---------- board ---------- */
-const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, onCell, onShip, animating, pending, onPendingMove, crosshair }: {
+const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, pulse, onCell, onShip, animating, pending, onPendingMove, crosshair }: {
   title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
-  clickable: boolean; outlined: boolean;
+  clickable: boolean; outlined: boolean; pulse?: boolean;
   onCell?: (idx: number) => void; onShip?: (key: ShipKey) => void;
   animating?: Record<number, true>; pending?: Placed | null; onPendingMove?: (row: number, col: number) => void;
   crosshair?: boolean;
@@ -425,7 +430,12 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
   };
 
   return (
-    <div className={`${raised} p-1.5 ${outlined ? 'outline outline-[3px] outline-[#f2c320]' : ''}`}>
+    <div
+      className={`${raised} p-1.5 ${outlined ? 'outline outline-[3px] outline-[#f2c320]' : ''}`}
+      // Same breathing outline the boat you're placing gets, so one rule holds all
+      // game long: if it's pulsing, that's the board you act on.
+      style={pulse ? { animation: 'bcPulse 1.8s ease-in-out infinite' } : undefined}
+    >
       <div className="flex items-center justify-between px-2 py-1.5 font-mono text-[13px] text-black">
         <span>{title}</span>
         <span>{right}</span>
@@ -787,8 +797,10 @@ const TestGame = () => {
       )
     : phase === 'battle' ? (
         turn === 'you'
-          ? (clusterArmed ? 'CLUSTER armed — your next shot hits a 5×5 area!' : `Your turn — fire! ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`)
-          : `Enemy turn… ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`
+          ? (clusterArmed
+              ? 'CLUSTER armed — tap ENEMY WATERS to hit a whole 5×5 area!'
+              : `Your turn — tap a square on ENEMY WATERS to fire. ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`)
+          : `Enemy turn — they're firing on your fleet. ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`
       )
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
 
@@ -801,26 +813,48 @@ const TestGame = () => {
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
+  /* Two identical red windows tell you nothing about which clock is yours, so name
+     them. Fixed-height label row: it blanks out during a spin (when the windows
+     read BONUS / SPIN) without the panel changing size. */
+  const clockLabel = (who: string) => (
+    <span className="font-mono text-[10px] tracking-widest text-black/70 text-center h-3 leading-3 select-none">
+      {phase === 'battle' && !bonus ? who : ''}
+    </span>
+  );
+
   const clocksPanel = (
     <div className={`${raised} p-2 flex gap-2 justify-center`}>
       {/* During a spin the windows read BONUS / SPIN; at match end, GAME / OVER —
           both flashing. Otherwise they're the turn clocks. */}
-      <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-        {bonus ? <SegWord word="BONUS" flash />
-          : phase === 'over' ? <SegWord word="GAME" flash />
-          : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
+      <div className="flex-1 flex flex-col gap-1">
+        {clockLabel('YOU')}
+        <div className={`${sunken} h-[72px] flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+          {bonus ? <SegWord word="BONUS" flash />
+            : phase === 'over' ? <SegWord word="GAME" flash />
+            : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
+        </div>
       </div>
-      <div className={`${sunken} h-[72px] flex-1 flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-        {bonus ? <SegWord word="SPIN" flash />
-          : phase === 'over' ? <SegWord word="OVER" flash />
-          : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
+      <div className="flex-1 flex flex-col gap-1">
+        {clockLabel('ENEMY')}
+        <div className={`${sunken} h-[72px] flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
+          {bonus ? <SegWord word="SPIN" flash />
+            : phase === 'over' ? <SegWord word="OVER" flash />
+            : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
+        </div>
       </div>
     </div>
   );
 
+  /* The rockets are a shot counter, but a row of rockets doesn't say so — and it
+     tracks whoever is shooting, which is worth spelling out too. */
   const missileRow = (
-    <div className="flex justify-center gap-1.5 flex-wrap">
-      {Array.from({ length: rocketSlots }, (_, i) => <Missile key={i} live={i < shotsLeft} />)}
+    <div className="flex flex-col items-center gap-1">
+      <span className="font-mono text-[10px] tracking-widest text-black/70 h-3 leading-3 select-none">
+        {phase === 'battle' ? (turn === 'you' ? 'YOUR SHOTS LEFT' : 'ENEMY SHOTS LEFT') : ''}
+      </span>
+      <div className="flex justify-center gap-1.5 flex-wrap">
+        {Array.from({ length: rocketSlots }, (_, i) => <Missile key={i} live={i < shotsLeft} />)}
+      </div>
     </div>
   );
 
@@ -900,7 +934,11 @@ const TestGame = () => {
       right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
       ships={yourFleet} showShips sunk={[]} shots={foeShots}
       clickable={phase === 'setup' && !waitingDone}
-      outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'you')}
+      // Highlighted while you're arranging it, and again while it's under fire —
+      // both times it's the board to be looking at. Never on your own turn: the
+      // shooting happens over on enemy waters.
+      outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'foe')}
+      pulse={phase === 'setup' && !waitingDone && !pending}
       onCell={onYourCell}
       onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
       animating={anim.you}
@@ -917,7 +955,10 @@ const TestGame = () => {
       sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
       shots={yourShots}
       clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
-      outlined={phase === 'battle' && turn === 'foe'}
+      // Pulses on your turn because this is where you fire. Static-quiet the rest
+      // of the time so the pulse always means "your move".
+      outlined={phase === 'battle' && turn === 'you'}
+      pulse={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
       onCell={fireAt}
       animating={anim.foe}
       crosshair
