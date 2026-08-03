@@ -34,7 +34,8 @@ import { RotateCw } from 'lucide-react';
  *
  * Action cards are one-time use and playable any time during your own turn.
  * Several can be played in a turn but effects don't stack (Cluster/Skip are
- * armed flags, so a second copy doesn't double them).
+ * armed flags, so a second copy doesn't double them). The opponent spends its
+ * own hand at the top of its turn and the play is announced on screen.
  */
 
 const GRID = 10;
@@ -42,6 +43,7 @@ const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 const BONUS_POPUP_MS = 2500;
 const CALLOUT_MS = 2000;       // "PLACE YOUR BOATS" / "BEGIN" flashes
+const FOE_CARD_MS = 1800;      // "ENEMY PLAYS …" flash
 const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel turns
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
@@ -600,6 +602,13 @@ const TestGame = () => {
   const [showForfeit, setShowForfeit] = useState(false);
   const [clusterArmed, setClusterArmed] = useState(false);   // one-time 5x5, no stacking
   const [skipFoeTurn, setSkipFoeTurn] = useState(false);     // Skip card, no stacking
+  const [foePlayed, setFoePlayed] = useState<string | null>(null);  // "ENEMY PLAYS …" flash
+  /* Mirrors of the two armed flags for the opponent. Refs, not state: the fire
+     loop reads them from inside an interval that would otherwise close over a
+     stale value. */
+  const foeClusterRef = useRef(false);
+  const skipYourTurnRef = useRef(false);
+  const [turnSeq, setTurnSeq] = useState(0);   // ticks on every turn start, incl. repeats
 
   const endTurnAfterBonus = useRef(false);
   // Their turn can also run out mid-sink; hand back only once the spin has played.
@@ -632,6 +641,9 @@ const TestGame = () => {
     setBonus(null); setCards({ you: [], foe: [] });
     setShowBonusPopup(false); setShowFoeSpin(false); setShowForfeit(false);
     setShowPlacePrompt(false); setShowBegin(false); setClusterArmed(false); setSkipFoeTurn(false);
+    setFoePlayed(null); setTurnSeq(0);
+    foeClusterRef.current = false;
+    skipYourTurnRef.current = false;
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
     foeSpinResult.current = null;
@@ -661,6 +673,19 @@ const TestGame = () => {
   const startTurn = (who: 'you' | 'foe', yFleet: Placed[], fFleet: Placed[], yShots: Shots, fShots: Shots) => {
     const stage = stageFor(Math.min(boatsRemaining(yFleet, fShots), boatsRemaining(fFleet, yShots)));
     setTurn(who); setShotsLeft(stage.shots); setClock(stage.secs);
+    // A Skip can hand the same side two turns running, where `turn` never changes
+    // — this counter still moves, so "new turn" logic fires either way.
+    setTurnSeq((n) => n + 1);
+  };
+
+  /** Hand back after their turn — unless THEY banked a Skip, which eats yours. */
+  const handBack = (yShots: Shots, fShots: Shots) => {
+    if (skipYourTurnRef.current) {
+      skipYourTurnRef.current = false;
+      startTurn('foe', yourFleet, foeFleet, yShots, fShots);
+    } else {
+      startTurn('you', yourFleet, foeFleet, yShots, fShots);
+    }
   };
 
   /** Hand over after your turn — unless a Skip card is banked, which eats theirs. */
@@ -693,30 +718,73 @@ const TestGame = () => {
     if (phase === 'setup') { beginBattle(yourFleet); return; }
     if (phase === 'battle') {
       if (turn === 'you') handOver(yourShots, foeShots);
-      else startTurn('you', yourFleet, foeFleet, yourShots, foeShots);
+      else handBack(yourShots, foeShots);
     }
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* The opponent spends its hand at the top of its turn, and the play is announced
+     — a card vanishing from their rack with no explanation would be exactly the
+     invisible mechanic the bonus spin used to be.
+
+     Policy: every +1/+2 gets played, since more shots is never worse. Cluster and
+     Skip are armed flags that don't stack, so only one of each is worth spending
+     and the rest stay in hand for later turns. */
+  useEffect(() => {
+    if (phase !== 'battle' || turn !== 'foe' || bonus || showForfeit || foePlayed) return;
+    if (!cards.foe.length) return;
+
+    const keep: CardInst[] = [];
+    const play: CardInst[] = [];
+    let tookCluster = false, tookSkip = false;
+    for (const c of cards.foe) {
+      if (c.type === 'CLUSTER' && tookCluster) { keep.push(c); continue; }
+      if (c.type === 'SKIP' && tookSkip) { keep.push(c); continue; }
+      if (c.type === 'CLUSTER') tookCluster = true;
+      if (c.type === 'SKIP') tookSkip = true;
+      play.push(c);
+    }
+    if (!play.length) return;
+
+    let extra = 0;
+    for (const c of play) {
+      if (c.type === '+1') extra += 1;
+      else if (c.type === '+2') extra += 2;
+      else if (c.type === 'CLUSTER') foeClusterRef.current = true;
+      else if (c.type === 'SKIP') skipYourTurnRef.current = true;
+    }
+    if (extra) setShotsLeft((s) => s + extra);
+    setCards((c) => ({ ...c, foe: keep }));
+    playSfx(SFX.selected);
+    setFoePlayed(play.map((c) => CARD_INFO[c.type].name).join(' + '));
+    setTimeout(() => setFoePlayed(null), FOE_CARD_MS);
+  }, [turnSeq, phase, turn, bonus, showForfeit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* stand-in opponent: fires once a second (see foeTarget for how it aims),
      decrementing the shared shot counter so the rocket row reflects THEIR
      remaining shots too */
   useEffect(() => {
-    if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus) return;
+    if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus || foePlayed) return;
     foeTimerRef.current = setInterval(() => {
       const prev = foeShotsRef.current;
       const target = foeTarget(yourFleet, prev);
       if (target === null) return;
-      const isHit = new Set(yourFleet.flatMap(cellsFor)).has(target);
-      const next: Shots = { ...prev, [target]: isHit ? 'hit' : 'miss' };
+
+      // An armed Cluster turns their shot into a 5x5 blast, same as yours.
+      const area = foeClusterRef.current ? clusterCells(target) : [target];
+      if (foeClusterRef.current) foeClusterRef.current = false;
+      const fresh = area.filter((i) => prev[i] === undefined);
+      const yourCells = new Set(yourFleet.flatMap(cellsFor));
+      const next: Shots = { ...prev };
+      let isHit = false;
+      for (const i of fresh) {
+        const hit = yourCells.has(i);
+        next[i] = hit ? 'hit' : 'miss';
+        if (hit) { isHit = true; playExplosion('you', i); }
+      }
       foeShotsRef.current = next;
       setFoeShots(next);
-      const sank = isHit && didSink(yourFleet, next, target);
-      if (isHit) {
-        playExplosion('you', target);
-        playSfx(sank ? SFX.sunk : SFX.hit);
-      } else {
-        playSfx(SFX.miss);
-      }
+      const sank = fresh.some((i) => next[i] === 'hit' && didSink(yourFleet, next, i));
+      playSfx(isHit ? (sank ? SFX.sunk : SFX.hit) : SFX.miss);
       // Sinking one of your ships earns them a spin, which now plays out on screen
       // instead of resolving offstage — no spin if that shot ended the match.
       const wiped = boatsRemaining(yourFleet, next) === 0;
@@ -734,13 +802,13 @@ const TestGame = () => {
         if (left <= 0) {
           // Defer the handover past the spin, or the turn would flip mid-wheel.
           if (sank) foeEndTurnAfterBonus.current = true;
-          else setTimeout(() => startTurn('you', yourFleet, foeFleet, yourShots, next), 700);
+          else setTimeout(() => handBack(yourShots, next), 700);
         }
         return Math.max(0, left);
       });
     }, 1000);
     return () => { if (foeTimerRef.current) clearInterval(foeTimerRef.current); };
-  }, [phase, turn, showForfeit, bonus]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, turn, showForfeit, bonus, foePlayed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* The opponent's spin, played out rather than resolved offstage: announce it,
      turn the wheel, show where it landed, then give them their turn back. Same
@@ -776,7 +844,7 @@ const TestGame = () => {
       setBonus(null);
       if (foeEndTurnAfterBonus.current) {
         foeEndTurnAfterBonus.current = false;
-        startTurn('you', yourFleet, foeFleet, yourShots, foeShotsRef.current);
+        handBack(yourShots, foeShotsRef.current);
       }
       // Otherwise their shots aren't spent: clearing bonus restarts their fire loop.
     }, RESULT_MS);
@@ -944,7 +1012,7 @@ const TestGame = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1148,6 +1216,7 @@ const TestGame = () => {
           console's readout windows rather than the player's BONUS SPIN! artwork —
           it should feel like something happening TO you. */}
       {showFoeSpin && <Callout text="OPPONENT'S SPIN" />}
+      {foePlayed && <Callout text={`ENEMY PLAYS ${foePlayed}`} />}
 
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
