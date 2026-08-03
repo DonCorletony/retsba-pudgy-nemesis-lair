@@ -842,13 +842,6 @@ const NavBarContent = () => {
   );
 };
 
-// Gate wrapper: the secret game lab (/testgame) renders its own Win98 chrome, so the
-// site nav hides there. Done as a wrapper (not an early return inside NavBarContent)
-// to keep hook order consistent across route changes.
-const NavBar = () => {
-  const location = useLocation();
-  if (location.pathname === '/testgame') return null;
-  return <NavBarContent />;
-};
+const NavBar = () => <NavBarContent />;
 
 export default NavBar;

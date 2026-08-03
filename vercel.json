@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "comment": "The game moved to its own domain; keep old links working.",
+      "source": "/testgame",
+      "destination": "https://battlechips.app",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
