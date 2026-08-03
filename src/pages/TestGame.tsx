@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RotateCw } from 'lucide-react';
 
 /**
@@ -578,7 +577,6 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
 
 /* ---------- page ---------- */
 const TestGame = () => {
-  const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>('idle');
   const [yourFleet, setYourFleet] = useState<Placed[]>([]);
   const [selected, setSelected] = useState<ShipKey | null>(null);   // boat being arranged
@@ -983,8 +981,7 @@ const TestGame = () => {
   };
 
   const statusText =
-    phase === 'idle' ? 'Press New match to begin.'
-    : phase === 'setup' ? (
+    phase === 'setup' ? (
         waitingDone ? 'Board locked — waiting for opponent…'
         : 'Drag any boat to move it, ↻ turns the glowing one. SHUFFLE to re-scatter, DONE when you like it.'
       )
@@ -1124,7 +1121,7 @@ const TestGame = () => {
   const yourBoard = (
     <Board
       title="Your fleet"
-      right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
+      right={phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
       ships={yourFleet} showShips sunk={[]} shots={foeShots}
       clickable={arranging}
       // Highlighted while you're arranging it, and again while it's under fire —
@@ -1168,8 +1165,27 @@ const TestGame = () => {
   const mobileShowRack = waitingDone || phase === 'battle' || phase === 'over';
   const mobileRackIsYours = phase !== 'battle' || turn === 'you';
 
-  /** Mobile START: same as New match — setup opens with a boat already waiting. */
-  const mobileStart = newMatch;
+  /* Title screen. It's where /testgame lands and where forfeiting drops you, so
+     the console never shows up without a match behind it. Background is left
+     plain on purpose — artwork is coming. */
+  if (phase === 'idle') {
+    return (
+      <div className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col md:flex-row items-center justify-center md:justify-around gap-10 md:gap-6 p-6">
+        <img
+          src="/game/logo-battlechips.webp"
+          alt="Battle Chips"
+          className="w-[min(78vw,520px)] md:w-[min(42vw,620px)] h-auto select-none"
+          draggable={false}
+        />
+        <button
+          onClick={newMatch}
+          className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
+        >
+          START
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#b8b8b8] p-3 md:p-4 font-sans text-black">
@@ -1236,7 +1252,7 @@ const TestGame = () => {
       {/* Chrome bar — buttons stay compact on mobile so the wordmark can't overlap them */}
       <div className={`${raised} relative flex items-center justify-between gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
         <button
-          onClick={() => (inGame ? setShowForfeit(true) : navigate('/'))}
+          onClick={() => (inGame ? setShowForfeit(true) : resetTo('idle'))}
           className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
         >
           {inGame ? 'Forfeit' : 'Exit'}
@@ -1252,7 +1268,7 @@ const TestGame = () => {
       <div className={`${raised} p-0.5 mb-3`}>
         <div className={`${sunken} bg-[#efefef] flex flex-wrap gap-2 items-center justify-between px-3 py-1.5`}>
           <span className="font-mono text-[13px] tracking-widest uppercase">
-            {phase === 'idle' ? 'Standby' : phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle' : 'Game over'}
+            {phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle' : 'Game over'}
           </span>
           <span className="text-sm">{statusText}</span>
         </div>
@@ -1262,10 +1278,7 @@ const TestGame = () => {
       <div className="lg:hidden flex flex-col gap-3 max-w-md mx-auto">
         {clocksPanel}
 
-        {/* START sits where the missiles will live; pressing it begins setup */}
-        {phase === 'idle'
-          ? <button onClick={mobileStart} className={`${btn98} w-full !py-3 text-lg tracking-widest`}>START</button>
-          : missileRow}
+        {missileRow}
 
         {/* a spin takes over the board slot; otherwise it's whichever board matters now */}
         {bonus ? (
