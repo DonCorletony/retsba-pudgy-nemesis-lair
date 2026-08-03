@@ -44,6 +44,7 @@ const BONUS_POPUP_MS = 2500;
 const CALLOUT_MS = 2000;       // "PLACE YOUR BOATS" / "BEGIN" flashes
 const FOE_CARD_MS = 1800;      // "ENEMY PLAYS …" flash
 const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel turns
+const SPIN_CHOICE_SECS = 20;   // how long you get to call a colour
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
 const CLUSTER_SIZE = 5; // Cluster card fires a 5x5 blast
@@ -740,6 +741,7 @@ const BattleChips = () => {
   const [cards, setCards] = useState<{ you: CardInst[]; foe: CardInst[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
   const [ballAngle, setBallAngle] = useState(0);
+  const [spinClock, setSpinClock] = useState(SPIN_CHOICE_SECS);
   const [showBonusPopup, setShowBonusPopup] = useState(false);
   const [showFoeSpin, setShowFoeSpin] = useState(false);   // "OPPONENT'S SPIN" banner
   const [showForfeit, setShowForfeit] = useState(false);
@@ -797,7 +799,7 @@ const BattleChips = () => {
     foeClusterRef.current = false;
     skipYourTurnRef.current = false;
     ghostHitsRef.current = new Set();
-    setBallAngle(0);
+    setBallAngle(0); setSpinClock(SPIN_CHOICE_SECS);
     setShieldPlacing(null); setShield(null); setShieldHit(false);
     shieldRef.current = null;
     endTurnAfterBonus.current = false;
@@ -1130,6 +1132,19 @@ const BattleChips = () => {
     }, SPIN_MS);
   };
 
+  /* The colour call is the one thing in a match that waits on a human, and the
+     turn clock is frozen while it does — so it gets its own countdown. Running
+     out calls a colour for you rather than forfeiting the spin: you're being
+     timed out for dithering, not punished for guessing wrong. */
+  const choosing = bonus?.who === 'you' && bonus.stage === 'select';
+  useEffect(() => {
+    if (!choosing) { setSpinClock(SPIN_CHOICE_SECS); return; }
+    if (spinClock <= 0) { chooseColor(anyOf(COLORS).key); return; }
+    if (spinClock <= 3) playSfx(SFX.countdown);
+    const id = setTimeout(() => setSpinClock((n) => n - 1), 1000);
+    return () => clearTimeout(id);
+  }, [choosing, spinClock]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* ---- action cards ---- */
   const canPlayCards = phase === 'battle' && turn === 'you' && !bonus && !showForfeit;
 
@@ -1262,7 +1277,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1282,7 +1297,8 @@ const BattleChips = () => {
       <div className="flex-1 flex flex-col gap-1">
         {clockLabel('YOU')}
         <div className={`${sunken} h-[72px] flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-          {bonus ? <SegWord word="BONUS" flash />
+          {choosing ? <SegWord word="PICK" flash />
+            : bonus ? <SegWord word="BONUS" flash />
             : phase === 'over' ? <SegWord word="GAME" flash />
             : <SegClock seconds={clock} on={phase === 'setup' || (phase === 'battle' && turn === 'you')} />}
         </div>
@@ -1290,7 +1306,8 @@ const BattleChips = () => {
       <div className="flex-1 flex flex-col gap-1">
         {clockLabel('ENEMY')}
         <div className={`${sunken} h-[72px] flex items-center justify-center`} style={{ backgroundColor: '#1b1b1b' }}>
-          {bonus ? <SegWord word="SPIN" flash />
+          {choosing ? <SegClock seconds={spinClock} on />
+            : bonus ? <SegWord word="SPIN" flash />
             : phase === 'over' ? <SegWord word="OVER" flash />
             : <SegClock seconds={clock} on={phase === 'battle' && turn === 'foe'} />}
         </div>
