@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RotateCw } from 'lucide-react';
 
@@ -40,6 +40,7 @@ const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 const BONUS_POPUP_MS = 2500;
+const PLACE_PROMPT_MS = 3000;  // "PLACE YOUR BOATS" call to action at setup
 const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel turns
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
@@ -176,29 +177,6 @@ const autoPlace = (existing: Placed[]): Placed[] => {
     }
   }
   return placed;
-};
-
-/* Drop the next unplaced boat onto a free spot, already selected and ready to be
-   dragged. Nothing about setup should wait on the player discovering a click:
-   there is always a boat on the board asking to be positioned. */
-const spawnNext = (placed: Placed[]): Placed | null => {
-  const used = new Set(placed.map((s) => s.key));
-  const f = FLEET.find((s) => !used.has(s.key));
-  if (!f) return null;
-  const at = (row: number, col: number, dir: 'v' | 'h'): Placed => ({ key: f.key, len: f.len, row, col, dir });
-  // Boats spawn upright so the turn-wheel button has an obvious effect.
-  for (let attempt = 0; attempt < 200; attempt++) {
-    const cand = at(Math.floor(Math.random() * (GRID - f.len + 1)), Math.floor(Math.random() * GRID), 'v');
-    if (fits(cand, placed)) return cand;
-  }
-  // Crowded board — sweep for the first opening in either orientation.
-  for (const dir of ['v', 'h'] as const)
-    for (let row = 0; row < GRID; row++)
-      for (let col = 0; col < GRID; col++) {
-        const cand = at(row, col, dir);
-        if (fits(cand, placed)) return cand;
-      }
-  return null;
 };
 
 const boatsRemaining = (fleet: Placed[], shots: Shots): number =>
@@ -369,12 +347,16 @@ const Missile = ({ live }: { live: boolean }) => (
   </svg>
 );
 
+/* draggable={false} is load-bearing: without it a mouse drag on the boat starts
+   the browser's own image drag-and-drop, which swallows the pointer stream and
+   makes boats immovable on desktop. Touch has no native image drag, so only
+   desktop was broken. */
 const ShipImg = ({ s }: { s: Placed }) => (
-  <img src={FLEET.find((f) => f.key === s.key)!.src} alt={s.key}
-    className="absolute object-fill"
+  <img src={FLEET.find((f) => f.key === s.key)!.src} alt={s.key} draggable={false}
+    className="absolute object-fill select-none"
     style={s.dir === 'v'
-      ? { inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated' }
-      : { left: '50%', top: '50%', width: `${100 / s.len}%`, height: `${s.len * 100}%`, transform: 'translate(-50%, -50%) rotate(90deg)', imageRendering: 'pixelated' }} />
+      ? { inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated', WebkitUserDrag: 'none' } as React.CSSProperties
+      : { left: '50%', top: '50%', width: `${100 / s.len}%`, height: `${s.len * 100}%`, transform: 'translate(-50%, -50%) rotate(90deg)', imageRendering: 'pixelated', WebkitUserDrag: 'none' } as React.CSSProperties} />
 );
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
@@ -414,15 +396,21 @@ const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable:
 );
 
 /* ---------- board ---------- */
-const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, pulse, onCell, onShip, animating, pending, onPendingMove, crosshair }: {
+const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, pulse, onCell, animating, crosshair,
+                arrangeable, selected, onSelect, onShipMove, onRotate }: {
   title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
   clickable: boolean; outlined: boolean; pulse?: boolean;
-  onCell?: (idx: number) => void; onShip?: (key: ShipKey) => void;
-  animating?: Record<number, true>; pending?: Placed | null; onPendingMove?: (row: number, col: number) => void;
+  onCell?: (idx: number) => void;
+  animating?: Record<number, true>;
   crosshair?: boolean;
+  /* setup only: every boat can be picked up, moved and turned */
+  arrangeable?: boolean; selected?: ShipKey | null;
+  onSelect?: (key: ShipKey) => void;
+  onShipMove?: (key: ShipKey, row: number, col: number) => void;
+  onRotate?: () => void;
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
-  const dragOffset = useRef<{ dr: number; dc: number } | null>(null);
+  const drag = useRef<{ key: ShipKey; dr: number; dc: number } | null>(null);
   const cellFromPointer = (e: React.PointerEvent) => {
     const rect = gridRef.current?.getBoundingClientRect();
     if (!rect) return null;
@@ -453,39 +441,68 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
           </div>
 
           <div className="absolute inset-0 pointer-events-none">
-            {(showShips ? ships : sunk).map((s) => (
-              <button key={s.key} onClick={() => onShip?.(s.key)}
-                className={`absolute ${onShip ? 'pointer-events-auto cursor-pointer' : ''}`}
-                style={{ left: `${s.col * 10}%`, top: `${s.row * 10}%`, width: `${(s.dir === 'h' ? s.len : 1) * 10}%`, height: `${(s.dir === 'v' ? s.len : 1) * 10}%` }}>
-                <ShipImg s={s} />
-              </button>
-            ))}
-            {pending && (
-              <div
-                className="absolute pointer-events-auto outline outline-[3px] outline-[#f2c320] cursor-grab active:cursor-grabbing"
-                style={{
-                  left: `${pending.col * 10}%`, top: `${pending.row * 10}%`,
-                  width: `${(pending.dir === 'h' ? pending.len : 1) * 10}%`, height: `${(pending.dir === 'v' ? pending.len : 1) * 10}%`,
-                  touchAction: 'none',
-                  animation: 'bcPulse 1.8s ease-in-out infinite',
-                }}
-                onPointerDown={(e) => {
-                  const c = cellFromPointer(e);
-                  if (!c) return;
-                  dragOffset.current = { dr: c.row - pending.row, dc: c.col - pending.col };
-                  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-                }}
-                onPointerMove={(e) => {
-                  if (!dragOffset.current) return;
-                  const c = cellFromPointer(e);
-                  if (c) onPendingMove?.(c.row - dragOffset.current.dr, c.col - dragOffset.current.dc);
-                }}
-                onPointerUp={() => { dragOffset.current = null; }}
-                onPointerCancel={() => { dragOffset.current = null; }}
-              >
-                <ShipImg s={pending} />
-              </div>
-            )}
+            {(showShips ? ships : sunk).map((s) => {
+              const box = {
+                left: `${s.col * 10}%`, top: `${s.row * 10}%`,
+                width: `${(s.dir === 'h' ? s.len : 1) * 10}%`, height: `${(s.dir === 'v' ? s.len : 1) * 10}%`,
+              };
+              if (!arrangeable) return <div key={s.key} className="absolute" style={box}><ShipImg s={s} /></div>;
+              const isSel = selected === s.key;
+              return (
+                <div
+                  key={s.key}
+                  data-boat={s.key}
+                  className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing ${isSel ? 'outline outline-[3px] z-10' : ''}`}
+                  style={{
+                    ...box,
+                    touchAction: 'none',
+                    // Picked-up boats breathe from invisible to neon yellow, which
+                    // reads differently from the steady board outlines.
+                    animation: isSel ? 'bcSelect 1.3s ease-in-out infinite' : undefined,
+                  }}
+                  // Grabbing a boat selects it, so pointing at one and moving it are
+                  // the same gesture — there's no separate "select first" step.
+                  onPointerDown={(e) => {
+                    onSelect?.(s.key);
+                    const c = cellFromPointer(e);
+                    if (!c) return;
+                    drag.current = { key: s.key, dr: c.row - s.row, dc: c.col - s.col };
+                    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                  }}
+                  onPointerMove={(e) => {
+                    const d = drag.current;
+                    if (!d || d.key !== s.key) return;
+                    const c = cellFromPointer(e);
+                    if (c) onShipMove?.(s.key, c.row - d.dr, c.col - d.dc);
+                  }}
+                  onPointerUp={() => { drag.current = null; }}
+                  onPointerCancel={() => { drag.current = null; }}
+                >
+                  <ShipImg s={s} />
+                </div>
+              );
+            })}
+
+            {/* The turn-wheel rides the selected boat's top-right corner, so what it
+                will rotate is never in question. */}
+            {arrangeable && (() => {
+              const s = ships.find((b) => b.key === selected);
+              if (!s) return null;
+              return (
+                <button
+                  onClick={() => onRotate?.()}
+                  title="Turn boat" aria-label="Turn boat"
+                  className={`${raised} absolute pointer-events-auto z-20 flex items-center justify-center h-7 w-7 md:h-8 md:w-8 active:border-t-[#5c5c5c] active:border-l-[#5c5c5c] active:border-b-white active:border-r-white`}
+                  style={{
+                    left: `${(s.col + (s.dir === 'h' ? s.len : 1)) * 10}%`,
+                    top: `${s.row * 10}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <RotateCw className="h-4 w-4 md:h-5 md:w-5 text-black" strokeWidth={2.5} />
+                </button>
+              );
+            })()}
           </div>
 
           <div className="absolute inset-0 pointer-events-none">
@@ -514,8 +531,8 @@ const TestGame = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>('idle');
   const [yourFleet, setYourFleet] = useState<Placed[]>([]);
-  const [pending, setPending] = useState<Placed | null>(null);
-  const [editMode, setEditMode] = useState(false);
+  const [selected, setSelected] = useState<ShipKey | null>(null);   // boat being arranged
+  const [showPlacePrompt, setShowPlacePrompt] = useState(false);
   const [waitingDone, setWaitingDone] = useState(false);
   const [foeFleet, setFoeFleet] = useState<Placed[]>([]);
   const [yourShots, setYourShots] = useState<Shots>({});
@@ -547,12 +564,7 @@ const TestGame = () => {
   const yourBoats = boatsRemaining(yourFleet, foeShots);
   const foeBoats = phase === 'battle' || phase === 'over' ? boatsRemaining(foeFleet, yourShots) : FLEET.length;
 
-  const nextShip = useMemo(() => {
-    const used = new Set([...yourFleet.map((s) => s.key), ...(pending ? [pending.key] : [])]);
-    return FLEET.find((f) => !used.has(f.key)) ?? null;
-  }, [yourFleet, pending]);
-
-  const allLocked = yourFleet.length === FLEET.length && !pending;
+  const arranging = phase === 'setup' && !waitingDone;
   const inGame = phase === 'setup' || phase === 'battle';
 
   const playExplosion = (board: 'you' | 'foe', idx: number) => {
@@ -565,24 +577,30 @@ const TestGame = () => {
   const resetTo = (to: Phase) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
     if (foeTimerRef.current) clearInterval(foeTimerRef.current);
-    setPhase(to); setYourFleet([]); setPending(null); setEditMode(false); setWaitingDone(false);
+    setPhase(to); setYourFleet([]); setSelected(null); setWaitingDone(false);
     setFoeFleet([]); setYourShots({}); setFoeShots({}); setTurn('you'); setShotsLeft(5);
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
     setBonus(null); setCards({ you: [], foe: [] });
     setShowBonusPopup(false); setShowFoeSpin(false); setShowForfeit(false);
-    setClusterArmed(false); setSkipFoeTurn(false);
+    setShowPlacePrompt(false); setClusterArmed(false); setSkipFoeTurn(false);
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
     foeSpinResult.current = null;
-    // Setup opens with the Carrier already on the board — no hidden first click.
-    if (to === 'setup') setPending(spawnNext([]));
+    if (to === 'setup') {
+      // The whole fleet is on the board from the first frame, already legal, with
+      // the Carrier picked out so the turn-wheel has something to act on.
+      setYourFleet(autoPlace([]));
+      setSelected(FLEET[0].key);
+      setShowPlacePrompt(true);
+      setTimeout(() => setShowPlacePrompt(false), PLACE_PROMPT_MS);
+    }
   };
   const newMatch = () => resetTo('setup');
 
-  const beginBattle = (locked: Placed[], pend: Placed | null) => {
+  const beginBattle = (arranged: Placed[]) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
-    const mine = autoPlace(pend ? [...locked, pend] : locked);
-    setYourFleet(mine); setPending(null); setEditMode(false); setWaitingDone(false);
+    const mine = autoPlace(arranged);   // no-op once all five are down
+    setYourFleet(mine); setSelected(null); setWaitingDone(false);
     setFoeFleet(autoPlace([]));
     const stage = stageFor(FLEET.length);
     setPhase('battle'); setTurn('you'); setShotsLeft(stage.shots); setClock(stage.secs);
@@ -621,7 +639,7 @@ const TestGame = () => {
   /* clock expiry */
   useEffect(() => {
     if (clock > 0 || phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
-    if (phase === 'setup') { beginBattle(yourFleet, pending); return; }
+    if (phase === 'setup') { beginBattle(yourFleet); return; }
     if (phase === 'battle') {
       if (turn === 'you') handOver(yourShots, foeShots);
       else startTurn('you', yourFleet, foeFleet, yourShots, foeShots);
@@ -714,49 +732,46 @@ const TestGame = () => {
     return () => clearTimeout(id);
   }, [bonus]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ---- setup ---- */
-  const tryMovePending = (row: number, col: number) => {
-    if (!pending) return;
-    const moved = clamp({ ...pending, row, col });
-    if (!overlaps(moved, yourFleet)) setPending(moved);
+  /* ---- setup ----
+     The fleet is complete and legal from the first frame; arranging it is just
+     nudging boats around. Every move is validated against the OTHER four, so an
+     illegal drag is simply refused and nothing can ever end up overlapping. */
+
+  /** Apply a change to one boat, keeping it on the board and clear of the rest. */
+  const reshape = (key: ShipKey, change: (s: Placed) => Placed) => {
+    if (!arranging) return;
+    setYourFleet((fleet) => {
+      const ship = fleet.find((s) => s.key === key);
+      if (!ship) return fleet;
+      const moved = clamp(change(ship));
+      const others = fleet.filter((s) => s.key !== key);
+      if (!fits(moved, others)) return fleet;
+      return fleet.map((s) => (s.key === key ? moved : s));
+    });
   };
+
+  const selectShip = (key: ShipKey) => { if (arranging) setSelected(key); };
+  const moveShip = (key: ShipKey, row: number, col: number) => reshape(key, (s) => ({ ...s, row, col }));
+  const rotateSelected = () => { if (selected) reshape(selected, (s) => ({ ...s, dir: s.dir === 'v' ? 'h' : 'v' })); };
+
+  /** Tapping open water walks the selected boat over — easier than a drag on a phone. */
   const onYourCell = (idx: number) => {
-    if (phase !== 'setup' || waitingDone) return;
-    const row = Math.floor(idx / GRID), col = idx % GRID;
-    if (pending) { tryMovePending(row, col); return; }
-    if (!nextShip) return;
-    const cand = clamp({ key: nextShip.key, len: nextShip.len, row, col, dir: 'v' });
-    if (!overlaps(cand, yourFleet)) setPending(cand);
-    else {
-      const flat = clamp({ ...cand, dir: 'h' as const });
-      if (!overlaps(flat, yourFleet)) setPending(flat);
-    }
+    if (!arranging || !selected) return;
+    moveShip(selected, Math.floor(idx / GRID), idx % GRID);
   };
-  const pickUp = (key: ShipKey) => {
-    if (phase !== 'setup' || waitingDone || pending) return;
-    const ship = yourFleet.find((s) => s.key === key);
-    if (!ship) return;
-    setYourFleet(yourFleet.filter((s) => s.key !== key));
-    setPending(ship);
+
+  /** Re-scatter the whole fleet. No limit — press it until you like the look. */
+  const shuffleFleet = () => {
+    if (!arranging) return;
+    setYourFleet(autoPlace([]));
+    playSfx(SFX.selected);
   };
-  const rotatePending = () => {
-    if (!pending) return;
-    const rotated = clamp({ ...pending, dir: pending.dir === 'v' ? 'h' : 'v' });
-    if (!overlaps(rotated, yourFleet)) setPending(rotated);
-  };
-  const lockPending = () => {
-    if (!pending) return;
-    const next = [...yourFleet, pending];
-    setYourFleet(next);
-    // The following boat spawns immediately, so the player never has to work out
-    // that a grid tap is what summons it. Null once the fleet is complete.
-    setPending(spawnNext(next));
-    if (next.length === FLEET.length) setEditMode(false);
-  };
+
   const pressDone = () => {
-    if (!allLocked || waitingDone) return;
+    if (!arranging) return;
+    setSelected(null);
     setWaitingDone(true);
-    oppDoneRef.current = setTimeout(() => beginBattle(yourFleet, null), 2000 + Math.random() * 4000);
+    oppDoneRef.current = setTimeout(() => beginBattle(yourFleet), 2000 + Math.random() * 4000);
   };
 
   /* ---- roulette ---- */
@@ -839,10 +854,7 @@ const TestGame = () => {
     phase === 'idle' ? 'Press New match to begin.'
     : phase === 'setup' ? (
         waitingDone ? 'Board locked — waiting for opponent…'
-        : pending ? `Drag the glowing ${FLEET.find((f) => f.key === pending.key)!.label} where you want it, then press PLACE. (${yourFleet.length + 1} of ${FLEET.length})`
-        : allLocked ? 'Fleet ready — EDIT to adjust, DONE to lock in.'
-        : nextShip ? `Tap the grid to spawn your ${nextShip.label} (${nextShip.len} cells).`
-        : 'Tap a boat to pick it up.'
+        : 'Drag any boat to move it, ↻ turns the glowing one. SHUFFLE to re-scatter, DONE when you like it.'
       )
     : bonus?.who === 'you' ? (
         bonus.stage === 'select' ? 'Ship sunk — pick a colour to win its card!'
@@ -870,7 +882,7 @@ const TestGame = () => {
   const rocketSlots = Math.max(baseShots, shotsLeft);
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, pending, yourFleet, waitingDone, editMode, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -972,20 +984,10 @@ const TestGame = () => {
 
   const setupControls = (
     <div className="flex items-center justify-center gap-2">
-      {allLocked ? (
-        <>
-          <button onClick={() => setEditMode(true)} className={btn98} disabled={editMode}>EDIT</button>
-          <button onClick={pressDone} className={btn98}>DONE</button>
-        </>
-      ) : (
-        <>
-          <button onClick={lockPending} disabled={!pending} className={btn98}>PLACE</button>
-          {/* single turn-wheel button: rotates the selected boat clockwise */}
-          <button onClick={rotatePending} disabled={!pending} className={`${btn98} !px-2.5 flex items-center`} title="Turn boat" aria-label="Turn boat">
-            <RotateCw className="h-5 w-5" strokeWidth={2.5} />
-          </button>
-        </>
-      )}
+      {/* Two ways out of setup and nothing to unlock first: re-roll the layout, or
+          take it. The turn-wheel lives on the selected boat, not down here. */}
+      <button onClick={shuffleFleet} className={btn98}>SHUFFLE</button>
+      <button onClick={pressDone} className={btn98}>DONE</button>
     </div>
   );
 
@@ -994,17 +996,18 @@ const TestGame = () => {
       title="Your fleet"
       right={phase === 'idle' ? 'standby' : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
       ships={yourFleet} showShips sunk={[]} shots={foeShots}
-      clickable={phase === 'setup' && !waitingDone}
+      clickable={arranging}
       // Highlighted while you're arranging it, and again while it's under fire —
       // both times it's the board to be looking at. Never on your own turn: the
       // shooting happens over on enemy waters.
-      outlined={(phase === 'setup' && !waitingDone) || (phase === 'battle' && turn === 'foe')}
-      pulse={phase === 'setup' && !waitingDone && !pending}
+      outlined={arranging || (phase === 'battle' && turn === 'foe')}
       onCell={onYourCell}
-      onShip={phase === 'setup' && !waitingDone && !pending ? pickUp : undefined}
       animating={anim.you}
-      pending={phase === 'setup' ? pending : null}
-      onPendingMove={tryMovePending}
+      arrangeable={arranging}
+      selected={selected}
+      onSelect={selectShip}
+      onShipMove={moveShip}
+      onRotate={rotateSelected}
     />
   );
 
@@ -1058,12 +1061,39 @@ const TestGame = () => {
           0%, 100% { outline-color: #f2c320; box-shadow: 0 0 0 0 rgba(242,195,32,0); }
           50%      { outline-color: #fff7cc; box-shadow: 0 0 12px 3px rgba(242,195,32,0.65); }
         }
+        /* Selected boat: fades right out to nothing and back to neon yellow, which
+           reads as "held" rather than the steady board outlines. */
+        @keyframes bcSelect {
+          0%, 100% { outline-color: rgba(234,255,0,0); box-shadow: 0 0 0 0 rgba(234,255,0,0); }
+          50%      { outline-color: #eaff00; box-shadow: 0 0 14px 4px rgba(234,255,0,0.8); }
+        }
       `}</style>
       {showBonusPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <img src="/game/bonus-spin.png" alt="Bonus Spin!"
             className="w-[80vw] max-w-[560px] drop-shadow-[0_8px_0_rgba(0,0,0,0.35)]"
             style={{ animation: `bcBonusPop ${BONUS_POPUP_MS}ms ease-in-out forwards` }} />
+        </div>
+      )}
+
+      {/* Opening call to action, in the console's readout voice — says what this
+          screen is for before anyone has to work it out from the board. */}
+      {showPlacePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+          <div className={`${raised} p-2`}>
+            <div className={`${sunken} px-6 py-4 md:px-10 md:py-6`} style={{ backgroundColor: '#1b1b1b' }}>
+              <span
+                className="font-mono font-bold text-[#ff2222] tracking-[0.15em] select-none whitespace-nowrap"
+                style={{
+                  fontSize: 'clamp(1.1rem, 4.5vw, 2.75rem)',
+                  textShadow: '0 0 10px rgba(255,34,34,0.85)',
+                  animation: 'bcFlash 0.7s steps(1,end) infinite',
+                }}
+              >
+                PLACE YOUR BOATS
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
