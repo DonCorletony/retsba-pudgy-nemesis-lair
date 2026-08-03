@@ -1176,7 +1176,17 @@ const TestGame = () => {
      plain on purpose — artwork is coming. */
   if (phase === 'idle') {
     return (
-      <div className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6">
+      <div
+        className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
+        /* Placeholder art. A background-image that 404s just leaves the grey
+           ground showing, so this degrades quietly until the file is in place. */
+        style={{
+          backgroundImage: "url('/game/title-bg.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          imageRendering: 'pixelated',
+        }}
+      >
         <div className="flex-1 flex flex-col md:flex-row items-center justify-center md:justify-around gap-10 md:gap-6">
           <img
             src="/game/logo-battlechips.webp"
