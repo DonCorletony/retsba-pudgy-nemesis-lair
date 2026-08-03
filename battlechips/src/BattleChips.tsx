@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
 
 /**
  * BATTLE CHIPS (battleship × roulette) — the whole game, one component.
@@ -26,10 +26,9 @@ import { RotateCw } from 'lucide-react';
  * Roulette: SINKING a ship pauses the turn for a spin — for either side, and the
  * opponent's plays out on screen behind an "OPPONENT'S SPIN" banner rather than
  * resolving offstage. Each slot is dealt an
- * action card first (RED/BLACK: +1 or +2 at 50/50 each, independently; GREEN:
- * Cluster or Skip at 50/50), so you can see what you're playing for. Guess the
- * landing colour right and that slot's card is yours — guess wrong and it goes
- * to your opponent.
+ * action card first, so you can see what you're playing for. Guess the landing
+ * colour right and that slot's card is yours. Guess wrong and the card is lost:
+ * nobody is rewarded for someone else's bad call.
  *
  * Action cards are one-time use and playable any time during your own turn.
  * Several can be played in a turn but effects don't stack (Cluster/Skip are
@@ -66,6 +65,23 @@ const SFX = {
   selected: '/game/sounds/powerup-selected.wav',
 } as const;
 
+/* ---------- preferences ----------
+   Kept in localStorage so the sound toggle survives reloads as well as moving
+   between the title screen and a match. playSfx runs outside React, so it reads
+   the live values from `prefs` rather than taking them as arguments. */
+interface Prefs { muted: boolean; sfx: number; music: number; staticWater: boolean }
+const PREFS_KEY = 'battlechips.prefs';
+const DEFAULT_PREFS: Prefs = { muted: false, sfx: 0.8, music: 0.6, staticWater: false };
+const loadPrefs = (): Prefs => {
+  try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') }; }
+  catch { return { ...DEFAULT_PREFS }; }
+};
+let prefs: Prefs = typeof window === 'undefined' ? { ...DEFAULT_PREFS } : loadPrefs();
+const savePrefs = (next: Prefs) => {
+  prefs = next;
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* private mode */ }
+};
+
 const audioCache = new Map<string, HTMLAudioElement>();
 const preloadSfx = () => {
   for (const src of Object.values(SFX)) {
@@ -76,9 +92,11 @@ const preloadSfx = () => {
   }
 };
 const playSfx = (src: string) => {
+  if (prefs.muted || prefs.sfx <= 0) return;
   try {
     const base = audioCache.get(src);
     const node = (base ? base.cloneNode() : new Audio(src)) as HTMLAudioElement;
+    node.volume = Math.min(1, Math.max(0, prefs.sfx));
     node.play().catch(() => {});
   } catch { /* ignore */ }
 };
@@ -507,6 +525,33 @@ const Footer = ({ onArt = false }: { onArt?: boolean }) => (
   </div>
 );
 
+/** Always-present mute for everything, bottom-right of whichever screen you're on. */
+const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void }) => (
+  <button
+    onClick={onToggle}
+    title={muted ? 'Sound off — click to unmute' : 'Sound on — click to mute'}
+    aria-label={muted ? 'Unmute' : 'Mute'}
+    aria-pressed={muted}
+    className="fixed bottom-3 right-3 z-[70] h-11 w-11 rounded-lg flex items-center justify-center text-white/90 hover:text-white transition-colors"
+    style={{ background: 'rgba(30,30,30,0.55)', backdropFilter: 'blur(2px)' }}
+  >
+    {muted ? <VolumeX className="h-6 w-6" strokeWidth={2} /> : <Volume2 className="h-6 w-6" strokeWidth={2} />}
+  </button>
+);
+
+const Slider = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
+  <label className="block">
+    <span className="flex justify-between font-mono text-[11px] text-black/80 mb-1">
+      <span>{label}</span><span>{Math.round(value * 100)}%</span>
+    </span>
+    <input
+      type="range" min={0} max={100} value={Math.round(value * 100)}
+      onChange={(e) => onChange(Number(e.target.value) / 100)}
+      className="w-full accent-[#000080]"
+    />
+  </label>
+);
+
 /* ---------- action-card rack (outside edge of each grid) ---------- */
 /** Horizontal card strip that sits UNDER a grid, so the boards get the full width. */
 const Rack = ({ cards, playable, onPlay, label, blocked }: {
@@ -559,7 +604,7 @@ const Rack = ({ cards, playable, onPlay, label, blocked }: {
 
 /* ---------- board ---------- */
 const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, pulse, onCell, animating, crosshair,
-                arrangeable, selected, onSelect, onShipMove, onRotate, shieldGhost, onShieldMove }: {
+                arrangeable, selected, onSelect, onShipMove, onRotate, shieldGhost, onShieldMove, water }: {
   title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
   clickable: boolean; outlined: boolean; pulse?: boolean;
   onCell?: (idx: number) => void;
@@ -573,6 +618,8 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
   /* shield placement: the translucent square you drag over your own water */
   shieldGhost?: { row: number; col: number } | null;
   onShieldMove?: (row: number, col: number) => void;
+  /** Animated by default; Settings can swap in a still for anyone motion-averse. */
+  water?: string;
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ key: ShipKey; dr: number; dc: number } | null>(null);
@@ -597,7 +644,7 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
         <span>{right}</span>
       </div>
       <div className={`${sunken} p-1`}>
-        <div ref={gridRef} className="relative" style={{ backgroundImage: "url('/game/ocean.gif')", backgroundSize: 'cover', imageRendering: 'pixelated' }}>
+        <div ref={gridRef} className="relative" style={{ backgroundImage: `url('${water ?? '/game/ocean.gif'}')`, backgroundSize: 'cover', imageRendering: 'pixelated' }}>
           <div className="grid grid-cols-10">
             {Array.from({ length: GRID * GRID }, (_, i) => (
               <button key={i} onClick={() => onCell?.(i)} disabled={!clickable || shots[i] !== undefined}
@@ -654,7 +701,7 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
                 style={{
                   left: `${shieldGhost.col * 10}%`, top: `${shieldGhost.row * 10}%`,
                   width: `${SHIELD_SIZE * 10}%`, height: `${SHIELD_SIZE * 10}%`,
-                  background: 'rgba(0, 209, 255, 0.25)',   // 75% transparent neon blue
+                  background: 'rgba(0, 209, 255, 0.45)',   // was 0.25; too faint over the ocean
                   touchAction: 'none',
                   animation: 'bcShield 1.2s ease-in-out infinite',
                 }}
@@ -742,6 +789,11 @@ const BattleChips = () => {
   const [wheelAngle, setWheelAngle] = useState(0);
   const [ballAngle, setBallAngle] = useState(0);
   const [spinClock, setSpinClock] = useState(SPIN_CHOICE_SECS);
+  const [settings, setSettings] = useState<Prefs>(() => prefs);
+  const [showSettings, setShowSettings] = useState(false);
+  // playSfx reads the module-level copy, so push every change straight through.
+  useEffect(() => { savePrefs(settings); }, [settings]);
+  const water = settings.staticWater ? '/game/ocean-static.png' : '/game/ocean.gif';
   const [showBonusPopup, setShowBonusPopup] = useState(false);
   const [showFoeSpin, setShowFoeSpin] = useState(false);   // "OPPONENT'S SPIN" banner
   const [showForfeit, setShowForfeit] = useState(false);
@@ -1023,11 +1075,11 @@ const BattleChips = () => {
         const landed = foeSpinResult.current!;
         playSfx(SFX.highlight);
         setBonus((b) => (b?.who === 'foe' ? { ...b, stage: 'result', result: landed } : b));
-        // Their call was locked in before the spin; a wrong one hands you the card.
-        const won: CardInst = { type: slots[landed], color: landed };
-        setCards((c) => (landed === bonus.choice
-          ? { ...c, foe: [...c.foe, won] }
-          : { ...c, you: [...c.you, won] }));
+        // Same rule for them: a wrong call pays nobody rather than handing it to you.
+        if (landed === bonus.choice) {
+          const won: CardInst = { type: slots[landed], color: landed };
+          setCards((c) => ({ ...c, foe: [...c.foe, won] }));
+        }
       }, SPIN_MS);
       return () => clearTimeout(id);
     }
@@ -1119,9 +1171,12 @@ const BattleChips = () => {
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
       playSfx(SFX.highlight);
-      // the card dealt into the landing slot: yours if right, theirs if wrong
-      const won: CardInst = { type: slots[result], color: result };
-      setCards((c) => (result === choice ? { ...c, you: [...c.you, won] } : { ...c, foe: [...c.foe, won] }));
+      // Call it right and the slot's card is yours; call it wrong and the card is
+      // simply gone. Nobody is rewarded for someone else's bad guess.
+      if (result === choice) {
+        const won: CardInst = { type: slots[result], color: result };
+        setCards((c) => ({ ...c, you: [...c.you, won] }));
+      }
       setTimeout(() => {
         setBonus(null);
         if (endTurnAfterBonus.current) {
@@ -1255,13 +1310,13 @@ const BattleChips = () => {
         bonus.stage === 'select' ? 'Ship sunk — pick a colour to win its card!'
         : bonus.stage === 'spinning' ? `Spinning… you picked ${bonus.choice}.`
         : bonus.result === bonus.choice ? `${bonus.result}! You win the ${CARD_INFO[slots[bonus.result!]].name} card.`
-        : `${bonus.result}. Wrong call — the ${CARD_INFO[slots[bonus.result!]].name} card goes to your opponent.`
+        : `${bonus.result}. Wrong call — the ${CARD_INFO[slots[bonus.result!]].name} card is lost.`
       )
     : bonus?.who === 'foe' ? (
         bonus.stage === 'select' ? 'They sank one of your ships — watch their bonus spin.'
         : bonus.stage === 'spinning' ? `Spinning… they called ${bonus.choice}.`
         : bonus.result === bonus.choice ? `${bonus.result}. They called it — the ${CARD_INFO[slots[bonus.result!]].name} card is theirs.`
-        : `${bonus.result}. They called it wrong — the ${CARD_INFO[slots[bonus.result!]].name} card is yours!`
+        : `${bonus.result}. They called it wrong — the ${CARD_INFO[slots[bonus.result!]].name} card is lost.`
       )
     : phase === 'battle' ? (
         shieldPlacing
@@ -1277,7 +1332,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1385,14 +1440,16 @@ const BattleChips = () => {
                 transition: `transform ${SPIN_MS}ms cubic-bezier(0.12,0.7,0.15,1)`,
               }}
             >
-              <div
+              <img
                 data-ball
-                className="absolute rounded-full"
+                src="/game/roulette-ball.png"
+                alt=""
+                className="absolute"
                 style={{
-                  left: '50%', top: '16%', width: '6.5%', aspectRatio: '1',
+                  left: '50%', top: '16%', width: '7%',
                   transform: 'translate(-50%, -50%)',
-                  background: 'radial-gradient(circle at 34% 30%, #ffffff 0%, #f4ecd8 42%, #cdbf9e 78%, #9c8d70 100%)',
-                  boxShadow: '0 0 5px rgba(0,0,0,0.55), inset -1px -1px 2px rgba(0,0,0,0.28)',
+                  imageRendering: 'pixelated',
+                  filter: 'drop-shadow(0 0 3px rgba(0,0,0,0.6))',
                 }}
               />
             </div>
@@ -1429,6 +1486,7 @@ const BattleChips = () => {
       outlined={arranging || (phase === 'battle' && turn === 'foe')}
       onCell={onYourCell}
       animating={anim.you}
+      water={water}
       arrangeable={arranging}
       shieldGhost={shieldPlacing}
       onShieldMove={moveShield}
@@ -1446,6 +1504,7 @@ const BattleChips = () => {
       ships={foeFleet} showShips={false}
       sunk={phase === 'battle' || phase === 'over' ? sunkShips(foeFleet, yourShots) : []}
       shots={yourShots}
+      water={water}
       clickable={phase === 'battle' && turn === 'you' && shotsLeft > 0 && !bonus && !showForfeit}
       // Pulses on your turn because this is where you fire. Static-quiet the rest
       // of the time so the pulse always means "your move".
@@ -1466,6 +1525,39 @@ const BattleChips = () => {
     : yourBoard;
   const mobileShowRack = waitingDone || phase === 'battle' || phase === 'over';
   const mobileRackIsYours = phase !== 'battle' || turn === 'you';
+
+  const settingsDialog = showSettings && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowSettings(false)}>
+      <div className={`${raised} w-full max-w-sm p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>Settings</span>
+          <button onClick={() => setShowSettings(false)} aria-label="Close settings" className="hover:bg-white/20 px-1">
+            <X className="h-4 w-4" strokeWidth={3} />
+          </button>
+        </div>
+        <div className="p-4 space-y-4">
+          <Slider label="MUSIC" value={settings.music} onChange={(music) => setSettings((p) => ({ ...p, music }))} />
+          <Slider label="SOUND EFFECTS" value={settings.sfx} onChange={(sfx) => setSettings((p) => ({ ...p, sfx }))} />
+          <p className="font-mono text-[10px] text-black/50 -mt-2">No music yet — the slider is ready for it.</p>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.staticWater}
+              onChange={(e) => setSettings((p) => ({ ...p, staticWater: e.target.checked }))}
+              className="mt-0.5 h-4 w-4 accent-[#000080]"
+            />
+            <span className="font-mono text-[11px] text-black/80 leading-snug">
+              Still water<br />
+              <span className="text-black/50">Freezes the moving ocean on both grids.</span>
+            </span>
+          </label>
+          <div className="flex justify-center pt-1">
+            <button onClick={() => setShowSettings(false)} className={btn98}>DONE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   /* Title screen. It's where /testgame lands and where forfeiting drops you, so
      the console never shows up without a match behind it. Background is left
@@ -1491,14 +1583,21 @@ const BattleChips = () => {
             className="w-[min(78vw,520px)] md:w-[min(42vw,620px)] h-auto select-none"
             draggable={false}
           />
-          <button
-            onClick={newMatch}
-            className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
-          >
-            START
-          </button>
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={newMatch}
+              className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
+            >
+              START
+            </button>
+            <button onClick={() => setShowSettings(true)} className={`${btn98} !px-8 !py-2 text-base tracking-[0.2em]`}>
+              SETTINGS
+            </button>
+          </div>
         </div>
         <Footer onArt />
+        <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
+        {settingsDialog}
       </div>
     );
   }
@@ -1674,6 +1773,8 @@ const BattleChips = () => {
       </div>
 
       <Footer />
+      <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
+      {settingsDialog}
     </div>
   );
 };
