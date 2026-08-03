@@ -47,6 +47,8 @@ const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel tur
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
 const CLUSTER_SIZE = 5; // Cluster card fires a 5x5 blast
+const SHIELD_SIZE = 5;  // Shield card covers a 5x5 of your own water
+const SHIELD_HIT_MS = 1400;
 
 /* ---------- audio ----------
    Browsers block audio until the page has had a user gesture; clicking
@@ -166,7 +168,7 @@ const FLEET = [
 type ShipKey = (typeof FLEET)[number]['key'];
 
 interface Placed { key: ShipKey; len: number; row: number; col: number; dir: 'v' | 'h'; }
-type Shots = Record<number, 'hit' | 'miss'>;
+type Shots = Record<number, 'hit' | 'miss' | 'blocked'>;
 type Phase = 'idle' | 'setup' | 'battle' | 'over';
 
 const cellsFor = (s: Placed): number[] =>
@@ -375,6 +377,19 @@ const foeTarget = (fleet: Placed[], shots: Shots, ghosts: Set<number> = new Set(
   return pickOne(checker.length ? checker : open);
 };
 
+/** Cells covered by a shield anchored at its top-left corner. */
+const shieldCells = (row: number, col: number): number[] => {
+  const out: number[] = [];
+  for (let r = row; r < row + SHIELD_SIZE; r++)
+    for (let c = col; c < col + SHIELD_SIZE; c++) out.push(r * GRID + c);
+  return out;
+};
+/** Keep a shield fully on the board. */
+const clampShield = (row: number, col: number) => ({
+  row: Math.min(Math.max(row, 0), GRID - SHIELD_SIZE),
+  col: Math.min(Math.max(col, 0), GRID - SHIELD_SIZE),
+});
+
 /** The 5×5 a Cluster hits, centred where the player aimed. */
 const clusterCells = (idx: number): number[] => blockAround(idx, CLUSTER_SIZE);
 
@@ -530,7 +545,7 @@ const Rack = ({ cards, playable, onPlay, label, blocked }: {
 
 /* ---------- board ---------- */
 const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outlined, pulse, onCell, animating, crosshair,
-                arrangeable, selected, onSelect, onShipMove, onRotate }: {
+                arrangeable, selected, onSelect, onShipMove, onRotate, shieldGhost, onShieldMove }: {
   title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
   clickable: boolean; outlined: boolean; pulse?: boolean;
   onCell?: (idx: number) => void;
@@ -541,6 +556,9 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
   onSelect?: (key: ShipKey) => void;
   onShipMove?: (key: ShipKey, row: number, col: number) => void;
   onRotate?: () => void;
+  /* shield placement: the translucent square you drag over your own water */
+  shieldGhost?: { row: number; col: number } | null;
+  onShieldMove?: (row: number, col: number) => void;
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ key: ShipKey; dr: number; dc: number } | null>(null);
@@ -616,6 +634,33 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
               );
             })}
 
+            {shieldGhost && (
+              <div
+                className="absolute pointer-events-auto cursor-grab active:cursor-grabbing outline outline-[3px] z-30"
+                style={{
+                  left: `${shieldGhost.col * 10}%`, top: `${shieldGhost.row * 10}%`,
+                  width: `${SHIELD_SIZE * 10}%`, height: `${SHIELD_SIZE * 10}%`,
+                  background: 'rgba(0, 209, 255, 0.25)',   // 75% transparent neon blue
+                  touchAction: 'none',
+                  animation: 'bcShield 1.2s ease-in-out infinite',
+                }}
+                onPointerDown={(e) => {
+                  const c = cellFromPointer(e);
+                  if (!c) return;
+                  drag.current = { key: 'carrier', dr: c.row - shieldGhost.row, dc: c.col - shieldGhost.col };
+                  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                }}
+                onPointerMove={(e) => {
+                  const d = drag.current;
+                  if (!d) return;
+                  const c = cellFromPointer(e);
+                  if (c) onShieldMove?.(c.row - d.dr, c.col - d.dc);
+                }}
+                onPointerUp={() => { drag.current = null; }}
+                onPointerCancel={() => { drag.current = null; }}
+              />
+            )}
+
             {/* The turn-wheel rides the selected boat's top-right corner, so what it
                 will rotate is never in question. */}
             {arrangeable && (() => {
@@ -644,7 +689,9 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
               return (
                 <div key={idx} className="absolute flex items-center justify-center"
                   style={{ left: `${(i % GRID) * 10}%`, top: `${Math.floor(i / GRID) * 10}%`, width: '10%', height: '10%' }}>
-                  {kind === 'hit'
+                  {kind === 'blocked'
+                    ? <span className="block w-full h-full rounded-full" style={{ animation: 'bcBlueBurst 900ms ease-out forwards' }} />
+                    : kind === 'hit'
                     ? (animating?.[i]
                         ? <img src={`/game/explosion.gif?c=${i}`} alt="" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
                         : <span className="text-[3.2vmin] lg:text-2xl leading-none select-none">💥</span>)
@@ -685,6 +732,13 @@ const BattleChips = () => {
   const [clusterArmed, setClusterArmed] = useState(false);   // one-time 5x5, no stacking
   const [skipFoeTurn, setSkipFoeTurn] = useState(false);     // Skip card, no stacking
   const [foePlayed, setFoePlayed] = useState<string | null>(null);  // "ENEMY PLAYS …" flash
+  /* Shield: `placing` is the ghost you're dragging, `shield` is the locked
+     position. Once locked it renders nothing at all — it's meant to be invisible
+     to both sides — and it lifts at the end of the next enemy turn. */
+  const [shieldPlacing, setShieldPlacing] = useState<{ row: number; col: number } | null>(null);
+  const [shield, setShield] = useState<{ row: number; col: number } | null>(null);
+  const [shieldHit, setShieldHit] = useState(false);
+  const shieldRef = useRef<{ row: number; col: number } | null>(null);
   /* Mirrors of the two armed flags for the opponent. Refs, not state: the fire
      loop reads them from inside an interval that would otherwise close over a
      stale value. */
@@ -729,6 +783,8 @@ const BattleChips = () => {
     foeClusterRef.current = false;
     skipYourTurnRef.current = false;
     ghostHitsRef.current = new Set();
+    setShieldPlacing(null); setShield(null); setShieldHit(false);
+    shieldRef.current = null;
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
     foeSpinResult.current = null;
@@ -765,6 +821,17 @@ const BattleChips = () => {
 
   /** Hand back after their turn — unless THEY banked a Skip, which eats yours. */
   const handBack = (yShots: Shots, fShots: Shots) => {
+    // One enemy turn is the whole life of a shield. Cells it swallowed become
+    // ordinary open water again rather than staying permanently immune.
+    if (shieldRef.current) {
+      shieldRef.current = null;
+      setShield(null);
+      const cleared: Shots = { ...fShots };
+      for (const c of Object.keys(cleared).map(Number)) if (cleared[c] === 'blocked') delete cleared[c];
+      fShots = cleared;
+      foeShotsRef.current = cleared;
+      setFoeShots(cleared);
+    }
     if (skipYourTurnRef.current) {
       skipYourTurnRef.current = false;
       startTurn('foe', yourFleet, foeFleet, yShots, fShots);
@@ -802,6 +869,9 @@ const BattleChips = () => {
     if (clock > 0 || phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
     if (phase === 'setup') { beginBattle(yourFleet); return; }
     if (phase === 'battle') {
+      // A shield still being dragged when the clock dies locks where it stands,
+      // the same way an unplaced boat auto-deploys at the end of setup.
+      if (shieldPlacing) { setShield(shieldPlacing); shieldRef.current = shieldPlacing; setShieldPlacing(null); }
       if (turn === 'you') handOver(yourShots, foeShots);
       else handBack(yourShots, foeShots);
     }
@@ -859,17 +929,28 @@ const BattleChips = () => {
       if (foeClusterRef.current) foeClusterRef.current = false;
       const fresh = area.filter((i) => prev[i] === undefined);
       const yourCells = new Set(yourFleet.flatMap(cellsFor));
+      const guarded = shieldRef.current
+        ? new Set(shieldCells(shieldRef.current.row, shieldRef.current.col))
+        : new Set<number>();
       const next: Shots = { ...prev };
-      let isHit = false;
+      let isHit = false, stopped = false;
       for (const i of fresh) {
+        // A shielded cell swallows the shot: no explosion, no red X, nothing on
+        // the board at all — just the blue burst and the SHIELD HIT! flash.
+        if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; continue; }
         const hit = yourCells.has(i);
         next[i] = hit ? 'hit' : 'miss';
         if (hit) { isHit = true; playExplosion('you', i); }
       }
+      if (stopped) {
+        setShieldHit(true);
+        setTimeout(() => setShieldHit(false), SHIELD_HIT_MS);
+      }
       foeShotsRef.current = next;
       setFoeShots(next);
       const sank = fresh.some((i) => next[i] === 'hit' && didSink(yourFleet, next, i));
-      playSfx(isHit ? (sank ? SFX.sunk : SFX.hit) : SFX.miss);
+      if (isHit) playSfx(sank ? SFX.sunk : SFX.hit);
+      else if (!stopped) playSfx(SFX.miss);
       // Sinking one of your ships earns them a spin, which now plays out on screen
       // instead of resolving offstage — no spin if that shot ended the match.
       const wiped = boatsRemaining(yourFleet, next) === 0;
@@ -973,6 +1054,7 @@ const BattleChips = () => {
 
   /** Tapping open water walks the selected boat over — easier than a drag on a phone. */
   const onYourCell = (idx: number) => {
+    if (shieldPlacing) { moveShield(Math.floor(idx / GRID), idx % GRID); return; }
     if (!arranging || !selected) return;
     moveShip(selected, Math.floor(idx / GRID), idx % GRID);
   };
@@ -1051,8 +1133,21 @@ const BattleChips = () => {
     else if (card.type === '+2') setShotsLeft((s) => s + 2);
     else if (card.type === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
     else if (card.type === 'SKIP') setSkipFoeTurn(true);
+    else if (card.type === 'SHIELD') setShieldPlacing(clampShield(3, 3));   // drops mid-board to be dragged
     else if (card.type === 'WHIRLPOOL') strike(randomCentres(yourShots, 3).flatMap((c) => blockAround(c, 3)), false);
     else if (card.type === 'THUNDERSTORM') strike(randomCentres(yourShots, 3), false);
+  };
+
+  const lockShield = () => {
+    if (!shieldPlacing) return;
+    setShield(shieldPlacing);
+    shieldRef.current = shieldPlacing;
+    setShieldPlacing(null);
+    playSfx(SFX.selected);
+  };
+  const moveShield = (row: number, col: number) => {
+    if (!shieldPlacing) return;
+    setShieldPlacing(clampShield(row, col));
   };
 
   /* ---- firing ----
@@ -1094,7 +1189,7 @@ const BattleChips = () => {
   };
 
   const fireAt = (idx: number) => {
-    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || showForfeit) return;
+    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || showForfeit || shieldPlacing) return;
     if (yourShots[idx] !== undefined) return;
     const area = clusterArmed ? clusterCells(idx) : [idx];
     if (clusterArmed) setClusterArmed(false);
@@ -1119,7 +1214,9 @@ const BattleChips = () => {
         : `${bonus.result}. They called it wrong — the ${CARD_INFO[slots[bonus.result!]].name} card is yours!`
       )
     : phase === 'battle' ? (
-        turn === 'you'
+        shieldPlacing
+          ? 'Drag your shield over the water you want covered, then press PLACE. It stays hidden.'
+        : turn === 'you'
           ? (clusterArmed
               ? 'CLUSTER armed — tap ENEMY WATERS to hit a whole 5×5 area!'
               : `Your turn — tap a square on ENEMY WATERS to fire. ${shotsLeft} shot${shotsLeft === 1 ? '' : 's'} left.`)
@@ -1130,7 +1227,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1230,6 +1327,12 @@ const BattleChips = () => {
     </div>
   );
 
+  const shieldControls = (
+    <div className="flex items-center justify-center gap-2">
+      <button onClick={lockShield} className={btn98}>PLACE</button>
+    </div>
+  );
+
   const setupControls = (
     <div className="flex items-center justify-center gap-2">
       {/* Two ways out of setup and nothing to unlock first: re-roll the layout, or
@@ -1244,7 +1347,7 @@ const BattleChips = () => {
       title="Your fleet"
       right={phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
       ships={yourFleet} showShips sunk={[]} shots={foeShots}
-      clickable={arranging}
+      clickable={arranging || !!shieldPlacing}
       // Highlighted while you're arranging it, and again while it's under fire —
       // both times it's the board to be looking at. Never on your own turn: the
       // shooting happens over on enemy waters.
@@ -1252,6 +1355,8 @@ const BattleChips = () => {
       onCell={onYourCell}
       animating={anim.you}
       arrangeable={arranging}
+      shieldGhost={shieldPlacing}
+      onShieldMove={moveShield}
       selected={selected}
       onSelect={selectShip}
       onShipMove={moveShip}
@@ -1279,7 +1384,8 @@ const BattleChips = () => {
 
   /* Mobile shows ONE board at a time: on your turn you need the enemy grid to
      fire at, on theirs you watch your own fleet take fire. */
-  const mobileBoard = phase === 'battle'
+  const mobileBoard = shieldPlacing ? yourBoard
+    : phase === 'battle'
     ? (turn === 'you' ? enemyBoard : yourBoard)
     : phase === 'over' ? enemyBoard
     : yourBoard;
@@ -1342,6 +1448,17 @@ const BattleChips = () => {
           0%, 100% { outline-color: #f2c320; box-shadow: 0 0 0 0 rgba(242,195,32,0); }
           50%      { outline-color: #fff7cc; box-shadow: 0 0 12px 3px rgba(242,195,32,0.65); }
         }
+        /* Shield being positioned: neon blue outline breathing against the water. */
+        @keyframes bcShield {
+          0%, 100% { outline-color: rgba(0,209,255,0.35); box-shadow: 0 0 6px 1px rgba(0,209,255,0.35), inset 0 0 12px rgba(0,209,255,0.25); }
+          50%      { outline-color: #00d1ff;             box-shadow: 0 0 22px 6px rgba(0,209,255,0.85), inset 0 0 22px rgba(0,209,255,0.5); }
+        }
+        /* A shot the shield ate: blue bloom, then gone. No red X, no explosion. */
+        @keyframes bcBlueBurst {
+          0%   { transform: scale(0.2); opacity: 1;   box-shadow: 0 0 0 0 rgba(0,209,255,0.9); background: rgba(190,245,255,0.95); }
+          55%  { transform: scale(1);   opacity: 0.9; box-shadow: 0 0 18px 6px rgba(0,209,255,0.8); background: rgba(0,209,255,0.55); }
+          100% { transform: scale(1.15); opacity: 0;  box-shadow: 0 0 26px 10px rgba(0,209,255,0); background: rgba(0,209,255,0); }
+        }
         /* Selected boat: fades right out to nothing and back to neon yellow, which
            reads as "held" rather than the steady board outlines. */
         @keyframes bcSelect {
@@ -1368,6 +1485,20 @@ const BattleChips = () => {
           it should feel like something happening TO you. */}
       {showFoeSpin && <Callout text="OPPONENT'S SPIN" />}
       {foePlayed && <Callout text={`ENEMY PLAYS ${foePlayed}`} />}
+      {shieldHit && (
+        <div className="fixed inset-0 z-[55] flex items-center justify-center pointer-events-none p-4">
+          <span
+            className="font-mono font-bold text-white tracking-[0.15em] select-none whitespace-nowrap"
+            style={{
+              fontSize: 'clamp(1.3rem, 5vw, 3rem)',
+              textShadow: '0 0 10px rgba(0,209,255,0.95), 0 0 26px rgba(0,209,255,0.75), 0 3px 0 rgba(0,0,0,0.85)',
+              animation: 'bcFlash 0.5s steps(1,end) infinite',
+            }}
+          >
+            SHIELD HIT!
+          </span>
+        </div>
+      )}
 
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
@@ -1423,7 +1554,8 @@ const BattleChips = () => {
           </>
         ) : mobileBoard}
 
-        {phase === 'setup' && !waitingDone && setupControls}
+        {arranging && setupControls}
+        {shieldPlacing && shieldControls}
 
         {mobileShowRack && (
           <Rack
@@ -1444,7 +1576,8 @@ const BattleChips = () => {
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 min-w-0">
             {yourBoard}
-            {phase === 'setup' && !waitingDone && setupControls}
+            {arranging && setupControls}
+            {shieldPlacing && shieldControls}
           </div>
           <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} blocked={cardBlocked} />
         </div>
