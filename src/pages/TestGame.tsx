@@ -11,9 +11,10 @@ import { RotateCw } from 'lucide-react';
  * auto-deployed at 0:00. (Nothing here waits on an undiscoverable click: new
  * players stalled on the old "tap the grid to spawn a boat" step.)
  *
- * Battle: 5 shots/20s per turn → 3/15s once either side is down to 2 boats →
- * 3/10s at 1 boat. The rocket row under the clocks shows the ACTIVE player's
- * remaining shots.
+ * Battle: 5 shots every turn, all match long. Only the clock tightens as the
+ * fleets thin out — 20s, then 15s once either side is down to 2 boats, then 10s
+ * at 1. The rocket row under the clocks is one rocket per shot the ACTIVE player
+ * still holds, so it shrinks as they fire and grows when a card hands them more.
  *
  * Yellow outline marks the board that matters right now, NOT whose turn it is —
  * on your turn that's enemy waters (where you fire), on theirs it's your own
@@ -40,7 +41,7 @@ const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
 const BONUS_POPUP_MS = 2500;
-const PLACE_PROMPT_MS = 3000;  // "PLACE YOUR BOATS" call to action at setup
+const CALLOUT_MS = 2000;       // "PLACE YOUR BOATS" / "BEGIN" flashes
 const FOE_ANNOUNCE_MS = 3000; // "OPPONENT'S SPIN" banner before their wheel turns
 const SPIN_MS = 3200;
 const RESULT_MS = 1800;
@@ -179,6 +180,29 @@ const autoPlace = (existing: Placed[]): Placed[] => {
   return placed;
 };
 
+/** Middle of a boat, in grid coords — used to judge which berth is "nearest". */
+const centreOf = (s: Placed) => ({
+  r: s.row + (s.dir === 'v' ? (s.len - 1) / 2 : 0),
+  c: s.col + (s.dir === 'h' ? (s.len - 1) / 2 : 0),
+});
+
+/** Closest legal berth for `ship`, measured from where `from` currently sits.
+    Lets a boat turn even when it's boxed in: it relocates rather than refusing. */
+const nearestBerth = (ship: Placed, others: Placed[], from: Placed): Placed | null => {
+  const target = centreOf(from);
+  let best: Placed | null = null;
+  let bestDist = Infinity;
+  for (let row = 0; row < GRID; row++)
+    for (let col = 0; col < GRID; col++) {
+      const cand: Placed = { ...ship, row, col };
+      if (!fits(cand, others)) continue;
+      const c = centreOf(cand);
+      const dist = (c.r - target.r) ** 2 + (c.c - target.c) ** 2;
+      if (dist < bestDist) { bestDist = dist; best = cand; }
+    }
+  return best;
+};
+
 const boatsRemaining = (fleet: Placed[], shots: Shots): number =>
   fleet.filter((s) => !cellsFor(s).every((c) => shots[c] === 'hit')).length;
 const sunkShips = (fleet: Placed[], shots: Shots): Placed[] =>
@@ -187,10 +211,10 @@ const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
   const ship = fleet.find((s) => cellsFor(s).includes(idx));
   return !!ship && cellsFor(ship).every((c) => shotsAfter[c] === 'hit');
 };
-/* Turn ladder. The last rung keeps 3 shots (a single shot dragged the endgame
-   out) and only tightens the clock. */
+/* Turn ladder. Everyone gets 5 shots for the whole match — as boats go down the
+   pressure comes from the shrinking clock, not from a smaller volley. */
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
-  minBoats <= 1 ? { shots: 3, secs: 10 } : minBoats === 2 ? { shots: 3, secs: 15 } : { shots: 5, secs: 20 };
+  ({ shots: 5, secs: minBoats <= 1 ? 10 : minBoats === 2 ? 15 : 20 });
 
 /* ---------- opponent targeting ----------
    The stand-in foe plays the way a person does: hunt for a lead, then work it
@@ -337,9 +361,13 @@ const SegWord = ({ word, flash }: { word: string; flash?: boolean }) => (
     }}>{word}</span>
 );
 
-const Missile = ({ live }: { live: boolean }) => (
+/* One rocket per shot still in hand. Spent ones are removed rather than dimmed:
+   a greyed-out rocket was darker than a live one and read as decoration, so the
+   row looked identical whether you had five shots or one — and a card handing you
+   extra shots didn't visibly change anything either. */
+const Missile = () => (
   <svg viewBox="0 0 24 8" className="h-4 w-12">
-    <g fill={live ? '#7d7d7d' : '#4b4b4b'} opacity={live ? 1 : 0.45}>
+    <g fill="#7d7d7d">
       <polygon points="0,0 3,2 3,6 0,8" />
       <rect x="3" y="2" width="12" height="4" />
       <polygon points="15,0.5 23,4 15,7.5" />
@@ -357,6 +385,26 @@ const ShipImg = ({ s }: { s: Placed }) => (
     style={s.dir === 'v'
       ? { inset: 0, width: '100%', height: '100%', imageRendering: 'pixelated', WebkitUserDrag: 'none' } as React.CSSProperties
       : { left: '50%', top: '50%', width: `${100 / s.len}%`, height: `${s.len * 100}%`, transform: 'translate(-50%, -50%) rotate(90deg)', imageRendering: 'pixelated', WebkitUserDrag: 'none' } as React.CSSProperties} />
+);
+
+/** Full-screen flash in the console's readout voice, for announcing a beat. */
+const Callout = ({ text }: { text: string }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+    <div className={`${raised} p-2`}>
+      <div className={`${sunken} px-6 py-4 md:px-10 md:py-6`} style={{ backgroundColor: '#1b1b1b' }}>
+        <span
+          className="font-mono font-bold text-[#ff2222] tracking-[0.15em] select-none whitespace-nowrap"
+          style={{
+            fontSize: 'clamp(1.1rem, 4.5vw, 2.75rem)',
+            textShadow: '0 0 10px rgba(255,34,34,0.85)',
+            animation: 'bcFlash 0.7s steps(1,end) infinite',
+          }}
+        >
+          {text}
+        </span>
+      </div>
+    </div>
+  </div>
 );
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
@@ -533,6 +581,7 @@ const TestGame = () => {
   const [yourFleet, setYourFleet] = useState<Placed[]>([]);
   const [selected, setSelected] = useState<ShipKey | null>(null);   // boat being arranged
   const [showPlacePrompt, setShowPlacePrompt] = useState(false);
+  const [showBegin, setShowBegin] = useState(false);
   const [waitingDone, setWaitingDone] = useState(false);
   const [foeFleet, setFoeFleet] = useState<Placed[]>([]);
   const [yourShots, setYourShots] = useState<Shots>({});
@@ -582,7 +631,7 @@ const TestGame = () => {
     setClock(SETUP_SECONDS); setWinner(null); setAnim({ you: {}, foe: {} });
     setBonus(null); setCards({ you: [], foe: [] });
     setShowBonusPopup(false); setShowFoeSpin(false); setShowForfeit(false);
-    setShowPlacePrompt(false); setClusterArmed(false); setSkipFoeTurn(false);
+    setShowPlacePrompt(false); setShowBegin(false); setClusterArmed(false); setSkipFoeTurn(false);
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
     foeSpinResult.current = null;
@@ -592,7 +641,7 @@ const TestGame = () => {
       setYourFleet(autoPlace([]));
       setSelected(FLEET[0].key);
       setShowPlacePrompt(true);
-      setTimeout(() => setShowPlacePrompt(false), PLACE_PROMPT_MS);
+      setTimeout(() => setShowPlacePrompt(false), CALLOUT_MS);
     }
   };
   const newMatch = () => resetTo('setup');
@@ -605,6 +654,8 @@ const TestGame = () => {
     const stage = stageFor(FLEET.length);
     setPhase('battle'); setTurn('you'); setShotsLeft(stage.shots); setClock(stage.secs);
     playSfx(SFX.start);
+    setShowBegin(true);
+    setTimeout(() => setShowBegin(false), CALLOUT_MS);
   };
 
   const startTurn = (who: 'you' | 'foe', yFleet: Placed[], fFleet: Placed[], yShots: Shots, fShots: Shots) => {
@@ -752,7 +803,20 @@ const TestGame = () => {
 
   const selectShip = (key: ShipKey) => { if (arranging) setSelected(key); };
   const moveShip = (key: ShipKey, row: number, col: number) => reshape(key, (s) => ({ ...s, row, col }));
-  const rotateSelected = () => { if (selected) reshape(selected, (s) => ({ ...s, dir: s.dir === 'v' ? 'h' : 'v' })); };
+  /* Turning is never refused. If the boat can't swing where it stands it slides to
+     the closest berth that takes it, so the button always does something. */
+  const rotateSelected = () => {
+    if (!arranging || !selected) return;
+    setYourFleet((fleet) => {
+      const ship = fleet.find((s) => s.key === selected);
+      if (!ship) return fleet;
+      const others = fleet.filter((s) => s.key !== selected);
+      const turned = clamp({ ...ship, dir: ship.dir === 'v' ? 'h' : 'v' });
+      const berth = fits(turned, others) ? turned : nearestBerth(turned, others, ship);
+      if (!berth) return fleet;   // no room anywhere, which five boats can't cause
+      return fleet.map((s) => (s.key === selected ? berth : s));
+    });
+  };
 
   /** Tapping open water walks the selected boat over — easier than a drag on a phone. */
   const onYourCell = (idx: number) => {
@@ -878,11 +942,9 @@ const TestGame = () => {
     : winner === 'you' ? 'VICTORY — enemy fleet destroyed.' : 'DEFEAT — your fleet is gone.';
 
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
-  const baseShots = stageFor(Math.min(yourBoats, foeBoats)).shots;
-  const rocketSlots = Math.max(baseShots, shotsLeft);
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foeTarget, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -925,8 +987,8 @@ const TestGame = () => {
       <span className="font-mono text-[10px] tracking-widest text-black/70 h-3 leading-3 select-none">
         {phase === 'battle' ? (turn === 'you' ? 'YOUR SHOTS LEFT' : 'ENEMY SHOTS LEFT') : ''}
       </span>
-      <div className="flex justify-center gap-1.5 flex-wrap">
-        {Array.from({ length: rocketSlots }, (_, i) => <Missile key={i} live={i < shotsLeft} />)}
+      <div className="flex justify-center gap-1.5 flex-wrap min-h-4">
+        {Array.from({ length: Math.max(0, shotsLeft) }, (_, i) => <Missile key={i} />)}
       </div>
     </div>
   );
@@ -1078,47 +1140,14 @@ const TestGame = () => {
 
       {/* Opening call to action, in the console's readout voice — says what this
           screen is for before anyone has to work it out from the board. */}
-      {showPlacePrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
-          <div className={`${raised} p-2`}>
-            <div className={`${sunken} px-6 py-4 md:px-10 md:py-6`} style={{ backgroundColor: '#1b1b1b' }}>
-              <span
-                className="font-mono font-bold text-[#ff2222] tracking-[0.15em] select-none whitespace-nowrap"
-                style={{
-                  fontSize: 'clamp(1.1rem, 4.5vw, 2.75rem)',
-                  textShadow: '0 0 10px rgba(255,34,34,0.85)',
-                  animation: 'bcFlash 0.7s steps(1,end) infinite',
-                }}
-              >
-                PLACE YOUR BOATS
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      {showPlacePrompt && <Callout text="PLACE YOUR BOATS" />}
+      {showBegin && <Callout text="BEGIN" />}
 
       {/* Their spin gets announced before it turns, so the wheel taking over the
           screen on someone else's turn reads as part of the game. Styled like the
           console's readout windows rather than the player's BONUS SPIN! artwork —
           it should feel like something happening TO you. */}
-      {showFoeSpin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
-          <div className={`${raised} p-2`}>
-            <div className={`${sunken} px-6 py-4 md:px-10 md:py-6`} style={{ backgroundColor: '#1b1b1b' }}>
-              <span
-                className="font-mono font-bold text-[#ff2222] tracking-[0.15em] select-none whitespace-nowrap"
-                style={{
-                  fontSize: 'clamp(1.1rem, 4.5vw, 2.75rem)',
-                  textShadow: '0 0 10px rgba(255,34,34,0.85)',
-                  animation: 'bcFlash 0.7s steps(1,end) infinite',
-                }}
-              >
-                OPPONENT&apos;S SPIN
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      {showFoeSpin && <Callout text="OPPONENT'S SPIN" />}
 
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
