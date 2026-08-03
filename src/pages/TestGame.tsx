@@ -408,8 +408,12 @@ const Callout = ({ text }: { text: string }) => (
   </div>
 );
 
-const Footer = () => (
-  <div className="text-center font-mono text-[11px] text-black/50 select-none pt-4 pb-1">
+/** `onArt` for the title screen, where muted grey text vanishes into the ocean. */
+const Footer = ({ onArt = false }: { onArt?: boolean }) => (
+  <div
+    className={`text-center font-mono text-[11px] select-none pt-4 pb-1 ${onArt ? 'text-white' : 'text-black/50'}`}
+    style={onArt ? { textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.8)' } : undefined}
+  >
     © 2026 Lucky Jack Games
   </div>
 );
@@ -1178,10 +1182,11 @@ const TestGame = () => {
     return (
       <div
         className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
-        /* Placeholder art. A background-image that 404s just leaves the grey
-           ground showing, so this degrades quietly until the file is in place. */
+        /* Temporary wallpaper — a still frame; swap in the animated .gif when it
+           lands. The grey ground stays underneath so a missing file degrades to
+           the plain screen rather than a hole. */
         style={{
-          backgroundImage: "url('/game/title-bg.png')",
+          backgroundImage: "url('/game/title-bg.webp')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           imageRendering: 'pixelated',
@@ -1201,7 +1206,7 @@ const TestGame = () => {
             START
           </button>
         </div>
-        <Footer />
+        <Footer onArt />
       </div>
     );
   }
