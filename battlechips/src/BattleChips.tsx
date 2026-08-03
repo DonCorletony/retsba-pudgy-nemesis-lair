@@ -81,10 +81,10 @@ const playSfx = (src: string) => {
 };
 
 /* ---------- action cards ----------
-   +1 (MISSILE) and +2 (BOMBER) come in red and black variants because they can
-   be dealt into either slot; CLUSTER is green-only. SKIP has no art yet and
-   falls back to a labelled chip. */
-type Card = '+1' | '+2' | 'CLUSTER' | 'SKIP';
+   Red and black slots deal from one pool and green from another, so anything
+   red/black needs art in both colours. Cards with no art yet fall back to a
+   labelled chip. */
+type Card = '+1' | '+2' | 'SKIP' | 'SHIELD' | 'THUNDERSTORM' | 'CLUSTER' | 'WHIRLPOOL' | 'RESURRECTION';
 type Color = 'RED' | 'GREEN' | 'BLACK';
 /** A card in a rack remembers the slot colour it came from, for the right art. */
 interface CardInst { type: Card; color: Color }
@@ -92,8 +92,13 @@ interface CardInst { type: Card; color: Color }
 const CARD_INFO: Record<Card, { label: string; name: string; blurb: string; cls: string }> = {
   '+1': { label: '+1', name: 'MISSILE', blurb: '1 extra shot this turn', cls: 'bg-[#1d4ed8]' },
   '+2': { label: '+2', name: 'BOMBER', blurb: '2 extra shots this turn', cls: 'bg-[#7c3aed]' },
-  CLUSTER: { label: '5×5', name: 'CLUSTER', blurb: 'Next shot hits 5×5', cls: 'bg-[#ea580c]' },
-  SKIP: { label: 'SKIP', name: 'SKIP', blurb: "Skip opponent's turn", cls: 'bg-[#0f766e]' },
+  SKIP: { label: '1T', name: 'SKIP', blurb: "Skip opponent's next turn", cls: 'bg-[#0f766e]' },
+  SHIELD: { label: '5×5', name: 'SHIELD', blurb: 'Hide a 5×5 area for one enemy turn', cls: 'bg-[#0369a1]' },
+  THUNDERSTORM: { label: '1×1', name: 'THUNDERSTORM', blurb: 'Three single strikes at random', cls: 'bg-[#4338ca]' },
+  // CLUSTER is aimed by the player; WHIRLPOOL lands wherever it lands.
+  CLUSTER: { label: '5×5', name: 'CLUSTER', blurb: 'Your next shot hits a 5×5 you pick', cls: 'bg-[#ea580c]' },
+  WHIRLPOOL: { label: '3×3', name: 'WHIRLPOOL', blurb: 'Three 3×3 strikes at random', cls: 'bg-[#0d9488]' },
+  RESURRECTION: { label: 'REV', name: 'RESURRECTION', blurb: 'Raise your smallest sunk boat', cls: 'bg-[#65a30d]' },
 };
 
 const CARD_ART: Record<string, string> = {
@@ -102,7 +107,15 @@ const CARD_ART: Record<string, string> = {
   '+2|RED': '/game/cards/bomber-red.png',
   '+2|BLACK': '/game/cards/bomber-black.png',
   'CLUSTER|GREEN': '/game/cards/cluster-green.png',
-  // SKIP|GREEN — artwork pending
+  // dropped in as the files land; until then these render as labelled chips
+  'SKIP|RED': '/game/cards/skip-red.png',
+  'SKIP|BLACK': '/game/cards/skip-black.png',
+  'SHIELD|RED': '/game/cards/shield-red.png',
+  'SHIELD|BLACK': '/game/cards/shield-black.png',
+  'THUNDERSTORM|RED': '/game/cards/thunderstorm-red.png',
+  'THUNDERSTORM|BLACK': '/game/cards/thunderstorm-black.png',
+  'WHIRLPOOL|GREEN': '/game/cards/whirlpool-green.png',
+  'RESURRECTION|GREEN': '/game/cards/resurrection-green.png',
 };
 const cardArt = (c: CardInst): string | undefined => CARD_ART[`${c.type}|${c.color}`];
 
@@ -120,12 +133,18 @@ const rollColor = (): Color => {
   for (const c of COLORS) { if ((r -= c.weight) < 0) return c.key; }
   return 'BLACK';
 };
+/* Green is the rare pocket (2/38), so the cards that can swing a match most sit
+   there. Red and black share the commoner pool. */
+const RED_BLACK_POOL: Card[] = ['+1', '+2', 'SKIP', 'SHIELD', 'THUNDERSTORM'];
+const GREEN_POOL: Card[] = ['CLUSTER', 'WHIRLPOOL', 'RESURRECTION'];
+const anyOf = <T,>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length)];
+
 /** Deal the cards sitting in each slot for one spin. Red/black roll independently. */
 type SlotCards = Record<Color, Card>;
 const dealSlots = (): SlotCards => ({
-  RED: Math.random() < 0.5 ? '+1' : '+2',
-  BLACK: Math.random() < 0.5 ? '+1' : '+2',
-  GREEN: Math.random() < 0.5 ? 'CLUSTER' : 'SKIP',
+  RED: anyOf(RED_BLACK_POOL),
+  BLACK: anyOf(RED_BLACK_POOL),
+  GREEN: anyOf(GREEN_POOL),
 });
 type BonusStage = 'select' | 'spinning' | 'result';
 interface Bonus { who: 'you' | 'foe'; stage: BonusStage; choice: Color | null; result: Color | null; }
@@ -217,6 +236,51 @@ const didSink = (fleet: Placed[], shotsAfter: Shots, idx: number): boolean => {
 const stageFor = (minBoats: number): { shots: number; secs: number } =>
   ({ shots: 5, secs: minBoats <= 1 ? 10 : minBoats === 2 ? 15 : 20 });
 
+/** `count` distinct random centres among cells nobody has fired at yet. */
+const randomCentres = (shots: Shots, count: number): number[] => {
+  const open = Array.from({ length: GRID * GRID }, (_, i) => i).filter((i) => shots[i] === undefined);
+  const picked: number[] = [];
+  for (let n = 0; n < count && open.length; n++) {
+    picked.push(...open.splice(Math.floor(Math.random() * open.length), 1));
+  }
+  return picked;
+};
+
+/** Square of side `size` centred on idx, clipped to the board. */
+const blockAround = (idx: number, size: number): number[] => {
+  const r0 = Math.floor(idx / GRID), c0 = idx % GRID, half = Math.floor(size / 2);
+  const out: number[] = [];
+  for (let r = r0 - half; r <= r0 + half; r++)
+    for (let c = c0 - half; c <= c0 + half; c++)
+      if (r >= 0 && r < GRID && c >= 0 && c < GRID) out.push(r * GRID + c);
+  return out;
+};
+
+/* ---------- resurrection ----------
+   Raises the SMALLEST boat you've lost. It can't be steered: the card drops it
+   on a random berth that is clear of your other boats and of every cell the
+   enemy has already fired at, so it can't come back pre-damaged or onto ground
+   they've already ruled out. */
+const sunkSmallest = (fleet: Placed[], shots: Shots): Placed | null => {
+  const down = sunkShips(fleet, shots);
+  if (!down.length) return null;
+  return down.reduce((a, b) => (b.len < a.len ? b : a));
+};
+
+const resurrectionBerth = (ship: Placed, fleet: Placed[], shots: Shots): Placed | null => {
+  const others = fleet.filter((s) => s.key !== ship.key);
+  const berths: Placed[] = [];
+  for (const dir of ['v', 'h'] as const)
+    for (let row = 0; row < GRID; row++)
+      for (let col = 0; col < GRID; col++) {
+        const cand: Placed = { ...ship, row, col, dir };
+        if (!fits(cand, others)) continue;
+        if (cellsFor(cand).some((c) => shots[c] !== undefined)) continue;   // no pre-damaged spawn
+        berths.push(cand);
+      }
+  return berths.length ? anyOf(berths) : null;
+};
+
 /* ---------- opponent targeting ----------
    The stand-in foe plays the way a person does: hunt for a lead, then work it
    until the ship goes down.
@@ -256,9 +320,12 @@ const runOfHits = (start: number, pool: Set<number>): number[] => {
 const pickOne = (xs: number[]): number => xs[Math.floor(Math.random() * xs.length)];
 
 /** Where the opponent fires next, or null if the board is exhausted. */
-const foeTarget = (fleet: Placed[], shots: Shots): number | null => {
+const foeTarget = (fleet: Placed[], shots: Shots, ghosts: Set<number> = new Set()): number | null => {
   const isOpen = (i: number) => shots[i] === undefined;
-  const downed = new Set(sunkShips(fleet, shots).flatMap(cellsFor));
+  // `ghosts` are hits on a boat that has since been raised elsewhere — the wreck
+  // is still on the board but there's nothing left there to finish off, so they
+  // must not read as live leads or the opponent works them forever.
+  const downed = new Set([...sunkShips(fleet, shots).flatMap(cellsFor), ...ghosts]);
   // Hits on ships still afloat — the live leads worth chasing.
   const leads = new Set(
     Object.keys(shots).map(Number).filter((i) => shots[i] === 'hit' && !downed.has(i)),
@@ -308,15 +375,8 @@ const foeTarget = (fleet: Placed[], shots: Shots): number | null => {
   return pickOne(checker.length ? checker : open);
 };
 
-/** 5×5 block centred on idx, clipped to the board. */
-const clusterCells = (idx: number): number[] => {
-  const r0 = Math.floor(idx / GRID), c0 = idx % GRID, half = Math.floor(CLUSTER_SIZE / 2);
-  const out: number[] = [];
-  for (let r = r0 - half; r <= r0 + half; r++)
-    for (let c = c0 - half; c <= c0 + half; c++)
-      if (r >= 0 && r < GRID && c >= 0 && c < GRID) out.push(r * GRID + c);
-  return out;
-};
+/** The 5×5 a Cluster hits, centred where the player aimed. */
+const clusterCells = (idx: number): number[] => blockAround(idx, CLUSTER_SIZE);
 
 /* ---------- 7-segment clock ---------- */
 const SEG: Record<string, string> = {
@@ -420,7 +480,11 @@ const Footer = ({ onArt = false }: { onArt?: boolean }) => (
 
 /* ---------- action-card rack (outside edge of each grid) ---------- */
 /** Horizontal card strip that sits UNDER a grid, so the boards get the full width. */
-const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void; label?: string }) => (
+const Rack = ({ cards, playable, onPlay, label, blocked }: {
+  cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void; label?: string;
+  /** Reason this card can't be played right now, shown across its face. */
+  blocked?: (c: CardInst) => string | null;
+}) => (
   <div className={`${raised} p-1.5`}>
     <div className="flex items-center gap-2">
       <span className="font-mono text-[10px] text-black/70 shrink-0 leading-tight">
@@ -430,21 +494,31 @@ const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable:
         {cards.map((c, i) => {
           const info = CARD_INFO[c.type];
           const art = cardArt(c);
+          const stop = blocked?.(c) ?? null;
+          const live = playable && !stop;
           return (
             <button
               key={i}
-              onClick={() => playable && onPlay?.(i)}
-              disabled={!playable}
-              title={`${info.name} (${info.label}) — ${info.blurb}`}
-              className={`shrink-0 ${playable ? 'cursor-pointer hover:brightness-110 hover:-translate-y-0.5' : 'cursor-default'} transition-transform`}
+              onClick={() => live && onPlay?.(i)}
+              disabled={!live}
+              title={stop ? `${info.name} — ${stop}` : `${info.name} (${info.label}) — ${info.blurb}`}
+              className={`shrink-0 relative ${live ? 'cursor-pointer hover:brightness-110 hover:-translate-y-0.5' : 'cursor-default'} transition-transform`}
             >
-              {art
-                ? <img src={art} alt={info.name} className="h-[68px] md:h-[84px] w-auto border border-black/50" style={{ imageRendering: 'pixelated' }} />
-                : (
-                  <div className={`${info.cls} text-white font-bold text-[11px] px-3 h-[68px] md:h-[84px] flex items-center justify-center border border-black/40`}>
-                    {info.label}
-                  </div>
-                )}
+              <div className={stop ? 'grayscale opacity-50' : ''}>
+                {art
+                  ? <img src={art} alt={info.name} className="h-[68px] md:h-[84px] w-auto border border-black/50" style={{ imageRendering: 'pixelated' }} />
+                  : (
+                    <div className={`${info.cls} text-white font-bold text-[11px] px-3 h-[68px] md:h-[84px] flex items-center justify-center border border-black/40`}>
+                      {info.label}
+                    </div>
+                  )}
+              </div>
+              {stop && (
+                <span className="absolute inset-0 flex items-center justify-center font-mono font-bold text-[9px] md:text-[10px] text-white text-center leading-tight px-1"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.95)' }}>
+                  {stop}
+                </span>
+              )}
             </button>
           );
         })}
@@ -615,6 +689,8 @@ const BattleChips = () => {
      loop reads them from inside an interval that would otherwise close over a
      stale value. */
   const foeClusterRef = useRef(false);
+  /** Hits on boats that have since been resurrected elsewhere. */
+  const ghostHitsRef = useRef<Set<number>>(new Set());
   const skipYourTurnRef = useRef(false);
   const [turnSeq, setTurnSeq] = useState(0);   // ticks on every turn start, incl. repeats
 
@@ -652,6 +728,7 @@ const BattleChips = () => {
     setFoePlayed(null); setTurnSeq(0);
     foeClusterRef.current = false;
     skipYourTurnRef.current = false;
+    ghostHitsRef.current = new Set();
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
     foeSpinResult.current = null;
@@ -774,7 +851,7 @@ const BattleChips = () => {
     if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus || foePlayed) return;
     foeTimerRef.current = setInterval(() => {
       const prev = foeShotsRef.current;
-      const target = foeTarget(yourFleet, prev);
+      const target = foeTarget(yourFleet, prev, ghostHitsRef.current);
       if (target === null) return;
 
       // An armed Cluster turns their shot into a 5x5 blast, same as yours.
@@ -938,25 +1015,52 @@ const BattleChips = () => {
 
   /* ---- action cards ---- */
   const canPlayCards = phase === 'battle' && turn === 'you' && !bonus && !showForfeit;
+
+  /** Raise the smallest boat you've lost onto a random clear berth. */
+  const resurrectBoat = (): boolean => {
+    const wreck = sunkSmallest(yourFleet, foeShots);
+    if (!wreck) return false;
+    const berth = resurrectionBerth(wreck, yourFleet, foeShots);
+    if (!berth) return false;
+    // The old wreck stays drawn on your board, but there's nothing left there to
+    // finish off — tell the opponent so it stops treating those hits as leads.
+    ghostHitsRef.current = new Set([...ghostHitsRef.current, ...cellsFor(wreck)]);
+    setYourFleet((f) => f.map((s) => (s.key === wreck.key ? berth : s)));
+    return true;
+  };
+
+  /** Why a card in hand can't be played right now, or null if it can. */
+  const cardBlocked = (card: CardInst): string | null => {
+    if (card.type !== 'RESURRECTION') return null;
+    const wreck = sunkSmallest(yourFleet, foeShots);
+    if (!wreck) return 'NOTHING SUNK';
+    return resurrectionBerth(wreck, yourFleet, foeShots) ? null : 'NO SPACE';
+  };
+
   const playCard = (i: number) => {
     if (!canPlayCards) return;
     const card = cards.you[i];
-    if (!card) return;
+    if (!card || cardBlocked(card)) return;
+
+    // Resurrection can fail on a crowded board; don't burn the card if it does.
+    if (card.type === 'RESURRECTION' && !resurrectBoat()) return;
+
     setCards((c) => ({ ...c, you: c.you.filter((_, k) => k !== i) })); // one-time use
     playSfx(SFX.selected);
     if (card.type === '+1') setShotsLeft((s) => s + 1);
     else if (card.type === '+2') setShotsLeft((s) => s + 2);
     else if (card.type === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
     else if (card.type === 'SKIP') setSkipFoeTurn(true);
+    else if (card.type === 'WHIRLPOOL') strike(randomCentres(yourShots, 3).flatMap((c) => blockAround(c, 3)), false);
+    else if (card.type === 'THUNDERSTORM') strike(randomCentres(yourShots, 3), false);
   };
 
-  /* ---- firing ---- */
-  const fireAt = (idx: number) => {
-    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || showForfeit) return;
-    if (yourShots[idx] !== undefined) return;
-
-    const area = clusterArmed ? clusterCells(idx) : [idx];
-    const fresh = area.filter((i) => yourShots[i] === undefined);
+  /* ---- firing ----
+     One volley of cells against the enemy board: marks, sound, sink check, win
+     check and the bonus spin. Aimed shots spend a shot; the strike cards don't,
+     since playing a card is its own action. */
+  const strike = (area: number[], spendShot: boolean) => {
+    const fresh = [...new Set(area)].filter((i) => yourShots[i] === undefined);
     const foeCells = new Set(foeFleet.flatMap(cellsFor));
     const next: Shots = { ...yourShots };
     let anyHit = false;
@@ -966,18 +1070,17 @@ const BattleChips = () => {
       if (hit) { anyHit = true; playExplosion('foe', i); }
     }
     setYourShots(next);
-    if (clusterArmed) setClusterArmed(false);
 
     // one sound per volley: the heaviest outcome wins, else it's a miss
     const sankSomething = fresh.some((i) => next[i] === 'hit' && didSink(foeFleet, next, i));
     playSfx(anyHit ? (sankSomething ? SFX.sunk : SFX.hit) : SFX.miss);
 
-    const left = shotsLeft - 1;
-    setShotsLeft(left);
+    const left = spendShot ? shotsLeft - 1 : shotsLeft;
+    if (spendShot) setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
 
-    // Sinking a ship earns the bonus spin (one per volley, even if a Cluster
-    // takes down more than one).
+    // Sinking a ship earns the bonus spin — one per volley, however many boats
+    // a Cluster or a Whirlpool takes down at once.
     if (sankSomething) {
       endTurnAfterBonus.current = left <= 0;
       setSlots(dealSlots());                 // deal fresh cards into the slots
@@ -987,7 +1090,15 @@ const BattleChips = () => {
       setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
       return;
     }
-    if (left <= 0) setTimeout(() => handOver(next, foeShots), 700);
+    if (spendShot && left <= 0) setTimeout(() => handOver(next, foeShots), 700);
+  };
+
+  const fireAt = (idx: number) => {
+    if (phase !== 'battle' || turn !== 'you' || shotsLeft <= 0 || bonus || showForfeit) return;
+    if (yourShots[idx] !== undefined) return;
+    const area = clusterArmed ? clusterCells(idx) : [idx];
+    if (clusterArmed) setClusterArmed(false);
+    strike(area, true);
   };
 
   const statusText =
@@ -1019,7 +1130,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1319,6 +1430,7 @@ const BattleChips = () => {
             cards={mobileRackIsYours ? cards.you : cards.foe}
             playable={mobileRackIsYours && canPlayCards}
             onPlay={playCard}
+            blocked={mobileRackIsYours ? cardBlocked : undefined}
             label={mobileRackIsYours ? 'YOUR CARDS' : 'ENEMY CARDS'}
           />
         )}
@@ -1334,7 +1446,7 @@ const BattleChips = () => {
             {yourBoard}
             {phase === 'setup' && !waitingDone && setupControls}
           </div>
-          <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} />
+          <Rack cards={cards.you} playable={canPlayCards} onPlay={playCard} blocked={cardBlocked} />
         </div>
 
         {/* center console — fills the column height; the wheel takes whatever
