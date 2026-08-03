@@ -408,6 +408,12 @@ const Callout = ({ text }: { text: string }) => (
   </div>
 );
 
+const Footer = () => (
+  <div className="text-center font-mono text-[11px] text-black/50 select-none pt-4 pb-1">
+    © 2026 Lucky Jack Games
+  </div>
+);
+
 /* ---------- action-card rack (outside edge of each grid) ---------- */
 /** Horizontal card strip that sits UNDER a grid, so the boards get the full width. */
 const Rack = ({ cards, playable, onPlay, label }: { cards: CardInst[]; playable: boolean; onPlay?: (i: number) => void; label?: string }) => (
@@ -1170,19 +1176,22 @@ const TestGame = () => {
      plain on purpose — artwork is coming. */
   if (phase === 'idle') {
     return (
-      <div className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col md:flex-row items-center justify-center md:justify-around gap-10 md:gap-6 p-6">
-        <img
-          src="/game/logo-battlechips.webp"
-          alt="Battle Chips"
-          className="w-[min(78vw,520px)] md:w-[min(42vw,620px)] h-auto select-none"
-          draggable={false}
-        />
-        <button
-          onClick={newMatch}
-          className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
-        >
-          START
-        </button>
+      <div className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6">
+        <div className="flex-1 flex flex-col md:flex-row items-center justify-center md:justify-around gap-10 md:gap-6">
+          <img
+            src="/game/logo-battlechips.webp"
+            alt="Battle Chips"
+            className="w-[min(78vw,520px)] md:w-[min(42vw,620px)] h-auto select-none"
+            draggable={false}
+          />
+          <button
+            onClick={newMatch}
+            className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
+          >
+            START
+          </button>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -1328,6 +1337,8 @@ const TestGame = () => {
           <Rack cards={cards.foe} playable={false} />
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
