@@ -129,6 +129,19 @@ const COLORS: { key: Color; label: string; bg: string; border: string; weight: n
   { key: 'GREEN', label: 'GREEN', bg: 'bg-green-700', border: 'border-green-700', weight: 2 },
   { key: 'BLACK', label: 'BLACK', bg: 'bg-black', border: 'border-black', weight: 18 },
 ];
+/* Pocket angles measured off roulette-wheel.png itself: sampled the colour
+   ring at 0.68 of the radius and kept only the pockets whose centre reads the
+   right colour all the way through. Degrees clockwise from the top, matching
+   CSS rotate(), so the ball can be dropped straight onto one. */
+const POCKETS: Record<Color, number[]> = {
+  RED: [27.8, 47.1, 65.8, 84.6, 103.6, 122.9, 141.5, 237.1, 256.2, 274.9, 293.0, 331.0, 349.8],
+  BLACK: [18.2, 37.6, 56.8, 75.8, 94.4, 113.4, 151.5, 246.5, 265.2, 284.1, 340.8],
+  GREEN: [181.2, 357.6],
+};
+
+/** Where the ball should come to rest for a given result, in the wheel's frame. */
+const pocketFor = (c: Color): number => anyOf(POCKETS[c]);
+
 const rollColor = (): Color => {
   const total = COLORS.reduce((n, c) => n + c.weight, 0);
   let r = Math.random() * total;
@@ -726,6 +739,7 @@ const BattleChips = () => {
   const [slots, setSlots] = useState<SlotCards>(dealSlots);
   const [cards, setCards] = useState<{ you: CardInst[]; foe: CardInst[] }>({ you: [], foe: [] });
   const [wheelAngle, setWheelAngle] = useState(0);
+  const [ballAngle, setBallAngle] = useState(0);
   const [showBonusPopup, setShowBonusPopup] = useState(false);
   const [showFoeSpin, setShowFoeSpin] = useState(false);   // "OPPONENT'S SPIN" banner
   const [showForfeit, setShowForfeit] = useState(false);
@@ -783,6 +797,7 @@ const BattleChips = () => {
     foeClusterRef.current = false;
     skipYourTurnRef.current = false;
     ghostHitsRef.current = new Set();
+    setBallAngle(0);
     setShieldPlacing(null); setShield(null); setShieldHit(false);
     shieldRef.current = null;
     endTurnAfterBonus.current = false;
@@ -985,8 +1000,17 @@ const BattleChips = () => {
     if (bonus.stage === 'select') {
       const id = setTimeout(() => {
         setShowFoeSpin(false);
-        foeSpinResult.current = rollColor();
-        setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
+        const landed = rollColor();
+        foeSpinResult.current = landed;
+        const spin = 360 * 6 + Math.floor(Math.random() * 360);
+        setWheelAngle((a) => {
+          const end = a + spin;
+          setBallAngle((b) => {
+            const target = end + pocketFor(landed);
+            return target - 360 * (4 + Math.ceil((target - b) / 360));
+          });
+          return end;
+        });
         setBonus((b) => (b?.who === 'foe' ? { ...b, stage: 'spinning' } : b));
       }, FOE_ANNOUNCE_MS);
       return () => clearTimeout(id);
@@ -1078,7 +1102,18 @@ const BattleChips = () => {
     if (!bonus || bonus.stage !== 'select' || bonus.who !== 'you') return;
     setBonus({ ...bonus, stage: 'spinning', choice });
     const result = rollColor();
-    setWheelAngle((a) => a + 360 * 6 + Math.floor(Math.random() * 360));
+    const spin = 360 * 6 + Math.floor(Math.random() * 360);
+    setWheelAngle((a) => {
+      const end = a + spin;
+      // The ball rides the wheel's frame: a pocket sitting at P lands on screen at
+      // P + end. Sending the ball there the long way round, against the wheel,
+      // means it comes to rest exactly on the winning colour.
+      setBallAngle((b) => {
+        const target = end + pocketFor(result);
+        return target - 360 * (4 + Math.ceil((target - b) / 360));
+      });
+      return end;
+    });
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
       playSfx(SFX.highlight);
@@ -1227,7 +1262,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1322,6 +1357,29 @@ const BattleChips = () => {
             style={bonus
               ? { imageRendering: 'pixelated', transform: `rotate(${wheelAngle}deg)`, transition: `transform ${SPIN_MS}ms cubic-bezier(0.17,0.67,0.12,0.99)` }
               : { imageRendering: 'pixelated' }} />
+          {/* The ball only exists during a spin. Its track shares the wheel's box, so
+              sitting 16% from the top puts it 34% out from the centre — the pocket
+              ring at 0.68 of the radius that POCKETS was measured against. */}
+          {bonus && (
+            <div
+              className="absolute inset-[2.5%] w-[95%] h-[95%] pointer-events-none"
+              style={{
+                transform: `rotate(${ballAngle}deg)`,
+                transition: `transform ${SPIN_MS}ms cubic-bezier(0.12,0.7,0.15,1)`,
+              }}
+            >
+              <div
+                data-ball
+                className="absolute rounded-full"
+                style={{
+                  left: '50%', top: '16%', width: '6.5%', aspectRatio: '1',
+                  transform: 'translate(-50%, -50%)',
+                  background: 'radial-gradient(circle at 34% 30%, #ffffff 0%, #f4ecd8 42%, #cdbf9e 78%, #9c8d70 100%)',
+                  boxShadow: '0 0 5px rgba(0,0,0,0.55), inset -1px -1px 2px rgba(0,0,0,0.28)',
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
