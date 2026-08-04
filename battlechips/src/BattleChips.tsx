@@ -2307,10 +2307,11 @@ const BattleChips = () => {
         >
           {inGame ? 'Forfeit' : 'Back'}
         </button>
-        {/* Centred over the bar, so it only fits once the bar is wide enough for
-            the buttons not to reach the middle. Below that it just collides. */}
+        {/* Laid out in the row rather than centred over it. Absolute centring
+            ignores the buttons, so on a narrow bar they ran straight across the
+            wordmark; as a flex child it takes what's left and shrinks to fit. */}
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
-          className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
+          className="min-w-0 flex-1 h-8 md:h-16 w-auto object-contain pointer-events-none select-none" />
 
         <div className="flex items-center gap-2 relative z-10">
           <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
