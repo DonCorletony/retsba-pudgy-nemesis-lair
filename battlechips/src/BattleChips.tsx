@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
+import { WalletButton } from './WalletButton';
 
 /**
  * BATTLE CHIPS (battleship × roulette) — the whole game, one component.
@@ -1593,6 +1594,7 @@ const BattleChips = () => {
             <button onClick={() => setShowSettings(true)} className={`${btn98} !px-8 !py-2 text-base tracking-[0.2em]`}>
               SETTINGS
             </button>
+            <WalletButton className="mt-1" />
           </div>
         </div>
         <Footer onArt />
@@ -1699,6 +1701,7 @@ const BattleChips = () => {
         </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
+        <div className="relative z-10 ml-auto mr-2 hidden sm:block"><WalletButton /></div>
         <button onClick={newMatch} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}>
           New match
         </button>
