@@ -1594,10 +1594,11 @@ const BattleChips = () => {
             <button onClick={() => setShowSettings(true)} className={`${btn98} !px-8 !py-2 text-base tracking-[0.2em]`}>
               SETTINGS
             </button>
-            <WalletButton className="mt-1" />
+
           </div>
         </div>
         <Footer onArt />
+        <WalletButton className="fixed top-3 right-3 z-[70]" />
         <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         {settingsDialog}
       </div>
@@ -1701,10 +1702,13 @@ const BattleChips = () => {
         </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
-        <div className="relative z-10 ml-auto mr-2 hidden sm:block"><WalletButton /></div>
-        <button onClick={newMatch} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}>
-          New match
-        </button>
+
+        <div className="flex items-center gap-2 relative z-10">
+          <button onClick={newMatch} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
+            New match
+          </button>
+          <WalletButton />
+        </div>
       </div>
 
       {/* Status strip */}
