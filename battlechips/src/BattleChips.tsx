@@ -74,7 +74,7 @@ const SFX = {
   sunk: '/game/sounds/ship-destroyed.wav',
   miss: '/game/sounds/miss.mp3',
   bonus: '/game/sounds/bonus-spin.mp3',
-  shine: '/game/sounds/shine.wav',
+  chime: '/game/sounds/chime.wav',
   highlight: '/game/sounds/powerup-highlight.wav',
   selected: '/game/sounds/powerup-selected.wav',
 } as const;
@@ -105,13 +105,78 @@ const preloadSfx = () => {
     audioCache.set(src, a);
   }
 };
-const playSfx = (src: string) => {
+
+/* ---------- autoplay ----------
+   Browsers will not let a page make noise until it has been interacted with,
+   and nothing in the platform grants an exception: there is no permission to
+   request, and muting to slip past the check only buys you silence. So we do
+   the two things that actually work.
+
+   One: always try. The block is a per-site judgement, not a blanket rule —
+   Chrome keeps a media engagement score per origin and lets a site it trusts
+   open with sound, which is why an established site can seem to bypass it.
+   Playing audio here is what builds that score, so the more someone plays,
+   the more likely a later visit opens with sound on the first frame.
+
+   Two: when a cue is refused, hold it and fire it on the first gesture, so
+   the opening isn't just silently missed. `holdFor` is how long that cue is
+   still worth playing — past it we drop it rather than fire it late. */
+type AudioState = 'unknown' | 'ok' | 'blocked';
+let audioState: AudioState = 'unknown';
+const audioWatchers = new Set<() => void>();
+const setAudioState = (next: AudioState) => {
+  if (audioState === next) return;
+  audioState = next;
+  audioWatchers.forEach((f) => f());
+};
+/** Subscribe to whether the browser is letting us play. */
+const watchAudio = (f: () => void) => { audioWatchers.add(f); return () => { audioWatchers.delete(f); }; };
+const getAudioState = () => audioState;
+
+let heldCue: { src: string; until: number } | null = null;
+/** Drop a held cue that's no longer wanted — e.g. the intro was skipped. */
+const dropHeldCue = () => { heldCue = null; };
+
+/* True only while the gesture that turned the sound on is still being handled.
+   The click that buys sound must not also count as a click on whatever is
+   underneath it, and a React flag can't express that: this listener runs in the
+   capture phase, its setState flushes synchronously because pointerdown is a
+   discrete event, and React then dispatches to the *new* props — so by the time
+   a handler runs, the state already says we're unblocked. This is read straight
+   out of the module instead, where the ordering is ours. */
+let unlockingGesture = false;
+const isUnlockGesture = () => unlockingGesture;
+
+const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const;
+const onFirstGesture = () => {
+  GESTURES.forEach((t) => window.removeEventListener(t, onFirstGesture, true));
+  unlockingGesture = audioState === 'blocked';
+  setAudioState('ok');
+  setTimeout(() => {
+    unlockingGesture = false;
+    const cue = heldCue;
+    heldCue = null;
+    if (cue && Date.now() < cue.until) playSfx(cue.src);
+  }, 0);
+};
+if (typeof window !== 'undefined') {
+  GESTURES.forEach((t) => window.addEventListener(t, onFirstGesture, true));
+}
+
+const playSfx = (src: string, opts?: { holdFor?: number }) => {
   if (prefs.muted || prefs.sfx <= 0) return;
   try {
     const base = audioCache.get(src);
     const node = (base ? base.cloneNode() : new Audio(src)) as HTMLAudioElement;
     node.volume = Math.min(1, Math.max(0, prefs.sfx));
-    node.play().catch(() => {});
+    node
+      .play()
+      .then(() => setAudioState('ok'))
+      .catch((err: unknown) => {
+        if ((err as Error)?.name !== 'NotAllowedError') return;
+        setAudioState('blocked');
+        if (opts?.holdFor) heldCue = { src, until: Date.now() + opts.holdFor };
+      });
   } catch { /* ignore */ }
 };
 
@@ -716,9 +781,10 @@ const Intro = ({ step, shift }: { step: number; shift: number }) => {
           draggable={false}
           className="w-[min(80vw,560px)] h-auto select-none"
           style={{
+            // cuts in, no fade — only the move onto the title screen is animated
             opacity: logo ? 1 : 0,
             transform: `translateY(${step >= 3 ? shift : 0}px)`,
-            transition: 'opacity 900ms ease-in-out, transform 1200ms ease-in-out',
+            transition: 'transform 1200ms ease-in-out',
           }}
         />
       </div>
@@ -738,6 +804,21 @@ const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void
   >
     {muted ? <VolumeX className="h-6 w-6" strokeWidth={2} /> : <Volume2 className="h-6 w-6" strokeWidth={2} />}
   </button>
+);
+
+/** Shown only when the browser has actually refused us — never for someone it
+ *  trusts, and gone the moment anything is clicked. Sits above the opening's
+ *  black so it reads on either background. */
+const SoundNudge = () => (
+  <div
+    className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[95] flex items-center gap-2 rounded-lg px-3 py-2
+               font-mono text-[10px] tracking-[0.18em] text-white/80 pointer-events-none select-none whitespace-nowrap"
+    style={{ background: 'rgba(30,30,30,0.55)', backdropFilter: 'blur(2px)' }}
+  >
+    <Volume2 className="h-4 w-4 shrink-0" strokeWidth={2} />
+    <span className="sm:hidden">TAP ANYWHERE FOR SOUND</span>
+    <span className="hidden sm:inline">CLICK ANYWHERE FOR SOUND</span>
+  </div>
 );
 
 const Slider = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
@@ -997,7 +1078,18 @@ const BattleChips = () => {
   const [introStep, setIntroStep] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 4 : 0,
   );
-  const skipIntro = () => setIntroStep(4);
+  /* Skipping means they never see the studio card, so the chime it belongs to
+     shouldn't fire on the way out. And while the browser is refusing us, the
+     first click is spent turning the sound on — the nudge says so — so the
+     opening carries on with audio rather than being cut short by it. */
+  const skipIntro = () => {
+    if (isUnlockGesture()) return;
+    dropHeldCue();
+    setIntroStep(4);
+  };
+  // Whether the browser is letting us play; drives the nudge below.
+  const [audio, setAudio] = useState<AudioState>(getAudioState);
+  useEffect(() => watchAudio(() => setAudio(getAudioState())), []);
   /* Where the title screen's own logo sits, measured off the real element: the
      intro's copy slides up by exactly this much so the hand-off is seamless. */
   const titleLogoRef = useRef<HTMLImageElement>(null);
@@ -1010,9 +1102,10 @@ const BattleChips = () => {
   useEffect(() => {
     if (introStep === 4) return;
     const at = (ms: number, step: number) => setTimeout(() => setIntroStep((c) => (c === 4 ? 4 : step)), ms);
-    // Autoplay is blocked until the page has had a gesture, so this only lands
-    // for a returning visitor who has already interacted. Failures are silent.
-    const chime = setTimeout(() => playSfx(SFX.shine), INTRO.studioIn + 200);
+    // If the browser refuses this, it's held and fired on the first gesture —
+    // but only while the card it belongs to is still on screen.
+    const chimeAt = INTRO.studioIn + 200;
+    const chime = setTimeout(() => playSfx(SFX.chime, { holdFor: INTRO.studioOut - chimeAt }), chimeAt);
     const ids = [at(INTRO.studioOut, 1), at(INTRO.logoIn, 2), at(INTRO.reveal, 3), at(INTRO.done, 4)];
     return () => { clearTimeout(chime); ids.forEach(clearTimeout); };
   }, [introStep === 4]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1798,7 +1891,7 @@ const BattleChips = () => {
     return (
       <div
         className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
-        onClick={introRunning ? skipIntro : undefined}
+        onPointerDown={introRunning ? skipIntro : undefined}
         style={{
           backgroundImage: "url('/game/title-bg.webp')",
           backgroundSize: 'cover',
@@ -1843,6 +1936,7 @@ const BattleChips = () => {
         )}
         {settingsDialog}
         {introRunning && <Intro step={introStep} shift={logoShift} />}
+        {audio === 'blocked' && !settings.muted && <SoundNudge />}
       </div>
     );
   }
