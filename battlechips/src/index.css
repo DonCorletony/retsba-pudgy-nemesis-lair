@@ -1,3 +1,8 @@
+/* Solana wallet picker skin. It belongs to the lazily-loaded funding window, but
+   importing it there splits out a second chunk whose stylesheet has to be
+   preloaded separately — a load that can fail on its own and take the window with
+   it. It is 5kB; carrying it in the main sheet is cheaper than the failure mode. */
+@import '@solana/wallet-adapter-react-ui/styles.css';
 
 /* ── Brand fonts (matched to Pudgy Penguins: TT Trailers + Menco) ── */
 @tailwind base;

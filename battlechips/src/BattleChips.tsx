@@ -1,7 +1,12 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { WalletButton } from './WalletButton';
+import { LazyWindow } from './LazyWindow';
+
+/* The funding window drags in the Relay SDK and the whole Solana wallet stack —
+   several times the size of the game. It arrives only when asked for. */
+const SwapPortal = lazy(() => import('./SwapPortal'));
 
 /**
  * BATTLE CHIPS (battleship × roulette) — the whole game, one component.
@@ -76,6 +81,7 @@ const SFX = {
   miss: '/game/sounds/miss.mp3',
   bonus: '/game/sounds/bonus-spin.mp3',
   chime: '/game/sounds/chime.wav',
+  wave: '/game/sounds/wave-crash.wav',
   hover: '/game/sounds/ui-hover.wav',
   click: '/game/sounds/ui-click.wav',
   highlight: '/game/sounds/powerup-highlight.wav',
@@ -185,90 +191,151 @@ const playSfx = (src: string, opts?: { holdFor?: number }) => {
   } catch { /* ignore */ }
 };
 
-/* ---------- title music ----------
-   One long track that plays on the title screen only: in once the studio card
-   has gone, out when a match starts. It's half an hour long, so it streams
-   rather than preloading whole, and the loop is a fade rather than a hard cut
-   back to bar one.
+/* ---------- music ----------
+   Each screen has its own music, and the game's is a pair of tracks that hand
+   over to each other. A *cue* is what a screen asks for; which track is actually
+   sounding is this module's business.
 
-   Volume is the MUSIC slider scaled by a fade envelope, so dragging the slider
-   mid-fade does the obvious thing instead of fighting it. The master toggle
-   silences this the same as everything else. */
-const MUSIC_SRC = '/game/sounds/theme.mp3';
+     title  -> the theme
+     ocean  -> gulls and surf, for the game screen with no match on it
+     battle -> battle 1, then battle 2, then back to battle 1
+
+   Tracks overlap while swapping — pressing PLAY starts the sea before the theme
+   has finished turning down — so each carries its own fade envelope rather than
+   sharing one. All of them stream rather than preloading whole.
+
+   Volume is the MUSIC slider scaled by that envelope, so dragging the slider
+   mid-fade does the obvious thing instead of fighting it, and the master toggle
+   silences them like everything else. */
+const TRACKS = {
+  theme: '/game/sounds/theme.mp3',
+  ocean: '/game/sounds/ocean-ambience.mp3',
+  battle1: '/game/sounds/battle-1.mp3',
+  battle2: '/game/sounds/battle-2.mp3',
+} as const;
+type TrackName = keyof typeof TRACKS;
+
+export type Cue = 'title' | 'ocean' | 'battle';
+/** Played in order, wrapping at the end. */
+const CUE: Record<Cue, TrackName[]> = {
+  title: ['theme'],
+  ocean: ['ocean'],
+  battle: ['battle1', 'battle2'],
+};
+/* Ambience can repeat and nobody hears the join. Written pieces get a fade
+   around the seam instead — which is also how one battle track hands to the next. */
+const AMBIENT: Record<TrackName, boolean> = { theme: false, ocean: true, battle1: false, battle2: false };
 const MUSIC = { fadeIn: 3000, fadeOut: 900, tail: 4000 } as const;
 
-let musicEl: HTMLAudioElement | null = null;
-let musicWanted = false;      // does the current screen want music at all
-let musicGain = 0;            // 0..1 fade envelope, independent of the slider
-let musicFade: ReturnType<typeof setInterval> | null = null;
-let musicLooping = false;     // mid fade-out at the end of the track
+interface Track {
+  el: HTMLAudioElement;
+  gain: number;                                  // 0..1 fade envelope
+  fade: ReturnType<typeof setInterval> | null;
+  handingOver: boolean;                          // mid fade-out at the end
+}
+const tracks = new Map<TrackName, Track>();
+let wantedCue: Cue | null = null;
+let sounding: TrackName | null = null;
 
 const musicLevel = () => (prefs.muted ? 0 : Math.min(1, Math.max(0, prefs.music)));
-const applyMusicVolume = () => { if (musicEl) musicEl.volume = musicGain * musicLevel(); };
+const applyTrackVolume = (t: Track) => { t.el.volume = t.gain * musicLevel(); };
+/** Re-apply the slider across every track — called whenever prefs change. */
+const applyMusicVolume = () => tracks.forEach(applyTrackVolume);
 
-const fadeMusic = (to: number, ms: number, done?: () => void) => {
-  if (musicFade) { clearInterval(musicFade); musicFade = null; }
-  const from = musicGain;
+const fadeTrack = (t: Track, to: number, ms: number, done?: () => void) => {
+  if (t.fade) { clearInterval(t.fade); t.fade = null; }
+  const from = t.gain;
   const t0 = Date.now();
-  if (ms <= 0) { musicGain = to; applyMusicVolume(); done?.(); return; }
-  musicFade = setInterval(() => {
+  if (ms <= 0) { t.gain = to; applyTrackVolume(t); done?.(); return; }
+  t.fade = setInterval(() => {
     const k = Math.min(1, (Date.now() - t0) / ms);
-    musicGain = from + (to - from) * k;
-    applyMusicVolume();
-    if (k === 1) { clearInterval(musicFade!); musicFade = null; done?.(); }
+    t.gain = from + (to - from) * k;
+    applyTrackVolume(t);
+    if (k === 1) { clearInterval(t.fade!); t.fade = null; done?.(); }
   }, 40);
 };
 
-/** Near the end, fade down, drop back to the top and fade up again. The fade is
- *  shorter than the window that triggers it so it finishes before the track
- *  runs out — landing on 'ended' would pause us mid-loop. */
-const onMusicTime = () => {
-  const el = musicEl;
-  if (!el || musicLooping || !musicWanted || !el.duration || !isFinite(el.duration)) return;
+/** The track after `name` in the cue it belongs to, wrapping — so a lone track
+ *  hands over to itself and a pair alternates. */
+const after = (name: TrackName): TrackName | null => {
+  if (!wantedCue) return null;
+  const list = CUE[wantedCue];
+  const i = list.indexOf(name);
+  return i === -1 ? null : list[(i + 1) % list.length];
+};
+
+/** Fade down as a track runs out and bring up whatever follows it. The fade is
+ *  shorter than the window that triggers it, so it finishes before the track
+ *  ends — landing on 'ended' would leave us paused mid-handover. */
+const watchSeam = (name: TrackName) => () => {
+  const t = tracks.get(name);
+  if (!t || t.handingOver || sounding !== name) return;
+  const { el } = t;
+  if (!el.duration || !isFinite(el.duration)) return;
   if (el.duration - el.currentTime > MUSIC.tail / 1000) return;
-  musicLooping = true;
-  fadeMusic(0, Math.max(200, MUSIC.tail - 800), () => {
+  t.handingOver = true;
+  fadeTrack(t, 0, Math.max(200, MUSIC.tail - 800), () => {
+    t.handingOver = false;
+    el.pause();
     el.currentTime = 0;
-    musicLooping = false;
-    if (!musicWanted) return;
-    if (el.paused) el.play().catch(() => {});
-    fadeMusic(1, MUSIC.fadeIn);
+    if (sounding !== name) return;               // the screen changed under us
+    const next = after(name);
+    if (next) play(next);
   });
 };
 
-const startMusic = () => {
-  if (typeof window === 'undefined' || musicWanted) return;
-  musicWanted = true;
-  if (!musicEl) {
-    musicEl = new Audio(MUSIC_SRC);
-    musicEl.preload = 'auto';
-    musicEl.loop = false;                       // we fade around the seam ourselves
-    musicEl.addEventListener('timeupdate', onMusicTime);
+const trackFor = (name: TrackName): Track => {
+  let t = tracks.get(name);
+  if (!t) {
+    const el = new Audio(TRACKS[name]);
+    el.preload = 'auto';
+    el.loop = AMBIENT[name];
+    t = { el, gain: 0, fade: null, handingOver: false };
+    tracks.set(name, t);
+    if (!AMBIENT[name]) el.addEventListener('timeupdate', watchSeam(name));
   }
-  musicGain = 0;
-  applyMusicVolume();
-  musicEl
+  return t;
+};
+
+const play = (name: TrackName) => {
+  sounding = name;
+  const t = trackFor(name);
+  if (t.el.paused) { t.gain = 0; applyTrackVolume(t); }
+  t.el
     .play()
-    .then(() => { setAudioState('ok'); fadeMusic(1, MUSIC.fadeIn); })
+    .then(() => { setAudioState('ok'); fadeTrack(t, 1, MUSIC.fadeIn); })
     .catch((err: unknown) => {
       // Refused for want of a gesture: the unlock will call us back.
       if ((err as Error)?.name === 'NotAllowedError') setAudioState('blocked');
     });
 };
 
-const stopMusic = () => {
-  if (!musicWanted) return;
-  musicWanted = false;
-  musicLooping = false;
-  const el = musicEl;
-  // Guarded: if music was asked for again during the fade, don't pause it.
-  fadeMusic(0, MUSIC.fadeOut, () => { if (musicWanted || !el) return; el.pause(); el.currentTime = 0; });
+/** Ask for a cue, or for silence. Whatever is playing fades out underneath. */
+const wantMusic = (cue: Cue | null) => {
+  if (typeof window === 'undefined' || wantedCue === cue) return;
+  wantedCue = cue;
+  const next = cue ? CUE[cue][0] : null;
+  if (sounding !== next) sounding = next;
+
+  tracks.forEach((t, n) => {
+    if (n === next) return;
+    t.handingOver = false;
+    fadeTrack(t, 0, MUSIC.fadeOut, () => {
+      if (sounding === n) return;                // asked for again mid-fade
+      t.el.pause();
+      t.el.currentTime = 0;
+    });
+  });
+
+  if (next) play(next);
 };
 
 /** Called once the browser lets us play, in case music was refused earlier. */
 const resumeMusicIfWanted = () => {
-  if (!musicWanted || !musicEl || !musicEl.paused) return;
-  musicEl.play().then(() => fadeMusic(1, MUSIC.fadeIn)).catch(() => {});
+  if (!sounding) return;
+  const t = tracks.get(sounding);
+  if (!t || !t.el.paused) return;
+  t.el.play().then(() => fadeTrack(t, 1, MUSIC.fadeIn)).catch(() => {});
 };
 
 /* ---------- action cards ----------
@@ -909,7 +976,9 @@ const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void
 /* Moving between the title screen and the game dips through black rather than
    cutting. The phase changes at the bottom of the dip, so the screen behind the
    overlay has already swapped by the time it lifts. */
-const SCREEN_FADE = { out: 400, hold: 400, in: 500 } as const;
+/* `hold` is the pause at the bottom of the dip. Going into the game sits there
+   longer — the wave has to land before the board appears. */
+const SCREEN_FADE = { out: 400, hold: 400, holdIn: 1400, in: 500 } as const;
 const ScreenFade = ({ opaque, ms, busy }: { opaque: boolean; ms: number; busy: boolean }) => (
   <div
     aria-hidden
@@ -1232,14 +1301,16 @@ const BattleChips = () => {
      cleared and runs until PLAY starts a match. Someone who skipped the opening
      — or who never sees it, on reduced motion — gets it straight away. */
   useEffect(() => {
-    if (phase !== 'idle') { stopMusic(); return; }
-    if (introStep >= 4) { startMusic(); return; }
-    const id = setTimeout(startMusic, INTRO.musicIn);
+    // setup and battle are a live match; lobby and over are the sea.
+    if (phase !== 'idle') { wantMusic(phase === 'setup' || phase === 'battle' ? 'battle' : 'ocean'); return; }
+    if (introStep >= 4) { wantMusic('title'); return; }
+    const id = setTimeout(() => wantMusic('title'), INTRO.musicIn);
     return () => clearTimeout(id);
   }, [phase, introStep >= 4]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [settings, setSettings] = useState<Prefs>(() => prefs);
   const [showSettings, setShowSettings] = useState(false);
+  const [showFunding, setShowFunding] = useState(false);
   // playSfx reads the module-level copy, so push every change straight through.
   useEffect(() => { savePrefs(settings); }, [settings]);
   const water = settings.staticWater ? '/game/ocean-static.png' : '/game/ocean.gif';
@@ -1319,18 +1390,26 @@ const BattleChips = () => {
   /** PLAY opens the game screen; starting a match is a separate, deliberate step. */
   const enterLobby = () => resetTo('lobby');
 
+  /** Pressing PLAY. Defined once so the debug hook can't drift from the button. */
+  const startPlay = () => {
+    playSfx(SFX.wave);
+    wantMusic('ocean');                  // rises with the wave, not on arrival
+    navigate(enterLobby, SCREEN_FADE.holdIn);
+  };
+
   /* Screen changes go through a dip to black. `busy` both blocks a second press
      mid-dip and keeps the overlay swallowing clicks until it has lifted. */
-  const [fade, setFade] = useState({ opaque: false, ms: SCREEN_FADE.out, busy: false });
+  const [fade, setFade] = useState<{ opaque: boolean; ms: number; busy: boolean }>(
+    { opaque: false, ms: SCREEN_FADE.out, busy: false });
   const fadeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => fadeTimers.current.forEach(clearTimeout), []);
-  const navigate = (go: () => void) => {
+  const navigate = (go: () => void, hold: number = SCREEN_FADE.hold) => {
     if (fade.busy) return;
     const wait = (ms: number, f: () => void) => fadeTimers.current.push(setTimeout(f, ms));
     setFade({ opaque: true, ms: SCREEN_FADE.out, busy: true });
     wait(SCREEN_FADE.out, () => {
       go();
-      wait(SCREEN_FADE.hold, () => {
+      wait(hold, () => {
         setFade({ opaque: false, ms: SCREEN_FADE.in, busy: true });
         wait(SCREEN_FADE.in, () => setFade({ opaque: false, ms: SCREEN_FADE.in, busy: false }));
       });
@@ -1804,7 +1883,7 @@ const BattleChips = () => {
 
   if (typeof window !== 'undefined') {
     (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch, enterLobby,
-      pressPlay: () => navigate(enterLobby), fade };
+      pressPlay: startPlay, fade };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1999,6 +2078,17 @@ const BattleChips = () => {
   const mobileShowRack = waitingDone || phase === 'battle' || phase === 'over';
   const mobileRackIsYours = phase !== 'battle' || turn === 'you';
 
+  const fundingWindow = showFunding && (
+    <LazyWindow onClose={() => setShowFunding(false)}>
+      <Suspense fallback={null}>
+        <SwapPortal
+          onClose={() => setShowFunding(false)}
+          chirp={{ hover: () => playSfx(SFX.hover), press: () => playSfx(SFX.click) }}
+        />
+      </Suspense>
+    </LazyWindow>
+  );
+
   const settingsDialog = showSettings && (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowSettings(false)}>
       <div className={`${raised} w-full max-w-sm p-1`} onClick={(e) => e.stopPropagation()}>
@@ -2071,10 +2161,13 @@ const BattleChips = () => {
             }}
           >
             {isConnected ? (
-              <button {...uiSfx(() => navigate(enterLobby))} className={`${btn98} ${titleBtn}`}>PLAY</button>
+              <button {...uiSfx(startPlay)} className={`${btn98} ${titleBtn}`}>PLAY</button>
             ) : (
               <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
             )}
+            <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn} !text-base md:!text-lg`}>
+              FUND YOUR ACCOUNT
+            </button>
             <button {...uiSfx(() => setShowSettings(true))} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
         </div>
@@ -2086,6 +2179,7 @@ const BattleChips = () => {
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}
         {settingsDialog}
+        {fundingWindow}
         {introRunning && <Intro step={introStep} shift={logoShift} />}
         <ScreenFade {...fade} />
         {audio === 'blocked' && !settings.muted && <SoundNudge />}

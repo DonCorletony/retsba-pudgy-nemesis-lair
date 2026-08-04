@@ -28,7 +28,7 @@ P('nothing over the title screen at rest', (await look()).veil === 0);
 // --- into the game
 const t0 = Date.now();
 await page.evaluate(() => window.__BC.pressPlay());
-const into = await trace();
+const into = await trace(3200);
 console.log('  PLAY  ', into.map((x) => `${x.veil}${x.phase[0]}`).join(' '));
 P('it goes fully black on the way in', into.some((x) => x.veil === 1));
 P('it never cuts — there are part-way frames', into.some((x) => x.veil > 0.05 && x.veil < 0.95));
@@ -36,8 +36,9 @@ const firstLobby = into.findIndex((x) => x.phase === 'lobby');
 P(`the screen swaps while it is black (veil was ${into[firstLobby]?.veil} at the swap)`, into[firstLobby]?.veil === 1);
 P('it lifts again by the end', into.at(-1).veil === 0);
 P('and stops blocking clicks once lifted', into.at(-1).blocking === false);
-const black = into.filter((x) => x.veil > 0.9).length * 100;
-P(`black lasts about a second (${black}ms fully opaque, ${Date.now() - t0}ms end to end)`, black >= 500 && black <= 1400);
+const blackIn = into.filter((x) => x.veil > 0.9).length * 100;
+P(`going in holds on black about two seconds (${blackIn}ms fully opaque, ${Date.now() - t0}ms end to end)`,
+  blackIn >= 1400 && blackIn <= 2400);
 
 // --- and back out
 await page.waitForTimeout(600);
@@ -45,6 +46,9 @@ await page.getByRole('button', { name: 'Back' }).click();
 const out = await trace();
 console.log('  Back  ', out.map((x) => `${x.veil}${x.phase[0]}`).join(' '));
 P('Back dips through black too', out.some((x) => x.veil === 1));
+const blackOut = out.filter((x) => x.veil > 0.9).length * 100;
+P(`but coming back is the shorter dip (${blackOut}ms vs ${blackIn}ms going in)`,
+  blackOut >= 400 && blackOut < blackIn - 500);
 P('with part-way frames of its own', out.some((x) => x.veil > 0.05 && x.veil < 0.95));
 P('landing on the title screen', out.at(-1).phase === 'idle');
 P('with the veil lifted', out.at(-1).veil === 0);
@@ -57,7 +61,7 @@ await page.waitForTimeout(900);
 await page.getByRole('button', { name: 'Forfeit' }).click();
 await page.waitForTimeout(400);
 await page.getByRole('button', { name: 'Yes, Leave' }).click();
-const quit = await trace();
+const quit = await trace(2400);
 console.log('  Leave ', quit.map((x) => `${x.veil}${x.phase[0]}`).join(' '));
 P('leaving a match dips as well', quit.some((x) => x.veil === 1));
 P('and ends up home', quit.at(-1).phase === 'idle' && quit.at(-1).veil === 0);

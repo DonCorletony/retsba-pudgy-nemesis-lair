@@ -7,7 +7,7 @@ const TAP = `
   const orig = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function () {
     const src = (this.currentSrc || this.src || '').split('/').pop();
-    if (/^ui-/.test(src)) window.__ui.push({ src, vol: +this.volume.toFixed(2) });
+    if (/^ui-|wave-crash/.test(src)) window.__ui.push({ src, vol: +this.volume.toFixed(2) });
     return orig.call(this);
   };`;
 
@@ -75,6 +75,19 @@ await btn('Forfeit').click();
 await page.waitForTimeout(400);
 await exercise('Yes, Leave');
 await page.waitForTimeout(1200);
+
+// PLAY has a sound of its own on top of the click.
+await settled(page);
+await drain();
+await page.evaluate(() => window.__BC.pressPlay());
+await page.waitForTimeout(400);
+const onPlay = (await drain()).map((x) => x.src);
+P(`PLAY breaks a wave (${onPlay.join(', ') || 'nothing'})`, onPlay.includes('wave-crash.wav'));
+await settled(page);
+await page.waitForTimeout(400);
+await page.getByRole('button', { name: 'Back' }).click();
+await settled(page);
+await page.waitForTimeout(600);
 
 // The corner wallet pill only exists once connected; the title one stands in
 // for it — same component, same props.
