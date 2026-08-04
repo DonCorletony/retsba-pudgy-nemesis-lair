@@ -16,7 +16,11 @@ const base =
 const sizeOf = (big: boolean) =>
   big ? 'w-full px-3 py-3 text-lg md:text-xl tracking-[0.2em]' : 'px-4 py-1.5 text-sm';
 
-export const WalletButton = ({ className = '', big = false }: { className?: string; big?: boolean }) => (
+/** `onHover`/`onPress` let the caller chirp without this file reaching into the
+ *  game's audio module, which imports this one. */
+export const WalletButton = ({ className = '', big = false, onHover, onPress }: {
+  className?: string; big?: boolean; onHover?: () => void; onPress?: () => void;
+}) => (
   <ConnectButton.Custom>
     {({ account, chain, openConnectModal, openChainModal, openAccountModal, authenticationStatus, mounted }) => {
       const ready = mounted && authenticationStatus !== 'loading';
@@ -35,7 +39,7 @@ export const WalletButton = ({ className = '', big = false }: { className?: stri
       if (!connected) {
         return (
           <div className={className}>
-            <button onClick={openConnectModal} className={`${base} ${sizeOf(big)}`}>CONNECT WALLET</button>
+            <button onMouseEnter={onHover} onClick={() => { onPress?.(); openConnectModal(); }} className={`${base} ${sizeOf(big)}`}>CONNECT WALLET</button>
           </div>
         );
       }
@@ -44,14 +48,14 @@ export const WalletButton = ({ className = '', big = false }: { className?: stri
       if (chain.unsupported) {
         return (
           <div className={className}>
-            <button onClick={openChainModal} className={`${base} ${sizeOf(big)} !text-[#a30000]`}>WRONG NETWORK</button>
+            <button onMouseEnter={onHover} onClick={() => { onPress?.(); openChainModal(); }} className={`${base} ${sizeOf(big)} !text-[#a30000]`}>WRONG NETWORK</button>
           </div>
         );
       }
 
       return (
         <div className={className}>
-          <button onClick={openAccountModal} className={`${base} ${sizeOf(big)}`} title={account.address}>
+          <button onMouseEnter={onHover} onClick={() => { onPress?.(); openAccountModal(); }} className={`${base} ${sizeOf(big)}`} title={account.address}>
             {account.displayName}
           </button>
         </div>

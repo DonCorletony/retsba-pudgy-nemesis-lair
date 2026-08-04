@@ -24,8 +24,13 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
     (await page.getByRole('button', { name: 'DONE' }).locator('visible=true').count()) === 1);
 
   await page.getByRole('button', { name: 'DONE' }).locator('visible=true').click();
-  await page.waitForTimeout(5500);                          // opponent settles, then BEGIN
-  const s = await page.evaluate(() => ({ phase: window.__BC.phase, shots: window.__BC.shotsLeft }));
+  // the opponent settles, then BEGIN — poll rather than guess a duration
+  let s;
+  for (let i = 0; i < 30; i++) {
+    await page.waitForTimeout(500);
+    s = await page.evaluate(() => ({ phase: window.__BC.phase, shots: window.__BC.shotsLeft }));
+    if (s.phase === 'battle') break;
+  }
   P(`the match starts (phase=${s.phase})`, s.phase === 'battle');
   P(`five shots a turn (${s.shots})`, s.shots === 5);
   P('the sound toggle follows you into the match', (await page.locator('button[aria-label="Mute"], button[aria-label="Unmute"]').count()) >= 1);

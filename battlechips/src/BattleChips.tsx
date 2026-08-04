@@ -76,6 +76,8 @@ const SFX = {
   miss: '/game/sounds/miss.mp3',
   bonus: '/game/sounds/bonus-spin.mp3',
   chime: '/game/sounds/chime.wav',
+  hover: '/game/sounds/ui-hover.wav',
+  click: '/game/sounds/ui-click.wav',
   highlight: '/game/sounds/powerup-highlight.wav',
   selected: '/game/sounds/powerup-selected.wav',
 } as const;
@@ -355,6 +357,13 @@ const raised =
   'bg-[#c3c3c3] border-2 border-t-white border-l-white border-b-[#5c5c5c] border-r-[#5c5c5c] shadow-[inset_1px_1px_0_#e6e6e6,inset_-1px_-1px_0_#8a8a8a]';
 const sunken =
   'bg-[#c3c3c3] border-2 border-t-[#5c5c5c] border-l-[#5c5c5c] border-b-white border-r-white shadow-[inset_-1px_-1px_0_#e6e6e6,inset_1px_1px_0_#8a8a8a]';
+/** Chrome buttons chirp on hover and click. Spread onto a <button>; pass the
+ *  work it should do and it runs after the click sound is queued. */
+const uiSfx = (onClick?: () => void) => ({
+  onMouseEnter: () => playSfx(SFX.hover),
+  onClick: () => { playSfx(SFX.click); onClick?.(); },
+});
+
 const btn98 =
   `${raised} px-5 py-1.5 font-bold text-black text-sm active:border-t-[#5c5c5c] active:border-l-[#5c5c5c] active:border-b-white active:border-r-white select-none disabled:text-[#7a7a7a] disabled:active:border-t-white disabled:active:border-l-white`;
 
@@ -374,7 +383,9 @@ type ShipKey = (typeof FLEET)[number]['key'];
 
 interface Placed { key: ShipKey; len: number; row: number; col: number; dir: 'v' | 'h'; }
 type Shots = Record<number, 'hit' | 'miss' | 'blocked'>;
-type Phase = 'idle' | 'setup' | 'battle' | 'over';
+/* 'lobby' is the game screen with nothing running on it — where PLAY lands you,
+   and where a finished match leaves you. */
+type Phase = 'idle' | 'lobby' | 'setup' | 'battle' | 'over';
 
 const cellsFor = (s: Placed): number[] =>
   Array.from({ length: s.len }, (_, i) => (s.dir === 'v' ? (s.row + i) * GRID + s.col : s.row * GRID + s.col + i));
@@ -1288,6 +1299,8 @@ const BattleChips = () => {
     }
   };
   const newMatch = () => resetTo('setup');
+  /** PLAY opens the game screen; starting a match is a separate, deliberate step. */
+  const enterLobby = () => resetTo('lobby');
 
   const beginBattle = (arranged: Placed[]) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
@@ -1347,16 +1360,17 @@ const BattleChips = () => {
     if ((phase === 'setup' || phase === 'battle') && !bonus && !showForfeit && clock >= 1 && clock <= 3) playSfx(SFX.countdown);
   }, [clock, phase, bonus, showForfeit]);
 
-  /* master clock — frozen during a bonus or the forfeit prompt */
+  /* master clock — only while a match is live, and frozen during a bonus or
+     the forfeit prompt. The lobby has no clock to run. */
   useEffect(() => {
-    if (phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
+    if (!inGame || bonus || showForfeit) return;
     const id = setInterval(() => setClock((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [phase, turn, bonus, showForfeit]);
 
   /* clock expiry */
   useEffect(() => {
-    if (clock > 0 || phase === 'idle' || phase === 'over' || bonus || showForfeit) return;
+    if (clock > 0 || !inGame || bonus || showForfeit) return;
     if (phase === 'setup') { beginBattle(yourFleet); return; }
     if (phase === 'battle') {
       // A shield still being dragged when the clock dies locks where it stands,
@@ -1723,7 +1737,8 @@ const BattleChips = () => {
   };
 
   const statusText =
-    phase === 'setup' ? (
+    phase === 'lobby' ? 'No match running — press New match to start one, or Back for the title screen.'
+    : phase === 'setup' ? (
         waitingDone ? 'Board locked — waiting for opponent…'
         : 'Drag any boat to move it, ↻ turns the glowing one. SHUFFLE to re-scatter, DONE when you like it.'
       )
@@ -1753,7 +1768,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch, enterLobby };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1898,7 +1913,8 @@ const BattleChips = () => {
   const yourBoard = (
     <Board
       title="Your fleet"
-      right={phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
+      right={phase === 'lobby' ? 'awaiting battle'
+        : phase === 'setup' ? `${yourFleet.length}/${FLEET.length} ships` : `boats left: ${yourBoats}`}
       ships={yourFleet} showShips sunk={[]} shots={foeShots}
       clickable={arranging || !!shieldPlacing}
       // Highlighted while you're arranging it, and again while it's under fire —
@@ -1972,7 +1988,7 @@ const BattleChips = () => {
             </span>
           </label>
           <div className="flex justify-center pt-1">
-            <button onClick={() => setShowSettings(false)} className={btn98}>DONE</button>
+            <button {...uiSfx(() => setShowSettings(false))} className={btn98}>DONE</button>
           </div>
         </div>
       </div>
@@ -2019,17 +2035,17 @@ const BattleChips = () => {
             }}
           >
             {isConnected ? (
-              <button onClick={newMatch} className={`${btn98} ${titleBtn}`}>PLAY</button>
+              <button {...uiSfx(enterLobby)} className={`${btn98} ${titleBtn}`}>PLAY</button>
             ) : (
-              <WalletButton big className="w-full" />
+              <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
             )}
-            <button onClick={() => setShowSettings(true)} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
+            <button {...uiSfx(() => setShowSettings(true))} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
         </div>
         <Footer onArt />
         {/* The corner pill is the connected wallet's home; before that the only
             wallet control is the big one under the logo. */}
-        {isConnected && revealed && <WalletButton className="fixed top-3 right-3 z-[70]" />}
+        {isConnected && revealed && <WalletButton className="fixed top-3 right-3 z-[70]" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />}
         {revealed && (
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}
@@ -2119,8 +2135,8 @@ const BattleChips = () => {
             <div className="p-4 text-center">
               <p className="text-sm text-black mb-4">Are you sure you&apos;d like to forfeit? Funds will not be returned.</p>
               <div className="flex justify-center gap-3">
-                <button onClick={() => resetTo('idle')} className={btn98}>Yes, Leave</button>
-                <button onClick={() => setShowForfeit(false)} className={btn98}>No, Stay</button>
+                <button {...uiSfx(() => resetTo('idle'))} className={btn98}>Yes, Leave</button>
+                <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>
               </div>
             </div>
           </div>
@@ -2130,19 +2146,19 @@ const BattleChips = () => {
       {/* Chrome bar — buttons stay compact on mobile so the wordmark can't overlap them */}
       <div className={`${raised} relative flex items-center justify-between gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
         <button
-          onClick={() => (inGame ? setShowForfeit(true) : resetTo('idle'))}
+          {...uiSfx(() => (inGame ? setShowForfeit(true) : resetTo('idle')))}
           className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
         >
-          {inGame ? 'Forfeit' : 'Exit'}
+          {inGame ? 'Forfeit' : 'Back'}
         </button>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
 
         <div className="flex items-center gap-2 relative z-10">
-          <button onClick={newMatch} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
+          <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
             New match
           </button>
-          <WalletButton />
+          <WalletButton onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
         </div>
       </div>
 
@@ -2150,7 +2166,8 @@ const BattleChips = () => {
       <div className={`${raised} p-0.5 mb-3`}>
         <div className={`${sunken} bg-[#efefef] flex flex-wrap gap-2 items-center justify-between px-3 py-1.5`}>
           <span className="font-mono text-[13px] tracking-widest uppercase">
-            {phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle' : 'Game over'}
+            {phase === 'setup' ? 'Private setup' : phase === 'battle' ? 'Battle'
+              : phase === 'lobby' ? 'No match' : 'Game over'}
           </span>
           <span className="text-sm">{statusText}</span>
         </div>
