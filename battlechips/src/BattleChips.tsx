@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
+import { useAccount } from 'wagmi';
 import { WalletButton } from './WalletButton';
 
 /**
@@ -51,6 +52,18 @@ const CLUSTER_SIZE = 5; // Cluster card fires a 5x5 blast
 const SHIELD_SIZE = 5;  // Shield card covers a 5x5 of your own water
 const SHIELD_HIT_MS = 1400;
 
+/* ---------- opening sequence ----------
+   studio card -> black -> game logo -> the wallpaper fades up behind it.
+   Times are cumulative milliseconds from load. */
+const INTRO = {
+  studioIn: 300,     // "LUCKY JACK GAMES" starts fading up
+  studioOut: 3300,   // ...and starts fading away
+  blackHold: 4200,   // three seconds of nothing
+  logoIn: 7200,      // BattleChips logo fades up
+  reveal: 10200,     // black lifts, wallpaper shows through
+  done: 11400,       // controls appear
+} as const;
+
 /* ---------- audio ----------
    Browsers block audio until the page has had a user gesture; clicking
    "New match" supplies it. Playback errors are swallowed — sound is never
@@ -62,6 +75,7 @@ const SFX = {
   sunk: '/game/sounds/ship-destroyed.wav',
   miss: '/game/sounds/miss.mp3',
   bonus: '/game/sounds/bonus-spin.mp3',
+  shine: '/game/sounds/shine.wav',
   highlight: '/game/sounds/powerup-highlight.wav',
   selected: '/game/sounds/powerup-selected.wav',
 } as const;
@@ -526,6 +540,52 @@ const Footer = ({ onArt = false }: { onArt?: boolean }) => (
   </div>
 );
 
+/** Cold-open: studio card, black, game logo, then the wallpaper is revealed. */
+const Intro = ({ step }: { step: number }) => {
+  // step: 0 studio card, 1 black, 2 logo, 3 revealing, 4 finished
+  const studio = step === 0;
+  const logo = step === 2 || step === 3;
+  return (
+    <>
+      {/* The black ground lifts at the reveal, uncovering the wallpaper behind it. */}
+      <div
+        className="fixed inset-0 z-[90] bg-black pointer-events-none"
+        style={{ opacity: step >= 3 ? 0 : 1, transition: 'opacity 1200ms ease-in-out' }}
+      />
+      <div className="fixed inset-0 z-[91] flex items-center justify-center pointer-events-none p-6">
+        <span
+          className="font-mono font-bold text-white text-center select-none whitespace-nowrap"
+          style={{
+            fontSize: 'clamp(1.1rem, 4.6vw, 3rem)',
+            letterSpacing: '0.22em',
+            opacity: studio ? 1 : 0,
+            transition: 'opacity 900ms ease-in-out',
+            // the sheen: a bright band moving across a white base, clipped to the glyphs
+            backgroundImage:
+              'linear-gradient(100deg, #ffffff 0%, #ffffff 38%, #bfefff 47%, #ffffff 56%, #ffffff 100%)',
+            backgroundSize: '250% 100%',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            animation: studio ? 'bcShine 2200ms ease-in-out 400ms 1 both' : undefined,
+          }}
+        >
+          LUCKY JACK GAMES
+        </span>
+      </div>
+      <div className="fixed inset-0 z-[91] flex items-center justify-center pointer-events-none p-6">
+        <img
+          src="/game/logo-battlechips.webp"
+          alt=""
+          draggable={false}
+          className="w-[min(78vw,520px)] h-auto select-none"
+          style={{ opacity: logo ? 1 : 0, transition: 'opacity 900ms ease-in-out' }}
+        />
+      </div>
+    </>
+  );
+};
+
 /** Always-present mute for everything, bottom-right of whichever screen you're on. */
 const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void }) => (
   <button
@@ -790,6 +850,24 @@ const BattleChips = () => {
   const [wheelAngle, setWheelAngle] = useState(0);
   const [ballAngle, setBallAngle] = useState(0);
   const [spinClock, setSpinClock] = useState(SPIN_CHOICE_SECS);
+  const { isConnected } = useAccount();
+  /* Opening sequence. Runs once per load and can be skipped by clicking, which
+     also matters for anyone who just wants to get on with it. Reduced-motion
+     users go straight to the title screen. */
+  const [introStep, setIntroStep] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 4 : 0,
+  );
+  const skipIntro = () => setIntroStep(4);
+  useEffect(() => {
+    if (introStep === 4) return;
+    const at = (ms: number, step: number) => setTimeout(() => setIntroStep((c) => (c === 4 ? 4 : step)), ms);
+    // Autoplay is blocked until the page has had a gesture, so this only lands
+    // for a returning visitor who has already interacted. Failures are silent.
+    const chime = setTimeout(() => playSfx(SFX.shine), INTRO.studioIn + 200);
+    const ids = [at(INTRO.blackHold, 1), at(INTRO.logoIn, 2), at(INTRO.reveal, 3), at(INTRO.done, 4)];
+    return () => { clearTimeout(chime); ids.forEach(clearTimeout); };
+  }, [introStep === 4]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [settings, setSettings] = useState<Prefs>(() => prefs);
   const [showSettings, setShowSettings] = useState(false);
   // playSfx reads the module-level copy, so push every change straight through.
@@ -1333,7 +1411,7 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1560,16 +1638,15 @@ const BattleChips = () => {
     </div>
   );
 
-  /* Title screen. It's where /testgame lands and where forfeiting drops you, so
-     the console never shows up without a match behind it. Background is left
-     plain on purpose — artwork is coming. */
+  /* Title screen: everything stacked down the middle under the wordmark, opened
+     by the cold-start sequence. The primary button is the wallet until you're
+     connected, then it becomes PLAY. */
   if (phase === 'idle') {
+    const introRunning = introStep < 4;
     return (
       <div
         className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
-        /* Temporary wallpaper — a still frame; swap in the animated .gif when it
-           lands. The grey ground stays underneath so a missing file degrades to
-           the plain screen rather than a hole. */
+        onClick={introRunning ? skipIntro : undefined}
         style={{
           backgroundImage: "url('/game/title-bg.webp')",
           backgroundSize: 'cover',
@@ -1577,30 +1654,49 @@ const BattleChips = () => {
           imageRendering: 'pixelated',
         }}
       >
-        <div className="flex-1 flex flex-col md:flex-row items-center justify-center md:justify-around gap-10 md:gap-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-6">
           <img
             src="/game/logo-battlechips.webp"
             alt="Battle Chips"
-            className="w-[min(78vw,520px)] md:w-[min(42vw,620px)] h-auto select-none"
+            className="w-[min(80vw,560px)] h-auto select-none"
             draggable={false}
+            /* Held back during the sequence: the intro is already showing a copy
+               of this logo, and two would cross-fade over each other. */
+            style={{ opacity: introStep >= 3 ? 1 : 0, transition: 'opacity 600ms ease-in-out' }}
           />
-          <div className="flex flex-col items-center gap-4">
-            <button
-              onClick={newMatch}
-              className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
-            >
-              START
-            </button>
+          {/* Controls arrive with the reveal, not before. */}
+          <div
+            className="flex flex-col items-center gap-3"
+            style={{
+              opacity: introRunning ? 0 : 1,
+              pointerEvents: introRunning ? 'none' : 'auto',
+              transition: 'opacity 700ms ease-in-out',
+            }}
+          >
+            {isConnected ? (
+              <button
+                onClick={newMatch}
+                className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
+              >
+                PLAY
+              </button>
+            ) : (
+              <WalletButton big />
+            )}
             <button onClick={() => setShowSettings(true)} className={`${btn98} !px-8 !py-2 text-base tracking-[0.2em]`}>
               SETTINGS
             </button>
-
           </div>
         </div>
         <Footer onArt />
-        <WalletButton className="fixed top-3 right-3 z-[70]" />
-        <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
+        {/* The corner pill is the connected wallet's home; before that the only
+            wallet control is the big one under the logo. */}
+        {isConnected && !introRunning && <WalletButton className="fixed top-3 right-3 z-[70]" />}
+        {!introRunning && (
+          <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
+        )}
         {settingsDialog}
+        {introRunning && <Intro step={introStep} />}
       </div>
     );
   }
@@ -1624,6 +1720,12 @@ const BattleChips = () => {
         @keyframes bcPulse {
           0%, 100% { outline-color: #f2c320; box-shadow: 0 0 0 0 rgba(242,195,32,0); }
           50%      { outline-color: #fff7cc; box-shadow: 0 0 12px 3px rgba(242,195,32,0.65); }
+        }
+        /* Studio card: a highlight sweeps across the letters left to right. The
+           gradient is clipped to the text, so only the glyphs light up. */
+        @keyframes bcShine {
+          0%   { background-position: -180% 0; }
+          100% { background-position: 180% 0; }
         }
         /* Shield being positioned: neon blue outline breathing against the water. */
         @keyframes bcShield {
