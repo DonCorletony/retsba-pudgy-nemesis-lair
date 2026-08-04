@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { WalletButton } from './WalletButton';
@@ -57,11 +57,10 @@ const SHIELD_HIT_MS = 1400;
    Times are cumulative milliseconds from load. */
 const INTRO = {
   studioIn: 300,     // "LUCKY JACK GAMES" starts fading up
-  studioOut: 3300,   // ...and starts fading away
-  blackHold: 4200,   // three seconds of nothing
-  logoIn: 7200,      // BattleChips logo fades up
-  reveal: 10200,     // black lifts, wallpaper shows through
-  done: 11400,       // controls appear
+  studioOut: 3300,   // ...and starts fading away, clearing by 4200
+  logoIn: 7200,      // three seconds of nothing, then the wordmark fades up
+  reveal: 10200,     // black lifts, wordmark rides up, controls fade in
+  done: 11400,       // the wordmark has landed; the title screen takes over
 } as const;
 
 /* ---------- audio ----------
@@ -204,6 +203,11 @@ const sunken =
   'bg-[#c3c3c3] border-2 border-t-[#5c5c5c] border-l-[#5c5c5c] border-b-white border-r-white shadow-[inset_-1px_-1px_0_#e6e6e6,inset_1px_1px_0_#8a8a8a]';
 const btn98 =
   `${raised} px-5 py-1.5 font-bold text-black text-sm active:border-t-[#5c5c5c] active:border-l-[#5c5c5c] active:border-b-white active:border-r-white select-none disabled:text-[#7a7a7a] disabled:active:border-t-white disabled:active:border-l-white`;
+
+/** Title-screen buttons. They fill a shared column so PLAY / CONNECT WALLET /
+ *  SETTINGS all come out the same size — see `big` in WalletButton, which
+ *  deliberately mirrors this. */
+const titleBtn = '!w-full !px-3 !py-3 !text-lg md:!text-xl tracking-[0.2em]';
 
 const FLEET = [
   { key: 'carrier', label: 'Carrier', len: 5, src: '/game/ship-carrier.png' },
@@ -540,11 +544,132 @@ const Footer = ({ onArt = false }: { onArt?: boolean }) => (
   </div>
 );
 
+/* A 5x7 bitmap alphabet, just the letters the studio card needs. Drawing the
+   type ourselves keeps it genuinely pixelated at any size — a web font would
+   antialias its edges away, and none of the ones we ship is a pixel face. */
+const GLYPH_W = 5;
+const GLYPH_H = 7;
+/* Drawn as literal shapes so a miscounted row is visible on sight rather than
+   silently turning one letter into another. Whitespace is stripped on read. */
+const rows = (art: string) => {
+  const bits = art.replace(/\s/g, '');
+  if (bits.length !== GLYPH_W * GLYPH_H) throw new Error(`bad glyph: ${bits.length} cells`);
+  return bits;
+};
+const GLYPHS: Record<string, string> = {
+  A: rows(`.###.
+           #...#
+           #...#
+           #####
+           #...#
+           #...#
+           #...#`),
+  C: rows(`.###.
+           #...#
+           #....
+           #....
+           #....
+           #...#
+           .###.`),
+  E: rows(`#####
+           #....
+           #....
+           ####.
+           #....
+           #....
+           #####`),
+  G: rows(`.###.
+           #...#
+           #....
+           #.###
+           #...#
+           #...#
+           .###.`),
+  J: rows(`..###
+           ...#.
+           ...#.
+           ...#.
+           ...#.
+           #..#.
+           .##..`),
+  K: rows(`#...#
+           #..#.
+           #.#..
+           ##...
+           #.#..
+           #..#.
+           #...#`),
+  L: rows(`#....
+           #....
+           #....
+           #....
+           #....
+           #....
+           #####`),
+  M: rows(`#...#
+           ##.##
+           #.#.#
+           #.#.#
+           #...#
+           #...#
+           #...#`),
+  S: rows(`.####
+           #....
+           #....
+           .###.
+           ....#
+           ....#
+           ####.`),
+  U: rows(`#...#
+           #...#
+           #...#
+           #...#
+           #...#
+           #...#
+           .###.`),
+  Y: rows(`#...#
+           #...#
+           .#.#.
+           ..#..
+           ..#..
+           ..#..
+           ..#..`),
+};
+
+/** Builds an SVG silhouette of `text` to use as a CSS mask, so anything we put
+ *  behind it — a flat colour, a moving glare — shows through the pixels only. */
+const pixelMask = (text: string) => {
+  const gap = 1;
+  const spaceW = 3;
+  const rects: string[] = [];
+  let x = 0;
+  for (const ch of text) {
+    if (ch === ' ') { x += spaceW + gap; continue; }
+    const bits = GLYPHS[ch];
+    for (let i = 0; i < bits.length; i++) {
+      if (bits[i] === '#') rects.push(`<rect x="${x + (i % GLYPH_W)}" y="${Math.floor(i / GLYPH_W)}" width="1" height="1"/>`);
+    }
+    x += GLYPH_W + gap;
+  }
+  const w = x - gap;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${GLYPH_H}" fill="#fff" shape-rendering="crispEdges">${rects.join('')}</svg>`;
+  return { url: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`, ratio: w / GLYPH_H };
+};
+const STUDIO = pixelMask('LUCKY JACK GAMES');
+const maskStyle = {
+  WebkitMaskImage: STUDIO.url,
+  maskImage: STUDIO.url,
+  WebkitMaskSize: '100% 100%',
+  maskSize: '100% 100%',
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+} as const;
+
 /** Cold-open: studio card, black, game logo, then the wallpaper is revealed. */
-const Intro = ({ step }: { step: number }) => {
-  // step: 0 studio card, 1 black, 2 logo, 3 revealing, 4 finished
+const Intro = ({ step, shift }: { step: number; shift: number }) => {
+  // step: 0 studio card, 1 black, 2 logo, 3 revealing (logo slides into place)
   const studio = step === 0;
-  const logo = step === 2 || step === 3;
+  const logo = step >= 2;
   return (
     <>
       {/* The black ground lifts at the reveal, uncovering the wallpaper behind it. */}
@@ -553,33 +678,48 @@ const Intro = ({ step }: { step: number }) => {
         style={{ opacity: step >= 3 ? 0 : 1, transition: 'opacity 1200ms ease-in-out' }}
       />
       <div className="fixed inset-0 z-[91] flex items-center justify-center pointer-events-none p-6">
-        <span
-          className="font-mono font-bold text-white text-center select-none whitespace-nowrap"
+        <div
+          aria-label="Lucky Jack Games"
+          className="relative select-none"
           style={{
-            fontSize: 'clamp(1.1rem, 4.6vw, 3rem)',
-            letterSpacing: '0.22em',
+            width: 'min(64vw, 380px)',
+            aspectRatio: `${STUDIO.ratio}`,
             opacity: studio ? 1 : 0,
             transition: 'opacity 900ms ease-in-out',
-            // the sheen: a bright band moving across a white base, clipped to the glyphs
-            backgroundImage:
-              'linear-gradient(100deg, #ffffff 0%, #ffffff 38%, #bfefff 47%, #ffffff 56%, #ffffff 100%)',
-            backgroundSize: '250% 100%',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-            animation: studio ? 'bcShine 2200ms ease-in-out 400ms 1 both' : undefined,
           }}
         >
-          LUCKY JACK GAMES
-        </span>
+          {/* The letters, then a bright band swept across them left to right.
+              The glow sits on the wrapper because a filter is applied before the
+              mask — on the masked layer itself it would just blur a rectangle. */}
+          <div className="absolute inset-0" style={{ ...maskStyle, background: '#d5dbe1' }} />
+          <div className="absolute inset-0" style={{ filter: 'drop-shadow(0 0 7px rgba(255,255,255,0.75))' }}>
+            <div className="absolute inset-0 overflow-hidden" style={maskStyle}>
+              <div
+                className="absolute inset-y-0 left-0 w-[55%]"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(100deg, rgba(255,255,255,0) 0%, #ffffff 42%, #ffffff 58%, rgba(255,255,255,0) 100%)',
+                  animation: studio ? 'bcShine 1900ms ease-in-out 700ms 1 both' : undefined,
+                  transform: 'translateX(-110%)',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
+      {/* The one and only logo from here on: it rides up into its title-screen
+          slot as the black lifts, and the static copy takes over once it lands. */}
       <div className="fixed inset-0 z-[91] flex items-center justify-center pointer-events-none p-6">
         <img
           src="/game/logo-battlechips.webp"
           alt=""
           draggable={false}
-          className="w-[min(78vw,520px)] h-auto select-none"
-          style={{ opacity: logo ? 1 : 0, transition: 'opacity 900ms ease-in-out' }}
+          className="w-[min(80vw,560px)] h-auto select-none"
+          style={{
+            opacity: logo ? 1 : 0,
+            transform: `translateY(${step >= 3 ? shift : 0}px)`,
+            transition: 'opacity 900ms ease-in-out, transform 1200ms ease-in-out',
+          }}
         />
       </div>
     </>
@@ -858,13 +998,22 @@ const BattleChips = () => {
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 4 : 0,
   );
   const skipIntro = () => setIntroStep(4);
+  /* Where the title screen's own logo sits, measured off the real element: the
+     intro's copy slides up by exactly this much so the hand-off is seamless. */
+  const titleLogoRef = useRef<HTMLImageElement>(null);
+  const [logoShift, setLogoShift] = useState(0);
+  useLayoutEffect(() => {
+    if (introStep !== 3 || !titleLogoRef.current) return;
+    const r = titleLogoRef.current.getBoundingClientRect();
+    setLogoShift(r.top + r.height / 2 - window.innerHeight / 2);
+  }, [introStep]);
   useEffect(() => {
     if (introStep === 4) return;
     const at = (ms: number, step: number) => setTimeout(() => setIntroStep((c) => (c === 4 ? 4 : step)), ms);
     // Autoplay is blocked until the page has had a gesture, so this only lands
     // for a returning visitor who has already interacted. Failures are silent.
     const chime = setTimeout(() => playSfx(SFX.shine), INTRO.studioIn + 200);
-    const ids = [at(INTRO.blackHold, 1), at(INTRO.logoIn, 2), at(INTRO.reveal, 3), at(INTRO.done, 4)];
+    const ids = [at(INTRO.studioOut, 1), at(INTRO.logoIn, 2), at(INTRO.reveal, 3), at(INTRO.done, 4)];
     return () => { clearTimeout(chime); ids.forEach(clearTimeout); };
   }, [introStep === 4]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1643,6 +1792,9 @@ const BattleChips = () => {
      connected, then it becomes PLAY. */
   if (phase === 'idle') {
     const introRunning = introStep < 4;
+    // The reveal is the moment the screen becomes the title screen: the black
+    // lifts, the logo rides up, and the buttons fade in, all together.
+    const revealed = introStep >= 3;
     return (
       <div
         className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
@@ -1655,48 +1807,42 @@ const BattleChips = () => {
         }}
       >
         <div className="flex-1 flex flex-col items-center justify-center gap-6">
+          {/* Invisible until the intro's copy has finished sliding onto this
+              exact spot; the swap is silent because the two line up. */}
           <img
+            ref={titleLogoRef}
             src="/game/logo-battlechips.webp"
             alt="Battle Chips"
             className="w-[min(80vw,560px)] h-auto select-none"
             draggable={false}
-            /* Held back during the sequence: the intro is already showing a copy
-               of this logo, and two would cross-fade over each other. */
-            style={{ opacity: introStep >= 3 ? 1 : 0, transition: 'opacity 600ms ease-in-out' }}
+            style={{ opacity: introRunning ? 0 : 1 }}
           />
-          {/* Controls arrive with the reveal, not before. */}
+          {/* Controls fade in as the logo travels, not after. */}
           <div
-            className="flex flex-col items-center gap-3"
+            className="flex flex-col items-center gap-3 w-[min(74vw,300px)]"
             style={{
-              opacity: introRunning ? 0 : 1,
-              pointerEvents: introRunning ? 'none' : 'auto',
-              transition: 'opacity 700ms ease-in-out',
+              opacity: revealed ? 1 : 0,
+              pointerEvents: revealed ? 'auto' : 'none',
+              transition: 'opacity 900ms ease-in-out',
             }}
           >
             {isConnected ? (
-              <button
-                onClick={newMatch}
-                className={`${btn98} !px-12 !py-4 md:!px-16 md:!py-6 text-2xl md:text-4xl tracking-[0.2em]`}
-              >
-                PLAY
-              </button>
+              <button onClick={newMatch} className={`${btn98} ${titleBtn}`}>PLAY</button>
             ) : (
-              <WalletButton big />
+              <WalletButton big className="w-full" />
             )}
-            <button onClick={() => setShowSettings(true)} className={`${btn98} !px-8 !py-2 text-base tracking-[0.2em]`}>
-              SETTINGS
-            </button>
+            <button onClick={() => setShowSettings(true)} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
         </div>
         <Footer onArt />
         {/* The corner pill is the connected wallet's home; before that the only
             wallet control is the big one under the logo. */}
-        {isConnected && !introRunning && <WalletButton className="fixed top-3 right-3 z-[70]" />}
-        {!introRunning && (
+        {isConnected && revealed && <WalletButton className="fixed top-3 right-3 z-[70]" />}
+        {revealed && (
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}
         {settingsDialog}
-        {introRunning && <Intro step={introStep} />}
+        {introRunning && <Intro step={introStep} shift={logoShift} />}
       </div>
     );
   }
@@ -1720,12 +1866,6 @@ const BattleChips = () => {
         @keyframes bcPulse {
           0%, 100% { outline-color: #f2c320; box-shadow: 0 0 0 0 rgba(242,195,32,0); }
           50%      { outline-color: #fff7cc; box-shadow: 0 0 12px 3px rgba(242,195,32,0.65); }
-        }
-        /* Studio card: a highlight sweeps across the letters left to right. The
-           gradient is clipped to the text, so only the glyphs light up. */
-        @keyframes bcShine {
-          0%   { background-position: -180% 0; }
-          100% { background-position: 180% 0; }
         }
         /* Shield being positioned: neon blue outline breathing against the water. */
         @keyframes bcShield {

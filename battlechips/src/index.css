@@ -209,3 +209,12 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Studio card on the opening sequence: a bright band crosses the letters left
+   to right, masked to the glyphs so only the pixels light up as it passes.
+   Percentages are of the band's own width, hence the >100% end. This lives in
+   the global sheet because the title screen has no <style> block of its own. */
+@keyframes bcShine {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(210%); }
+}

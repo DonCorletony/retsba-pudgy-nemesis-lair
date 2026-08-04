@@ -10,9 +10,11 @@ const base =
   'bg-[#c3c3c3] border-2 border-t-white border-l-white border-b-[#5c5c5c] border-r-[#5c5c5c] ' +
   'shadow-[inset_1px_1px_0_#e6e6e6,inset_-1px_-1px_0_#8a8a8a] font-bold text-black ' +
   'active:border-t-[#5c5c5c] active:border-l-[#5c5c5c] active:border-b-white active:border-r-white select-none';
-/** `big` matches the PLAY button it turns into, so the swap doesn't shift the layout. */
+/** `big` mirrors `titleBtn` in BattleChips: the title-screen buttons all fill a
+ *  shared column, so PLAY, CONNECT WALLET and SETTINGS come out the same size
+ *  and the connect -> play swap doesn't shift the layout. */
 const sizeOf = (big: boolean) =>
-  big ? 'px-8 py-4 md:px-10 md:py-6 text-xl md:text-3xl tracking-[0.2em]' : 'px-4 py-1.5 text-sm';
+  big ? 'w-full px-3 py-3 text-lg md:text-xl tracking-[0.2em]' : 'px-4 py-1.5 text-sm';
 
 export const WalletButton = ({ className = '', big = false }: { className?: string; big?: boolean }) => (
   <ConnectButton.Custom>
