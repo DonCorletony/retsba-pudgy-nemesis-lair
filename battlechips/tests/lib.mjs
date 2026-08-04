@@ -40,3 +40,15 @@ export const controlsOpacity = () => {
   const b = [...document.querySelectorAll('button')].find((x) => /SETTINGS/.test(x.textContent));
   return b ? +getComputedStyle(b.parentElement).opacity : null;
 };
+
+/** Wait out any screen dip, so clicks aren't swallowed by the veil. */
+export const settled = async (page, timeout = 4000) => {
+  for (let i = 0; i < timeout / 100; i++) {
+    const busy = await page.evaluate(() => {
+      const v = document.querySelector('[aria-hidden].fixed.z-\\[100\\]');
+      return v ? getComputedStyle(v).pointerEvents !== 'none' : false;
+    });
+    if (!busy) return;
+    await page.waitForTimeout(100);
+  }
+};

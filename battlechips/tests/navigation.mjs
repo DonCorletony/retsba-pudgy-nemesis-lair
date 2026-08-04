@@ -1,6 +1,6 @@
 /* PLAY opens the game screen without starting a match; Back returns home with
    no second helping of the opening, and the theme comes back. */
-import { launch, open, P, done, themeState, AUDIO_REGISTRY } from './lib.mjs';
+import { launch, open, P, done, themeState, settled, AUDIO_REGISTRY } from './lib.mjs';
 
 const browser = await launch('allow');
 const page = await open(browser, { init: [AUDIO_REGISTRY] });
@@ -11,8 +11,10 @@ const st = () => page.evaluate(() => ({
   left: [...document.querySelectorAll('button')].map((b) => b.textContent.trim())
     .find((t) => t === 'Forfeit' || t === 'Back' || t === 'Exit'),
   onTitle: !!document.querySelector('[alt="Battle Chips"]')?.closest('.min-h-screen'),
+  // the transition veil is also a fixed black div — only count one we can see
   black: !![...document.querySelectorAll('div')].find((d) =>
-    getComputedStyle(d).backgroundColor === 'rgb(0, 0, 0)' && d.className.includes('fixed')),
+    getComputedStyle(d).backgroundColor === 'rgb(0, 0, 0)' && d.className.includes('fixed')
+    && +getComputedStyle(d).opacity > 0.01),
   studio: !!document.querySelector('[aria-label="Lucky Jack Games"]'),
 }));
 
@@ -45,7 +47,8 @@ P(`and the button becomes Forfeit again (${setup.left})`, setup.left === 'Forfei
 await page.getByRole('button', { name: 'Forfeit' }).click();
 await page.waitForTimeout(400);
 await page.getByRole('button', { name: 'Yes, Leave' }).click();
-await page.waitForTimeout(1500);
+await settled(page);
+await page.waitForTimeout(400);
 const home = await st();
 console.log('  back home:', JSON.stringify(home));
 P(`it lands on the title screen (phase=${home.phase})`, home.phase === 'idle');
@@ -61,7 +64,8 @@ P(`and reaches level again (${(await page.evaluate(themeState)).vol})`, (await p
 await page.evaluate(() => window.__BC.enterLobby());
 await page.waitForTimeout(600);
 await page.getByRole('button', { name: 'Back' }).click();
-await page.waitForTimeout(900);
+await settled(page);
+await page.waitForTimeout(400);
 const home2 = await st();
 P(`Back returns home too (phase=${home2.phase})`, home2.phase === 'idle');
 P('still no opening replay', home2.black === false && home2.studio === false);

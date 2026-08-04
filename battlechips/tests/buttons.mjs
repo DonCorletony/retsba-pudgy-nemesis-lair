@@ -1,6 +1,6 @@
 /* Hover and click chirps on the chrome buttons, and that they answer to the
    SOUND EFFECTS slider rather than MUSIC. */
-import { launch, open, P, done, AUDIO_REGISTRY } from './lib.mjs';
+import { launch, open, P, done, settled, AUDIO_REGISTRY } from './lib.mjs';
 
 const TAP = `
   window.__ui = [];
@@ -23,6 +23,7 @@ const btn = (name) => page.getByRole('button', { name, exact: true }).locator('v
 /** Hover it, then click it, and report which chirps fired. */
 const exercise = async (name, locator) => {
   const el = locator ?? btn(name);
+  await settled(page);                  // a screen dip would swallow the click
   await page.mouse.move(2, 2);          // leave first, or mouseenter won't fire again
   await page.waitForTimeout(120);
   await drain();

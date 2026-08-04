@@ -906,6 +906,23 @@ const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void
   </button>
 );
 
+/* Moving between the title screen and the game dips through black rather than
+   cutting. The phase changes at the bottom of the dip, so the screen behind the
+   overlay has already swapped by the time it lifts. */
+const SCREEN_FADE = { out: 400, hold: 400, in: 500 } as const;
+const ScreenFade = ({ opaque, ms, busy }: { opaque: boolean; ms: number; busy: boolean }) => (
+  <div
+    aria-hidden
+    className="fixed inset-0 z-[100] bg-black"
+    style={{
+      opacity: opaque ? 1 : 0,
+      transition: `opacity ${ms}ms ease-in-out`,
+      // keep swallowing clicks until it has fully lifted
+      pointerEvents: busy ? 'auto' : 'none',
+    }}
+  />
+);
+
 /** Shown only when the browser has actually refused us — never for someone it
  *  trusts, and gone the moment anything is clicked. Sits above the opening's
  *  black so it reads on either background. */
@@ -1301,6 +1318,24 @@ const BattleChips = () => {
   const newMatch = () => resetTo('setup');
   /** PLAY opens the game screen; starting a match is a separate, deliberate step. */
   const enterLobby = () => resetTo('lobby');
+
+  /* Screen changes go through a dip to black. `busy` both blocks a second press
+     mid-dip and keeps the overlay swallowing clicks until it has lifted. */
+  const [fade, setFade] = useState({ opaque: false, ms: SCREEN_FADE.out, busy: false });
+  const fadeTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => fadeTimers.current.forEach(clearTimeout), []);
+  const navigate = (go: () => void) => {
+    if (fade.busy) return;
+    const wait = (ms: number, f: () => void) => fadeTimers.current.push(setTimeout(f, ms));
+    setFade({ opaque: true, ms: SCREEN_FADE.out, busy: true });
+    wait(SCREEN_FADE.out, () => {
+      go();
+      wait(SCREEN_FADE.hold, () => {
+        setFade({ opaque: false, ms: SCREEN_FADE.in, busy: true });
+        wait(SCREEN_FADE.in, () => setFade({ opaque: false, ms: SCREEN_FADE.in, busy: false }));
+      });
+    });
+  };
 
   const beginBattle = (arranged: Placed[]) => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
@@ -1768,7 +1803,8 @@ const BattleChips = () => {
   // rocket row = the ACTIVE player's remaining shots (extra shots widen the row)
 
   if (typeof window !== 'undefined') {
-    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch, enterLobby };
+    (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch, enterLobby,
+      pressPlay: () => navigate(enterLobby), fade };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -2035,7 +2071,7 @@ const BattleChips = () => {
             }}
           >
             {isConnected ? (
-              <button {...uiSfx(enterLobby)} className={`${btn98} ${titleBtn}`}>PLAY</button>
+              <button {...uiSfx(() => navigate(enterLobby))} className={`${btn98} ${titleBtn}`}>PLAY</button>
             ) : (
               <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
             )}
@@ -2051,6 +2087,7 @@ const BattleChips = () => {
         )}
         {settingsDialog}
         {introRunning && <Intro step={introStep} shift={logoShift} />}
+        <ScreenFade {...fade} />
         {audio === 'blocked' && !settings.muted && <SoundNudge />}
       </div>
     );
@@ -2128,6 +2165,8 @@ const BattleChips = () => {
         </div>
       )}
 
+      <ScreenFade {...fade} />
+
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div className={`${raised} w-full max-w-sm p-1`}>
@@ -2135,7 +2174,7 @@ const BattleChips = () => {
             <div className="p-4 text-center">
               <p className="text-sm text-black mb-4">Are you sure you&apos;d like to forfeit? Funds will not be returned.</p>
               <div className="flex justify-center gap-3">
-                <button {...uiSfx(() => resetTo('idle'))} className={btn98}>Yes, Leave</button>
+                <button {...uiSfx(() => navigate(() => resetTo('idle')))} className={btn98}>Yes, Leave</button>
                 <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>
               </div>
             </div>
@@ -2146,7 +2185,7 @@ const BattleChips = () => {
       {/* Chrome bar — buttons stay compact on mobile so the wordmark can't overlap them */}
       <div className={`${raised} relative flex items-center justify-between gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
         <button
-          {...uiSfx(() => (inGame ? setShowForfeit(true) : resetTo('idle')))}
+          {...uiSfx(() => (inGame ? setShowForfeit(true) : navigate(() => resetTo('idle'))))}
           className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
         >
           {inGame ? 'Forfeit' : 'Back'}
