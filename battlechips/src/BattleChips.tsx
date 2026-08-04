@@ -910,8 +910,11 @@ const Intro = ({ step, shift }: { step: number; shift: number }) => {
         style={{
           /* Overscanned rather than inset-0: mobile browsers resize the viewport
              as their toolbars come and go, and an exactly-fitted fixed element
-             leaves a strip of wallpaper showing at the bottom while they do. */
-          top: '-15vh', bottom: '-15vh', left: '-5vw', right: '-5vw',
+             leaves a strip of wallpaper showing while they do. The overscan is a
+             percentage, not vh — a percentage resolves against the box the
+             browser is really positioning this against, whereas vh is a separate
+             measure that iOS does not keep in step with it. */
+          top: '-50%', bottom: '-50%', left: '-50%', right: '-50%',
           opacity: step >= 3 ? 0 : 1,
           transition: 'opacity 1200ms ease-in-out',
         }}
@@ -992,7 +995,7 @@ const ScreenFade = ({ opaque, ms, busy }: { opaque: boolean; ms: number; busy: b
     className="fixed z-[100] bg-black"
     style={{
       // overscanned for the same reason as the opening's black — see Intro
-      top: '-15vh', bottom: '-15vh', left: '-5vw', right: '-5vw',
+      top: '-50%', bottom: '-50%', left: '-50%', right: '-50%',
       opacity: opaque ? 1 : 0,
       transition: `opacity ${ms}ms ease-in-out`,
       // keep swallowing clicks until it has fully lifted
@@ -2143,7 +2146,12 @@ const BattleChips = () => {
         className="min-h-screen bg-[#b8b8b8] font-sans text-black flex flex-col p-6"
         onPointerDown={introRunning ? skipIntro : undefined}
         style={{
-          backgroundImage: "url('/game/title-bg.webp')",
+          /* Black underneath the opening as well as over it: whatever a mobile
+             browser does to a fixed overlay's edges, there is nothing behind it
+             to leak. The wallpaper arrives at the reveal, which is exactly when
+             the overlay begins fading off it. */
+          backgroundImage: revealed ? "url('/game/title-bg.webp')" : 'none',
+          backgroundColor: revealed ? undefined : '#000',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           imageRendering: 'pixelated',
@@ -2299,14 +2307,18 @@ const BattleChips = () => {
         >
           {inGame ? 'Forfeit' : 'Back'}
         </button>
+        {/* Centred over the bar, so it only fits once the bar is wide enough for
+            the buttons not to reach the middle. Below that it just collides. */}
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
+          className="hidden sm:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-9 md:h-16 w-auto pointer-events-none" />
 
         <div className="flex items-center gap-2 relative z-10">
           <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
             New match
           </button>
-          <WalletButton onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
+          {/* Connecting is the title screen's job; in here the pill is only worth
+              the width it takes if there's an account behind it. */}
+          {isConnected && <WalletButton onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />}
         </div>
       </div>
 

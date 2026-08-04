@@ -33,9 +33,30 @@ for (const [name, viewport] of [
   P(`${name}: the opening's black reaches past every edge`, reaches(intro));
   P(`${name}: and it is actually opaque there (${intro?.opacity})`, intro?.opacity === 1);
 
-  // and the same for the transition veil, mid-dip
+  // Belt and braces: nothing behind the overlay to leak if an edge is missed.
+  const under = await page.evaluate(() => {
+    const root = document.querySelector('.min-h-screen');
+    const cs = getComputedStyle(root);
+    return { image: cs.backgroundImage, colour: cs.backgroundColor };
+  });
+  P(`${name}: the screen under the opening is black, not wallpaper (${under.image})`,
+    under.image === 'none' && under.colour === 'rgb(0, 0, 0)');
+
+  // The overscan must not make the page scrollable sideways.
+  const overflow = await page.evaluate(() => ({
+    doc: document.documentElement.scrollWidth, win: window.innerWidth,
+  }));
+  P(`${name}: no sideways scroll from the overscan (${overflow.doc} vs ${overflow.win})`,
+    overflow.doc <= overflow.win + 1);
+
+  // skipping ends the opening: the wallpaper must come back underneath
   await page.mouse.click(viewport.width / 2, 40);
   await page.waitForTimeout(1400);
+  const back = await page.evaluate(() =>
+    getComputedStyle(document.querySelector('.min-h-screen')).backgroundImage);
+  P(`${name}: the wallpaper returns once the opening is done`, /title-bg/.test(back));
+
+  // and the same coverage for the transition veil, mid-dip
   await page.evaluate(() => window.__BC.pressPlay());
   await page.waitForTimeout(900);                  // at the bottom of the dip
   const veil = await coverage(page, 'z-[100]');
