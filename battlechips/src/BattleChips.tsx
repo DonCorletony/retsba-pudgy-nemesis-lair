@@ -58,7 +58,8 @@ const SHIELD_HIT_MS = 1400;
 const INTRO = {
   studioIn: 300,     // "LUCKY JACK GAMES" starts fading up
   studioOut: 3300,   // ...and starts fading away, clearing by 4200
-  logoIn: 7200,      // three seconds of nothing, then the wordmark fades up
+  musicIn: 4200,     // studio card fully gone; the theme starts fading up
+  logoIn: 7200,      // three seconds of nothing, then the wordmark cuts in
   reveal: 10200,     // black lifts, wordmark rides up, controls fade in
   done: 11400,       // the wordmark has landed; the title screen takes over
 } as const;
@@ -93,6 +94,7 @@ const loadPrefs = (): Prefs => {
 let prefs: Prefs = typeof window === 'undefined' ? { ...DEFAULT_PREFS } : loadPrefs();
 const savePrefs = (next: Prefs) => {
   prefs = next;
+  applyMusicVolume();
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* private mode */ }
 };
 
@@ -154,6 +156,7 @@ const onFirstGesture = () => {
   setAudioState('ok');
   setTimeout(() => {
     unlockingGesture = false;
+    resumeMusicIfWanted();
     const cue = heldCue;
     heldCue = null;
     if (cue && Date.now() < cue.until) playSfx(cue.src);
@@ -178,6 +181,92 @@ const playSfx = (src: string, opts?: { holdFor?: number }) => {
         if (opts?.holdFor) heldCue = { src, until: Date.now() + opts.holdFor };
       });
   } catch { /* ignore */ }
+};
+
+/* ---------- title music ----------
+   One long track that plays on the title screen only: in once the studio card
+   has gone, out when a match starts. It's half an hour long, so it streams
+   rather than preloading whole, and the loop is a fade rather than a hard cut
+   back to bar one.
+
+   Volume is the MUSIC slider scaled by a fade envelope, so dragging the slider
+   mid-fade does the obvious thing instead of fighting it. The master toggle
+   silences this the same as everything else. */
+const MUSIC_SRC = '/game/sounds/theme.mp3';
+const MUSIC = { fadeIn: 3000, fadeOut: 900, tail: 4000 } as const;
+
+let musicEl: HTMLAudioElement | null = null;
+let musicWanted = false;      // does the current screen want music at all
+let musicGain = 0;            // 0..1 fade envelope, independent of the slider
+let musicFade: ReturnType<typeof setInterval> | null = null;
+let musicLooping = false;     // mid fade-out at the end of the track
+
+const musicLevel = () => (prefs.muted ? 0 : Math.min(1, Math.max(0, prefs.music)));
+const applyMusicVolume = () => { if (musicEl) musicEl.volume = musicGain * musicLevel(); };
+
+const fadeMusic = (to: number, ms: number, done?: () => void) => {
+  if (musicFade) { clearInterval(musicFade); musicFade = null; }
+  const from = musicGain;
+  const t0 = Date.now();
+  if (ms <= 0) { musicGain = to; applyMusicVolume(); done?.(); return; }
+  musicFade = setInterval(() => {
+    const k = Math.min(1, (Date.now() - t0) / ms);
+    musicGain = from + (to - from) * k;
+    applyMusicVolume();
+    if (k === 1) { clearInterval(musicFade!); musicFade = null; done?.(); }
+  }, 40);
+};
+
+/** Near the end, fade down, drop back to the top and fade up again. The fade is
+ *  shorter than the window that triggers it so it finishes before the track
+ *  runs out — landing on 'ended' would pause us mid-loop. */
+const onMusicTime = () => {
+  const el = musicEl;
+  if (!el || musicLooping || !musicWanted || !el.duration || !isFinite(el.duration)) return;
+  if (el.duration - el.currentTime > MUSIC.tail / 1000) return;
+  musicLooping = true;
+  fadeMusic(0, Math.max(200, MUSIC.tail - 800), () => {
+    el.currentTime = 0;
+    musicLooping = false;
+    if (!musicWanted) return;
+    if (el.paused) el.play().catch(() => {});
+    fadeMusic(1, MUSIC.fadeIn);
+  });
+};
+
+const startMusic = () => {
+  if (typeof window === 'undefined' || musicWanted) return;
+  musicWanted = true;
+  if (!musicEl) {
+    musicEl = new Audio(MUSIC_SRC);
+    musicEl.preload = 'auto';
+    musicEl.loop = false;                       // we fade around the seam ourselves
+    musicEl.addEventListener('timeupdate', onMusicTime);
+  }
+  musicGain = 0;
+  applyMusicVolume();
+  musicEl
+    .play()
+    .then(() => { setAudioState('ok'); fadeMusic(1, MUSIC.fadeIn); })
+    .catch((err: unknown) => {
+      // Refused for want of a gesture: the unlock will call us back.
+      if ((err as Error)?.name === 'NotAllowedError') setAudioState('blocked');
+    });
+};
+
+const stopMusic = () => {
+  if (!musicWanted) return;
+  musicWanted = false;
+  musicLooping = false;
+  const el = musicEl;
+  // Guarded: if music was asked for again during the fade, don't pause it.
+  fadeMusic(0, MUSIC.fadeOut, () => { if (musicWanted || !el) return; el.pause(); el.currentTime = 0; });
+};
+
+/** Called once the browser lets us play, in case music was refused earlier. */
+const resumeMusicIfWanted = () => {
+  if (!musicWanted || !musicEl || !musicEl.paused) return;
+  musicEl.play().then(() => fadeMusic(1, MUSIC.fadeIn)).catch(() => {});
 };
 
 /* ---------- action cards ----------
@@ -811,6 +900,7 @@ const SoundToggle = ({ muted, onToggle }: { muted: boolean; onToggle: () => void
  *  black so it reads on either background. */
 const SoundNudge = () => (
   <div
+    role="status"
     className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[95] flex items-center gap-2 rounded-lg px-3 py-2
                font-mono text-[10px] tracking-[0.18em] text-white/80 pointer-events-none select-none whitespace-nowrap"
     style={{ background: 'rgba(30,30,30,0.55)', backdropFilter: 'blur(2px)' }}
@@ -1109,6 +1199,16 @@ const BattleChips = () => {
     const ids = [at(INTRO.studioOut, 1), at(INTRO.logoIn, 2), at(INTRO.reveal, 3), at(INTRO.done, 4)];
     return () => { clearTimeout(chime); ids.forEach(clearTimeout); };
   }, [introStep === 4]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* The theme belongs to the title screen: it comes up once the studio card has
+     cleared and runs until PLAY starts a match. Someone who skipped the opening
+     — or who never sees it, on reduced motion — gets it straight away. */
+  useEffect(() => {
+    if (phase !== 'idle') { stopMusic(); return; }
+    if (introStep >= 4) { startMusic(); return; }
+    const id = setTimeout(startMusic, INTRO.musicIn);
+    return () => clearTimeout(id);
+  }, [phase, introStep >= 4]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [settings, setSettings] = useState<Prefs>(() => prefs);
   const [showSettings, setShowSettings] = useState(false);
@@ -1859,7 +1959,6 @@ const BattleChips = () => {
         <div className="p-4 space-y-4">
           <Slider label="MUSIC" value={settings.music} onChange={(music) => setSettings((p) => ({ ...p, music }))} />
           <Slider label="SOUND EFFECTS" value={settings.sfx} onChange={(sfx) => setSettings((p) => ({ ...p, sfx }))} />
-          <p className="font-mono text-[10px] text-black/50 -mt-2">No music yet — the slider is ready for it.</p>
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="checkbox"
