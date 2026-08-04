@@ -2165,9 +2165,7 @@ const BattleChips = () => {
             ) : (
               <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
             )}
-            <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn} !text-base md:!text-lg`}>
-              FUND YOUR ACCOUNT
-            </button>
+            <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn}`}>FUND ACCOUNT</button>
             <button {...uiSfx(() => setShowSettings(true))} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
         </div>

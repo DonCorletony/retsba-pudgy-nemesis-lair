@@ -101,8 +101,13 @@ const ConnectedPill = ({ className, size, label, address, onHover, onPress, onMa
   });
 
   return (
-    <div className={`${className} relative`}>
-      <button
+    /* The caller positions the outer box (fixed, top-right on the title screen).
+       Anchoring is a separate, inner box: putting `relative` on the outer one
+       overrides that `fixed` — Tailwind emits .relative after .fixed, so it wins
+       regardless of class order — and drops the pill into normal flow. */
+    <div className={className}>
+      <div className="relative">
+        <button
         onMouseEnter={onHover}
         onClick={() => { onPress?.(); setOpen((o) => !o); }}
         className={`${base} ${size}`}
@@ -147,6 +152,7 @@ const ConnectedPill = ({ className, size, label, address, onHover, onPress, onMa
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };

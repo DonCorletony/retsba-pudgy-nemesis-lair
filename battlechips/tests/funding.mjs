@@ -17,12 +17,12 @@ const browser = await launch('allow');
   P('the swap chunk is not fetched just to show the title screen', chunks.length === 0);
 
   const order = await page.evaluate(() => [...document.querySelectorAll('button')]
-    .map((b) => b.textContent.trim()).filter((t) => /CONNECT WALLET|^PLAY$|FUND YOUR ACCOUNT|SETTINGS/.test(t)));
+    .map((b) => b.textContent.trim()).filter((t) => /CONNECT WALLET|^PLAY$|FUND ACCOUNT|SETTINGS/.test(t)));
   console.log('  title buttons:', JSON.stringify(order));
-  P('FUND YOUR ACCOUNT sits between the primary button and SETTINGS',
-    order.indexOf('FUND YOUR ACCOUNT') === 1 && order.indexOf('SETTINGS') === 2);
+  P('FUND ACCOUNT sits between the primary button and SETTINGS',
+    order.indexOf('FUND ACCOUNT') === 1 && order.indexOf('SETTINGS') === 2);
 
-  await page.getByRole('button', { name: 'FUND YOUR ACCOUNT' }).click();
+  await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
   await page.waitForTimeout(2500);
   P('opening it fetches the chunk', chunks.some((u) => /SwapPortal/.test(u)));
   await page.close();
@@ -36,7 +36,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
   await page.mouse.click(viewport.width / 2, 40);
   await page.waitForTimeout(1200);
   await settled(page);
-  await page.getByRole('button', { name: 'FUND YOUR ACCOUNT' }).click();
+  await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
   await page.waitForTimeout(2500);
 
   const win = page.getByText('Fund your account', { exact: true });
@@ -84,7 +84,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
   await page.waitForTimeout(900);
   await page.mouse.click(800, 40);
   await page.waitForTimeout(1200);
-  await page.getByRole('button', { name: 'FUND YOUR ACCOUNT' }).click();
+  await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
   await page.waitForTimeout(2500);
   await page.getByRole('button', { name: 'Ethereum' }).click();
   await page.waitForTimeout(300);
