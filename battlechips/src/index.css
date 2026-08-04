@@ -223,3 +223,8 @@
   0%   { transform: translateX(-110%); }
   100% { transform: translateX(210%); }
 }
+
+/* Mobile browsers paint their own chrome — the status bar, the pull-to-refresh
+   gutter — with the document's background. Left white, that reads as a blank band
+   above the wallpaper. Match the sky it sits over instead. */
+html, body { background-color: #71b6e6; }

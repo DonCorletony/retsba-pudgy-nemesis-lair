@@ -2,24 +2,45 @@
    can pay with and what you get. No wallet exists here, so this covers the shell
    and the wiring — a real quote or swap can only be checked against the live
    Relay API with a funded wallet. */
-import { launch, open, P, done, settled, DESKTOP, MOBILE, AUDIO_REGISTRY } from './lib.mjs';
+import {
+  launch, open, P, done, settled, DESKTOP, MOBILE,
+  AUDIO_REGISTRY, mockWalletScript, mockRpc, connectMockWallet,
+} from './lib.mjs';
+
+// FUND ACCOUNT only exists once a wallet is on, so every case here connects one.
+const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
+const LUCKY = '0x6d35df127dc8eccb63531b9c2c93d0ce0d27c1f5';
+const BALANCES = { [USDG]: 0n, [LUCKY]: 0n };
+const openConnected = async (viewport) => {
+  const page = await open(browser, { viewport, init: [AUDIO_REGISTRY, mockWalletScript()] });
+  await page.route('**/rpc.mainnet.chain.robinhood.com/**', mockRpc(BALANCES));
+  await page.waitForTimeout(900);
+  await page.mouse.click((viewport?.width ?? 1600) / 2, 40);
+  await page.waitForTimeout(1200);
+  await connectMockWallet(page);
+  await page.waitForTimeout(1200);
+  return page;
+};
 
 const browser = await launch('allow');
 
 /* --- it isn't downloaded until you ask for it --- */
 {
-  const page = await open(browser, { init: [AUDIO_REGISTRY] });
+  const page = await open(browser, { init: [AUDIO_REGISTRY, mockWalletScript()] });
+  await page.route('**/rpc.mainnet.chain.robinhood.com/**', mockRpc(BALANCES));
   const chunks = [];
-  page.on('request', (r) => { if (/SwapPortal|relay|solana/i.test(r.url())) chunks.push(r.url()); });
+  page.on('request', (r) => { if (/SwapPortal/.test(r.url())) chunks.push(r.url()); });
   await page.waitForTimeout(900);
   await page.mouse.click(800, 40);
+  await page.waitForTimeout(1200);
+  await connectMockWallet(page);
   await page.waitForTimeout(1200);
   P('the swap chunk is not fetched just to show the title screen', chunks.length === 0);
 
   const order = await page.evaluate(() => [...document.querySelectorAll('button')]
-    .map((b) => b.textContent.trim()).filter((t) => /CONNECT WALLET|^PLAY$|FUND ACCOUNT|SETTINGS/.test(t)));
+    .map((b) => b.textContent.trim()).filter((t) => /^(PLAY|FUND ACCOUNT|SETTINGS)$/.test(t)));
   console.log('  title buttons:', JSON.stringify(order));
-  P('FUND ACCOUNT sits between the primary button and SETTINGS',
+  P('FUND ACCOUNT sits between PLAY and SETTINGS',
     order.indexOf('FUND ACCOUNT') === 1 && order.indexOf('SETTINGS') === 2);
 
   await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
@@ -31,10 +52,7 @@ const browser = await launch('allow');
 /* --- the window itself --- */
 for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
   console.log(`--- ${name} ---`);
-  const page = await open(browser, { viewport, init: [AUDIO_REGISTRY] });
-  await page.waitForTimeout(900);
-  await page.mouse.click(viewport.width / 2, 40);
-  await page.waitForTimeout(1200);
+  const page = await openConnected(viewport);
   await settled(page);
   await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
   await page.waitForTimeout(2500);
@@ -69,8 +87,8 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
 
   P('it says the tokens land on Robinhood Chain',
     /RECEIVE ON ROBINHOOD CHAIN/i.test(await page.locator('body').innerText()));
-  P('with no wallet, the action is to connect one',
-    await page.getByRole('button', { name: 'CONNECT WALLET' }).last().isVisible());
+  P('with a wallet on, the action is to buy the chosen token',
+    await page.getByRole('button', { name: /^BUY (USDG|LUCKY)$/ }).isVisible());
 
   await page.getByRole('button', { name: 'CLOSE', exact: true }).click();
   await page.waitForTimeout(500);
@@ -80,10 +98,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
 
 /* --- Solana asks where to send, since it can't receive on Robinhood --- */
 {
-  const page = await open(browser, { init: [AUDIO_REGISTRY] });
-  await page.waitForTimeout(900);
-  await page.mouse.click(800, 40);
-  await page.waitForTimeout(1200);
+  const page = await openConnected(DESKTOP);
   await page.getByRole('button', { name: 'FUND ACCOUNT' }).click();
   await page.waitForTimeout(2500);
   await page.getByRole('button', { name: 'Ethereum' }).click();

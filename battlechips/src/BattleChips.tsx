@@ -906,8 +906,15 @@ const Intro = ({ step, shift }: { step: number; shift: number }) => {
     <>
       {/* The black ground lifts at the reveal, uncovering the wallpaper behind it. */}
       <div
-        className="fixed inset-0 z-[90] bg-black pointer-events-none"
-        style={{ opacity: step >= 3 ? 0 : 1, transition: 'opacity 1200ms ease-in-out' }}
+        className="fixed z-[90] bg-black pointer-events-none"
+        style={{
+          /* Overscanned rather than inset-0: mobile browsers resize the viewport
+             as their toolbars come and go, and an exactly-fitted fixed element
+             leaves a strip of wallpaper showing at the bottom while they do. */
+          top: '-15vh', bottom: '-15vh', left: '-5vw', right: '-5vw',
+          opacity: step >= 3 ? 0 : 1,
+          transition: 'opacity 1200ms ease-in-out',
+        }}
       />
       <div className="fixed inset-0 z-[91] flex items-center justify-center pointer-events-none p-6">
         <div
@@ -982,8 +989,10 @@ const SCREEN_FADE = { out: 400, hold: 400, holdIn: 1400, in: 500 } as const;
 const ScreenFade = ({ opaque, ms, busy }: { opaque: boolean; ms: number; busy: boolean }) => (
   <div
     aria-hidden
-    className="fixed inset-0 z-[100] bg-black"
+    className="fixed z-[100] bg-black"
     style={{
+      // overscanned for the same reason as the opening's black — see Intro
+      top: '-15vh', bottom: '-15vh', left: '-5vw', right: '-5vw',
       opacity: opaque ? 1 : 0,
       transition: `opacity ${ms}ms ease-in-out`,
       // keep swallowing clicks until it has fully lifted
@@ -2163,9 +2172,17 @@ const BattleChips = () => {
             {isConnected ? (
               <button {...uiSfx(startPlay)} className={`${btn98} ${titleBtn}`}>PLAY</button>
             ) : (
-              <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
+              <>
+                {/* Nothing in a match needs a wallet, so there's no reason to make
+                    connecting the price of a game. Same route in as PLAY. */}
+                <button {...uiSfx(startPlay)} className={`${btn98} ${titleBtn}`}>PLAY FREE</button>
+                <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
+              </>
             )}
-            <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn}`}>FUND ACCOUNT</button>
+            {/* Nothing to fund without a wallet to fund it into. */}
+            {isConnected && (
+              <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn}`}>FUND ACCOUNT</button>
+            )}
             <button {...uiSfx(() => setShowSettings(true))} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
         </div>
