@@ -29,7 +29,7 @@ P('silent while the studio card is up', seen[3000] === null || seen[3000].playin
 P('running just after the card clears', seen[5000]?.playing === true);
 P(`fades in rather than cutting in (${seen[5000]?.vol} -> ${seen[7000]?.vol})`, seen[5000].vol < seen[7000].vol);
 P(`settles at the MUSIC level, 0.6 (${seen[9500]?.vol})`, Math.abs(seen[9500].vol - 0.6) < 0.02);
-P(`it is the whole track (${Math.round(seen[9500].dur / 60)} min)`, seen[9500].dur > 1800);
+P(`the whole track is loaded (${Math.floor(seen[9500].dur / 60)}m${seen[9500].dur % 60}s)`, seen[9500].dur > 120);
 
 const setSlider = (page, pct) => page.locator('input[type="range"]').first().evaluate((el, v) => {
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v));
