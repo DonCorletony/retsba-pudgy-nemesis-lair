@@ -1,6 +1,13 @@
 import React, { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect, useReadContracts } from 'wagmi';
+import { erc20Abi, formatUnits } from 'viem';
+import { GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
+import * as ProfileStore from './profile';
+import {
+  loadProfile, saveProfile, applyMatch, levelProgress, winRate, memberSinceLabel,
+  type Profile,
+} from './profile';
 import { WalletButton } from './WalletButton';
 import { LazyWindow } from './LazyWindow';
 
@@ -1316,7 +1323,37 @@ const BattleChips = () => {
   const [wheelAngle, setWheelAngle] = useState(0);
   const [ballAngle, setBallAngle] = useState(0);
   const [spinClock, setSpinClock] = useState(SPIN_CHOICE_SECS);
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const [profile, setProfile] = useState<Profile>(() => loadProfile());
+  const [showProfile, setShowProfile] = useState(false);
+  useEffect(() => { (window as any).__PROFILE = ProfileStore; }, []);
+  const [showHowTo, setShowHowTo] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  /* Sinks land one at a time but only count once the match ends on its own
+     terms, so a forfeit can throw the tally away rather than bank it. */
+  const matchSinks = useRef(0);
+  useEffect(() => { saveProfile(profile); }, [profile]);
+
+  /* The profile window's balances, read the same way the wallet pill reads them
+     and only while the window is actually open. */
+  const { data: tokenBalances } = useReadContracts({
+    contracts: GAME_TOKENS.map((t) => ({
+      address: t.address,
+      abi: erc20Abi,
+      functionName: 'balanceOf' as const,
+      args: [address],
+      chainId: ROBINHOOD_ID,
+    })),
+    query: { enabled: showProfile && isConnected, refetchInterval: showProfile ? 15_000 : false },
+  });
+  const balanceOf = (symbol: string) => {
+    const n = GAME_TOKENS.findIndex((t) => t.symbol === symbol);
+    const raw = tokenBalances?.[n]?.result as bigint | undefined;
+    if (raw === undefined) return '—';
+    const v = Number(formatUnits(raw, GAME_TOKENS[n].decimals));
+    return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  };
   /* Opening sequence. Runs once per load and can be skipped by clicking, which
      also matters for anyone who just wants to get on with it. Reduced-motion
      users go straight to the title screen. */
@@ -1658,7 +1695,11 @@ const BattleChips = () => {
       }
       setShotsLeft((sl) => {
         const left = sl - 1;
-        if (wiped) { setWinner('foe'); setPhase('over'); return 0; }
+        if (wiped) {
+          setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current }));
+          matchSinks.current = 0;
+          setWinner('foe'); setPhase('over'); return 0;
+        }
         if (left <= 0) {
           // Defer the handover past the spin, or the turn would flip mid-wheel.
           if (sank) foeEndTurnAfterBonus.current = true;
@@ -1920,11 +1961,16 @@ const BattleChips = () => {
 
     // one sound per volley: the heaviest outcome wins, else it's a miss
     const sankSomething = fresh.some((i) => next[i] === 'hit' && didSink(foeFleet, next, i));
+    matchSinks.current += fresh.filter((i) => next[i] === 'hit' && didSink(foeFleet, next, i)).length;
     playSfx(anyHit ? (sankSomething ? SFX.sunk : SFX.hit) : SFX.miss);
 
     const left = spendShot ? shotsLeft - 1 : shotsLeft;
     if (spendShot) setShotsLeft(left);
-    if (boatsRemaining(foeFleet, next) === 0) { setWinner('you'); setPhase('over'); return; }
+    if (boatsRemaining(foeFleet, next) === 0) {
+      setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
+      matchSinks.current = 0;
+      setWinner('you'); setPhase('over'); return;
+    }
 
     // Sinking a ship earns the bonus spin — one per volley, however many boats
     // a Cluster or a Whirlpool takes down at once.
@@ -2216,6 +2262,145 @@ const BattleChips = () => {
     </LazyWindow>
   );
 
+  /* ---------- profile ----------
+     The tab mirrors the wallet pill: same chrome, opposite corner. */
+  const profileTab = (
+    <div className="fixed top-3 left-3 z-[70]">
+      <button
+        {...uiSfx(() => setMenuOpen((o) => !o))}
+        className={`${btn98} !px-2 !py-1 flex items-center gap-2`}
+      >
+        <img src={profile.avatar} alt="" className="w-6 h-7 object-cover border border-black/60"
+          style={{ imageRendering: 'pixelated' }} />
+        <span className="font-bold text-[11px] tracking-wide">{profile.username}</span>
+      </button>
+
+      {menuOpen && (
+        <>
+          {/* click-away, behind the menu but over everything else */}
+          <div className="fixed inset-0 z-[-1]" onClick={() => setMenuOpen(false)} />
+          <div className={`${raised} mt-1 w-44 p-1`}>
+            {[
+              ['Profile', () => setShowProfile(true)],
+              ['Settings', () => setShowSettings(true)],
+              ['How to Play', () => setShowHowTo(true)],
+            ].map(([label, act]) => (
+              <button
+                key={label as string}
+                {...uiSfx(() => { setMenuOpen(false); (act as () => void)(); })}
+                className="w-full text-left px-2 py-1 text-[12px] text-black hover:bg-[#000080] hover:text-white"
+              >
+                {label as string}
+              </button>
+            ))}
+            <div className="border-t border-black/40 my-1" />
+            <button
+              {...uiSfx(() => { setMenuOpen(false); if (isConnected) disconnect(); })}
+              className="w-full text-left px-2 py-1 text-[12px] text-black hover:bg-[#000080] hover:text-white"
+            >
+              Logout
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const prog = levelProgress(profile.xp);
+  const stat = (label: string, value: string, sub?: string) => (
+    <div className="flex-1 min-w-0">
+      <div className="font-mono text-[9px] tracking-widest text-black/60 uppercase">{label}</div>
+      <div className="font-bold text-base text-black leading-tight truncate">{value}</div>
+      {sub && <div className="font-mono text-[9px] text-black/50 truncate">{sub}</div>}
+    </div>
+  );
+
+  const profileDialog = showProfile && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setShowProfile(false)}>
+      <div className={`${raised} w-full max-w-md p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>Profile</span>
+          <button {...uiSfx(() => setShowProfile(false))} className="px-1 leading-none">X</button>
+        </div>
+
+        <div className="p-3 space-y-3">
+          <div className="flex items-center gap-3">
+            <img src={profile.avatar} alt="" className="w-16 h-20 object-cover border-2 border-black/70"
+              style={{ imageRendering: 'pixelated' }} />
+            <div className="min-w-0">
+              <div className="font-bold text-xl text-black leading-tight truncate">{profile.username}</div>
+              <div className="font-mono text-[10px] tracking-widest text-black/60 uppercase">
+                Member since <span className="font-bold">{memberSinceLabel(profile.memberSince)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* XP */}
+          <div>
+            <div className="flex justify-between font-mono text-[10px] text-black/70">
+              <span>LVL {prog.level}</span>
+              <span>{profile.xp.toLocaleString()} / {prog.ceiling.toLocaleString()} XP</span>
+            </div>
+            <div className={`${sunken} h-3 mt-1`}>
+              <div className="h-full bg-[#000080]"
+                style={{ width: `${Math.round(prog.fraction * 100)}%` }} />
+            </div>
+            <div className="font-mono text-[9px] text-black/50 mt-0.5">
+              {prog.toNext.toLocaleString()} XP to LVL {prog.level + 1}
+            </div>
+          </div>
+
+          {/* Balances, or the reason there are none */}
+          {isConnected ? (
+            <div className="flex gap-2">
+              <div className={`${sunken} flex-1 px-2 py-1`}>
+                {stat('LUCKY', balanceOf('LUCKY'))}
+              </div>
+              <div className={`${sunken} flex-1 px-2 py-1`}>
+                {stat('USDG', balanceOf('USDG'))}
+              </div>
+            </div>
+          ) : (
+            <WalletButton className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
+          )}
+
+          {/* Career */}
+          <div className={`${sunken} p-2 flex gap-3`}>
+            {stat('Record', `${profile.wins}\u2013${profile.losses}`, `${winRate(profile).toFixed(1)}% won`)}
+            {stat('LUCKY won', profile.luckyWon.toLocaleString())}
+            {stat('Cash won', `$${profile.cashWon.toFixed(2)}`)}
+            {stat('Ships sunk', profile.shipsSunk.toLocaleString())}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const howToDialog = showHowTo && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setShowHowTo(false)}>
+      <div className={`${raised} w-full max-w-md p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>How to Play</span>
+          <button {...uiSfx(() => setShowHowTo(false))} className="px-1 leading-none">X</button>
+        </div>
+        <div className="p-3 space-y-2 text-[12px] text-black">
+          <p><b>Place your fleet.</b> Five boats, before the clock runs out. Anything you
+            haven&apos;t placed is dropped for you.</p>
+          <p><b>Fire five shots a turn.</b> They all land together, so spread them to search
+            and group them to finish something off.</p>
+          <p><b>Sink a boat, earn a spin.</b> Call red, black or green. Red and black pay
+            9 in 19; green pays 1 in 19 and holds the cards that swing a match.</p>
+          <p><b>Cards are one use.</b> Extra shots, a skipped turn, a shield over your own
+            water, or a strike that covers ground you haven&apos;t aimed at.</p>
+          <p><b>Sink all five to win.</b> Forfeiting ends the match as a loss, and the
+            boats you sank in it don&apos;t count.</p>
+        </div>
+      </div>
+    </div>
+  );
+
   const settingsDialog = showSettings && (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowSettings(false)}>
       <div className={`${raised} w-full max-w-sm p-1`} onClick={(e) => e.stopPropagation()}>
@@ -2313,6 +2498,9 @@ const BattleChips = () => {
         {/* The corner pill is the connected wallet's home; before that the only
             wallet control is the big one under the logo. */}
         {isConnected && revealed && <WalletButton className="fixed top-3 right-3 z-[70]" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />}
+        {revealed && profileTab}
+        {profileDialog}
+        {howToDialog}
         {revealed && (
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}
@@ -2408,7 +2596,11 @@ const BattleChips = () => {
               <div className="flex justify-center gap-3">
                 {/* Out of the match, not out of the game — you land back on the
                     lobby where New match is waiting. */}
-                <button {...uiSfx(() => navigate(() => resetTo('lobby')))} className={btn98}>Yes, Leave</button>
+                <button {...uiSfx(() => {
+                  setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current, forfeited: true }));
+                  matchSinks.current = 0;
+                  navigate(() => resetTo('lobby'));
+                })} className={btn98}>Yes, Leave</button>
                 <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>
               </div>
             </div>
