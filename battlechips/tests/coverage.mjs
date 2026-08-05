@@ -66,18 +66,22 @@ for (const [name, viewport] of [
   await page.close();
 }
 
-/* The page itself must not be white behind the art — mobile chrome borrows it. */
+/* The canvas is deliberately unpainted at rest — anything painted there shows
+   through a scrollbar gutter as a band down the edge. It is black only while the
+   opening runs; tests/gutter.mjs covers that and the chrome colour with it. */
 {
   const page = await open(browser, { viewport: { width: 390, height: 844 } });
-  const bg = await page.evaluate(() => [
-    getComputedStyle(document.documentElement).backgroundColor,
-    getComputedStyle(document.body).backgroundColor,
-  ]);
-  console.log('  document background:', JSON.stringify(bg));
-  P('html and body are the wallpaper sky, not white', bg.every((c) => c === 'rgb(113, 182, 230)'));
-  const theme = await page.evaluate(() =>
-    document.querySelector('meta[name="theme-color"]')?.content);
-  P(`theme-color matches it (${theme})`, theme === '#71b6e6');
+  await page.waitForTimeout(1500);
+  const during = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  P(`the canvas is black under the opening (${during})`, during === 'rgb(0, 0, 0)');
+  await page.mouse.click(195, 40);
+  await page.waitForTimeout(1600);
+  const after = await page.evaluate(() => ({
+    body: getComputedStyle(document.body).backgroundColor,
+    theme: document.querySelector('meta[name="theme-color"]')?.content,
+  }));
+  P(`and is released once it is done (${after.body})`, after.body !== 'rgb(0, 0, 0)');
+  P(`theme-color goes back to the sky (${after.theme})`, after.theme === '#71b6e6');
   await page.close();
 }
 

@@ -80,11 +80,12 @@
   }
 
   html {
-    /* Reserve the scrollbar's gutter permanently. Without this, opening a modal
-       (Radix locks body scroll and the scrollbar vanishes) widens the page and
-       shifts fixed-centered content horizontally — the buy/token dialog looked
-       off-center left/right while vertical centering stayed correct. */
-    scrollbar-gutter: stable;
+    /* No reserved scrollbar gutter. `stable` keeps the strip on platforms with
+       classic scrollbars even when nothing is scrolling, and the canvas paints
+       it — so it reads as a coloured band down the right of every screen. Radix
+       compensates for its own scroll lock, which is what the gutter was here to
+       cover. */
+    scrollbar-gutter: auto;
   }
 
   body {
@@ -224,7 +225,11 @@
   100% { transform: translateX(210%); }
 }
 
-/* Mobile browsers paint their own chrome — the status bar, the pull-to-refresh
-   gutter — with the document's background. Left white, that reads as a blank band
-   above the wallpaper. Match the sky it sits over instead. */
-html, body { background-color: #71b6e6; }
+/* The colour mobile browsers use for their own chrome comes from theme-color in
+   index.html, not from here — painting the canvas as well would show through
+   any scrollbar gutter as a band down the right-hand edge.
+
+   While the cold open runs the canvas *is* black, which is what covers the
+   gutter and the overscroll area during the opening; no fixed element can
+   reach either. See the effect that toggles this class. */
+html.bc-opening, html.bc-opening body { background-color: #000; }

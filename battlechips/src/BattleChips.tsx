@@ -1291,6 +1291,23 @@ const BattleChips = () => {
   useEffect(() => watchAudio(() => setAudio(getAudioState())), []);
   /* Where the title screen's own logo sits, measured off the real element: the
      intro's copy slides up by exactly this much so the hand-off is seamless. */
+  /* A fixed overlay only reaches the content box. The scrollbar gutter and the
+     overscroll area sit outside it and are painted by the canvas, so the canvas
+     goes black for the duration of the opening — along with the browser chrome,
+     which takes its colour from theme-color. */
+  useEffect(() => {
+    if (introStep >= 3) return;
+    const root = document.documentElement;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const previous = meta?.getAttribute('content') ?? null;
+    root.classList.add('bc-opening');
+    meta?.setAttribute('content', '#000000');
+    return () => {
+      root.classList.remove('bc-opening');
+      if (previous !== null) meta?.setAttribute('content', previous);
+    };
+  }, [introStep >= 3]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const titleLogoRef = useRef<HTMLImageElement>(null);
   const [logoShift, setLogoShift] = useState(0);
   useLayoutEffect(() => {
@@ -2291,7 +2308,9 @@ const BattleChips = () => {
             <div className="p-4 text-center">
               <p className="text-sm text-black mb-4">Are you sure you&apos;d like to forfeit? Funds will not be returned.</p>
               <div className="flex justify-center gap-3">
-                <button {...uiSfx(() => navigate(() => resetTo('idle')))} className={btn98}>Yes, Leave</button>
+                {/* Out of the match, not out of the game — you land back on the
+                    lobby where New match is waiting. */}
+                <button {...uiSfx(() => navigate(() => resetTo('lobby')))} className={btn98}>Yes, Leave</button>
                 <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>
               </div>
             </div>

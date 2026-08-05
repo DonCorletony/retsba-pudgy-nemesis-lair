@@ -64,7 +64,7 @@ await page.getByRole('button', { name: 'Yes, Leave' }).click();
 const quit = await trace(2400);
 console.log('  Leave ', quit.map((x) => `${x.veil}${x.phase[0]}`).join(' '));
 P('leaving a match dips as well', quit.some((x) => x.veil === 1));
-P('and ends up home', quit.at(-1).phase === 'idle' && quit.at(-1).veil === 0);
+P('and ends up on the lobby', quit.at(-1).phase === 'lobby' && quit.at(-1).veil === 0);
 
 // --- New match, inside the game screen, should stay instant
 await page.waitForTimeout(600);

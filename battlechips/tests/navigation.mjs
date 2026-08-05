@@ -43,17 +43,25 @@ const setup = await st();
 P(`New match starts one (phase=${setup.phase}, ${setup.fleet} boats)`, setup.phase === 'setup' && setup.fleet === 5);
 P(`and the button becomes Forfeit again (${setup.left})`, setup.left === 'Forfeit');
 
-// Forfeit -> Yes, Leave goes home.
+// Forfeit -> Yes, Leave drops back to the lobby, ready for another match.
 await page.getByRole('button', { name: 'Forfeit' }).click();
 await page.waitForTimeout(400);
 await page.getByRole('button', { name: 'Yes, Leave' }).click();
 await settled(page);
 await page.waitForTimeout(400);
 const home = await st();
-console.log('  back home:', JSON.stringify(home));
-P(`it lands on the title screen (phase=${home.phase})`, home.phase === 'idle');
+console.log('  after forfeit:', JSON.stringify(home));
+P(`it lands on the lobby, still in the game (phase=${home.phase})`, home.phase === 'lobby');
 P('with no black overlay — the opening does not run again', home.black === false);
 P('and no studio card', home.studio === false);
+P('New match is there to start another', await page.getByRole('button', { name: 'New match' }).isVisible());
+
+// and Back from there still reaches the title screen
+await page.getByRole('button', { name: 'Back' }).click();
+await settled(page);
+await page.waitForTimeout(400);
+const title = await st();
+P(`Back reaches the title screen (phase=${title.phase})`, title.phase === 'idle');
 P('the buttons are there straight away', await page.getByRole('button', { name: 'SETTINGS' }).first().isVisible());
 const back = await page.evaluate(themeState);
 P(`the theme fades back in (playing=${back?.playing}, vol=${back?.vol})`, back?.playing === true && back.vol > 0);
