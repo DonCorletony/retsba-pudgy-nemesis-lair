@@ -73,6 +73,15 @@ const INTRO = {
    Browsers block audio until the page has had a user gesture; clicking
    "New match" supplies it. Playback errors are swallowed — sound is never
    allowed to break the game. */
+/** Which sprite plays over a struck cell. `whirl` covers the whole 2x2. */
+type AnimKind = 'fire' | 'blue' | 'bolt' | 'whirl';
+const FX_GIF: Record<AnimKind, string> = {
+  fire: '/game/explosion.gif',
+  blue: '/game/explosion-blue.gif',
+  bolt: '/game/lightning.gif',
+  whirl: '/game/whirlpool.gif',
+};
+
 const SFX = {
   countdown: '/game/sounds/countdown-beep.mp3',
   start: '/game/sounds/start-beep.wav',
@@ -86,6 +95,11 @@ const SFX = {
   click: '/game/sounds/ui-click.wav',
   highlight: '/game/sounds/powerup-highlight.wav',
   selected: '/game/sounds/powerup-selected.wav',
+  correct: '/game/sounds/bonus-correct.wav',
+  wrong: '/game/sounds/bonus-wrong.wav',
+  thunder: '/game/sounds/thunder.wav',
+  whirlpool: '/game/sounds/whirlpool.wav',
+  shield: '/game/sounds/shield-hit.flac',
 } as const;
 
 /* ---------- preferences ----------
@@ -352,10 +366,10 @@ const CARD_INFO: Record<Card, { label: string; name: string; blurb: string; cls:
   '+2': { label: '+2', name: 'BOMBER', blurb: '2 extra shots this turn', cls: 'bg-[#7c3aed]' },
   SKIP: { label: '1T', name: 'SKIP', blurb: "Skip opponent's next turn", cls: 'bg-[#0f766e]' },
   SHIELD: { label: '5×5', name: 'SHIELD', blurb: 'Hide a 5×5 area for one enemy turn', cls: 'bg-[#0369a1]' },
-  THUNDERSTORM: { label: '1×1', name: 'THUNDERSTORM', blurb: 'Three single strikes at random', cls: 'bg-[#4338ca]' },
+  THUNDERSTORM: { label: '1×1', name: 'THUNDERSTORM', blurb: 'Five single strikes at random', cls: 'bg-[#4338ca]' },
   // CLUSTER is aimed by the player; WHIRLPOOL lands wherever it lands.
   CLUSTER: { label: '5×5', name: 'CLUSTER', blurb: 'Your next shot hits a 5×5 you pick', cls: 'bg-[#ea580c]' },
-  WHIRLPOOL: { label: '3×3', name: 'WHIRLPOOL', blurb: 'Three 3×3 strikes at random', cls: 'bg-[#0d9488]' },
+  WHIRLPOOL: { label: '2×2', name: 'WHIRLPOOL', blurb: 'Three 2×2 strikes at random', cls: 'bg-[#0d9488]' },
   RESURRECTION: { label: 'REV', name: 'RESURRECTION', blurb: 'Raise your smallest sunk boat', cls: 'bg-[#65a30d]' },
 };
 
@@ -538,6 +552,16 @@ const blockAround = (idx: number, size: number): number[] => {
   for (let r = r0 - half; r <= r0 + half; r++)
     for (let c = c0 - half; c <= c0 + half; c++)
       if (r >= 0 && r < GRID && c >= 0 && c < GRID) out.push(r * GRID + c);
+  return out;
+};
+
+/** Square of side `size` with idx as its top-left, pulled back inside the board
+ *  so a strike near an edge still covers its full area. */
+const squareFrom = (idx: number, size: number): number[] => {
+  const r0 = Math.min(Math.floor(idx / GRID), GRID - size);
+  const c0 = Math.min(idx % GRID, GRID - size);
+  const out: number[] = [];
+  for (let r = r0; r < r0 + size; r++) for (let c = c0; c < c0 + size; c++) out.push(r * GRID + c);
   return out;
 };
 
@@ -1089,7 +1113,7 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
   title: string; right: string; ships: Placed[]; showShips: boolean; sunk: Placed[]; shots: Shots;
   clickable: boolean; outlined: boolean; pulse?: boolean;
   onCell?: (idx: number) => void;
-  animating?: Record<number, true>;
+  animating?: Record<number, AnimKind>;
   crosshair?: boolean;
   /* setup only: every boat can be picked up, moved and turned */
   arrangeable?: boolean; selected?: ShipKey | null;
@@ -1232,12 +1256,28 @@ const Board = ({ title, right, ships, showShips, sunk, shots, clickable, outline
                 <div key={idx} className="absolute flex items-center justify-center"
                   style={{ left: `${(i % GRID) * 10}%`, top: `${Math.floor(i / GRID) * 10}%`, width: '10%', height: '10%' }}>
                   {kind === 'blocked'
-                    ? <span className="block w-full h-full rounded-full" style={{ animation: 'bcBlueBurst 900ms ease-out forwards' }} />
+                    ? null
                     : kind === 'hit'
                     ? (animating?.[i]
-                        ? <img src={`/game/explosion.gif?c=${i}`} alt="" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+                        ? null
                         : <span className="text-[3.2vmin] lg:text-2xl leading-none select-none">💥</span>)
                     : <span className="font-black text-red-600 text-[3vmin] lg:text-2xl leading-none select-none" style={{ textShadow: '1px 1px 0 rgba(0,0,0,0.4)' }}>X</span>}
+                </div>
+              );
+            })}
+
+            {/* Effects sit in their own layer rather than inside the shot marks:
+                a bolt plays over a miss as readily as a hit, and a whirlpool
+                spans the whole 2x2 it churned rather than a single cell. */}
+            {Object.entries(animating ?? {}).map(([idx, fx]) => {
+              const i = Number(idx);
+              const span = fx === 'whirl' ? 2 : 1;
+              return (
+                <div key={`fx-${idx}`} className="absolute"
+                  style={{ left: `${(i % GRID) * 10}%`, top: `${Math.floor(i / GRID) * 10}%`,
+                           width: `${10 * span}%`, height: `${10 * span}%` }}>
+                  <img src={`${FX_GIF[fx]}?c=${i}`} alt="" className="w-full h-full object-contain"
+                    style={{ imageRendering: 'pixelated' }} />
                 </div>
               );
             })}
@@ -1263,7 +1303,7 @@ const BattleChips = () => {
   const [shotsLeft, setShotsLeft] = useState(5);   // ACTIVE player's remaining shots
   const [clock, setClock] = useState(SETUP_SECONDS);
   const [winner, setWinner] = useState<'you' | 'foe' | null>(null);
-  const [anim, setAnim] = useState<{ you: Record<number, true>; foe: Record<number, true> }>({ you: {}, foe: {} });
+  const [anim, setAnim] = useState<{ you: Record<number, AnimKind>; foe: Record<number, AnimKind> }>({ you: {}, foe: {} });
   const [bonus, setBonus] = useState<Bonus | null>(null);
   const [slots, setSlots] = useState<SlotCards>(dealSlots);
   const [cards, setCards] = useState<{ you: CardInst[]; foe: CardInst[] }>({ you: [], foe: [] });
@@ -1380,8 +1420,8 @@ const BattleChips = () => {
   const arranging = phase === 'setup' && !waitingDone;
   const inGame = phase === 'setup' || phase === 'battle';
 
-  const playExplosion = (board: 'you' | 'foe', idx: number) => {
-    setAnim((prev) => ({ ...prev, [board]: { ...prev[board], [idx]: true as const } }));
+  const playExplosion = (board: 'you' | 'foe', idx: number, kind: AnimKind = 'fire') => {
+    setAnim((prev) => ({ ...prev, [board]: { ...prev[board], [idx]: kind } }));
     setTimeout(() => {
       setAnim((prev) => { const c = { ...prev[board] }; delete c[idx]; return { ...prev, [board]: c }; });
     }, EXPLOSION_MS);
@@ -1584,12 +1624,13 @@ const BattleChips = () => {
       for (const i of fresh) {
         // A shielded cell swallows the shot: no explosion, no red X, nothing on
         // the board at all — just the blue burst and the SHIELD HIT! flash.
-        if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; continue; }
+        if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; playExplosion('you', i, 'blue'); continue; }
         const hit = yourCells.has(i);
         next[i] = hit ? 'hit' : 'miss';
         if (hit) { isHit = true; playExplosion('you', i); }
       }
       if (stopped) {
+        playSfx(SFX.shield);
         setShieldHit(true);
         setTimeout(() => setShieldHit(false), SHIELD_HIT_MS);
       }
@@ -1748,7 +1789,7 @@ const BattleChips = () => {
     });
     setTimeout(() => {
       setBonus((b) => (b ? { ...b, stage: 'result', result } : b));
-      playSfx(SFX.highlight);
+      playSfx(result === choice ? SFX.correct : SFX.wrong);
       // Call it right and the slot's card is yours; call it wrong and the card is
       // simply gone. Nobody is rewarded for someone else's bad guess.
       if (result === choice) {
@@ -1802,6 +1843,19 @@ const BattleChips = () => {
     return resurrectionBerth(wreck, yourFleet, foeShots) ? null : 'NO SPACE';
   };
 
+  /** Whirlpool churns three 2x2 patches; Thunderstorm drops five single bolts.
+   *  Both draw their own sprite over every space they touch, hit or miss. */
+  const areaCard = (type: 'WHIRLPOOL' | 'THUNDERSTORM') => {
+    if (type === 'WHIRLPOOL') {
+      const anchors = randomCentres(yourShots, 3);
+      strike(anchors.flatMap((c) => squareFrom(c, 2)), false,
+        { kind: 'whirl', cells: anchors.map((c) => squareFrom(c, 2)[0]) });
+    } else {
+      const bolts = randomCentres(yourShots, 5);
+      strike(bolts, false, { kind: 'bolt', cells: bolts });
+    }
+  };
+
   const playCard = (i: number) => {
     if (!canPlayCards) return;
     const card = cards.you[i];
@@ -1817,8 +1871,7 @@ const BattleChips = () => {
     else if (card.type === 'CLUSTER') setClusterArmed(true);   // flag, so it never stacks
     else if (card.type === 'SKIP') setSkipFoeTurn(true);
     else if (card.type === 'SHIELD') setShieldPlacing(clampShield(3, 3));   // drops mid-board to be dragged
-    else if (card.type === 'WHIRLPOOL') strike(randomCentres(yourShots, 3).flatMap((c) => blockAround(c, 3)), false);
-    else if (card.type === 'THUNDERSTORM') strike(randomCentres(yourShots, 3), false);
+    else if (card.type === 'WHIRLPOOL' || card.type === 'THUNDERSTORM') areaCard(card.type);
   };
 
   const lockShield = () => {
@@ -1837,7 +1890,7 @@ const BattleChips = () => {
      One volley of cells against the enemy board: marks, sound, sink check, win
      check and the bonus spin. Aimed shots spend a shot; the strike cards don't,
      since playing a card is its own action. */
-  const strike = (area: number[], spendShot: boolean) => {
+  const strike = (area: number[], spendShot: boolean, fx?: { kind: AnimKind; cells: number[] }) => {
     const fresh = [...new Set(area)].filter((i) => yourShots[i] === undefined);
     const foeCells = new Set(foeFleet.flatMap(cellsFor));
     const next: Shots = { ...yourShots };
@@ -1845,7 +1898,17 @@ const BattleChips = () => {
     for (const i of fresh) {
       const hit = foeCells.has(i);
       next[i] = hit ? 'hit' : 'miss';
-      if (hit) { anyHit = true; playExplosion('foe', i); }
+      // A card with its own effect draws that instead, over every space it
+      // touched — hit or not — rather than fire on the hits alone.
+      if (hit) { anyHit = true; if (!fx) playExplosion('foe', i); }
+    }
+    if (fx) {
+      const cry = fx.kind === 'bolt' ? SFX.thunder : fx.kind === 'whirl' ? SFX.whirlpool : null;
+      fx.cells.forEach((i, n) => {
+        playExplosion('foe', i, fx.kind);
+        // staggered: five bolts landing together read as one noise, not five
+        if (cry) setTimeout(() => playSfx(cry), n * 140);
+      });
     }
     setYourShots(next);
 
@@ -1912,7 +1975,13 @@ const BattleChips = () => {
 
   if (typeof window !== 'undefined') {
     (window as any).__BC = { phase, turn, shotsLeft, clock, yourBoats, foeBoats, foeFleet, winner, selected, yourFleet, waitingDone, bonus, cards, slots, clusterArmed, skipFoeTurn, foePlayed, foeTarget, cardBlocked, dealSlots, settings, water, spinClock, choosing, ballAngle, wheelAngle, POCKETS, pocketFor, shield, shieldPlacing, shieldCells, RED_BLACK_POOL, GREEN_POOL, randomCentres, blockAround, sunkSmallest, resurrectionBerth, cellsFor, autoPlace, stageFor, yourShots, foeShots, newMatch, enterLobby,
-      pressPlay: startPlay, fade };
+      pressPlay: startPlay, fade,
+      // test hooks: fire a card outright, and read back what is animating
+      cardInfo: CARD_INFO,
+      forceCard: areaCard,
+      animCells: () => Object.entries(anim.foe).map(([i, kind]) => ({
+        idx: Number(i), kind, span: kind === 'whirl' ? 2 : 1,
+      })) };
   }
 
   /* ---------- shared pieces (composed differently on mobile vs desktop) ---------- */
@@ -1969,7 +2038,16 @@ const BattleChips = () => {
         const selecting = bonus?.who === 'you' && bonus.stage === 'select';
         const chosen = bonus?.choice === key;
         const isWinner = bonus?.stage === 'result' && bonus.result === key;
-        const ring = selecting || chosen || isWinner ? 'outline outline-[3px] outline-[#f2c320]' : '';
+        const settled = bonus?.stage === 'result';
+        const right = settled && bonus.result === bonus.choice;
+        /* Once it lands the yellow stops meaning "picked" and starts meaning
+           "the answer": a correct call goes green, a wrong one drops its own
+           highlight and the colour that actually came up is ringed red. */
+        const ring = settled
+          ? (right && isWinner ? 'outline outline-[3px] outline-[#22c55e]'
+            : !right && isWinner ? 'outline outline-[3px] outline-[#ef4444]'
+            : '')
+          : selecting || chosen ? 'outline outline-[3px] outline-[#f2c320]' : '';
         const card = bonus ? slots[key] : null;
         return (
           <button

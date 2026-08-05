@@ -62,7 +62,7 @@ const browser = await launch('allow');
   P(`during a match it is battle 1 alone (${audible(await page.evaluate(MUSIC))})`,
     audible(await page.evaluate(MUSIC)).join() === 'battle-1');
 
-  // forfeit back out -> the sea returns
+  // forfeit back out -> the lobby, so the sea returns rather than the theme
   await page.getByRole('button', { name: 'Forfeit' }).click();
   await page.waitForTimeout(400);
   await page.getByRole('button', { name: 'Yes, Leave' }).click();
@@ -71,7 +71,17 @@ const browser = await launch('allow');
   const home = await page.evaluate(MUSIC);
   console.log('  back home:', JSON.stringify(home));
   P(`leaving a match silences the battle music (${audible(home)})`, !audible(home).includes('battle-1'));
-  P('and the theme is back', audible(home).includes('theme'));
+  P('and the sea is back, since forfeiting lands on the lobby',
+    audible(home).includes('ocean-ambience'));
+
+  // and stepping out of the lobby brings the theme back
+  await page.getByRole('button', { name: 'Back' }).click();
+  await settled(page);
+  await page.waitForTimeout(3500);
+  const title = await page.evaluate(MUSIC);
+  console.log('  title:', JSON.stringify(title));
+  P(`Back to the title screen brings the theme back (${audible(title)})`,
+    audible(title).includes('theme'));
   await page.close();
 }
 
