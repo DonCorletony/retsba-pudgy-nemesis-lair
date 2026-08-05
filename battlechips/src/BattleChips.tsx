@@ -46,6 +46,12 @@ const SwapPortal = lazy(() => import('./SwapPortal'));
 const GRID = 10;
 const SETUP_SECONDS = 30;
 const EXPLOSION_MS = 2100;
+/* How long an outcome is left to land before the game moves on. A sinking has
+   to finish burning before the wheel takes the screen; the last shot of a turn
+   gets the same room, or a shorter beat when it hit nothing. */
+const SINK_BEAT_MS = EXPLOSION_MS;
+const HIT_BEAT_MS = EXPLOSION_MS;
+const MISS_BEAT_MS = 1100;
 const BONUS_POPUP_MS = 2500;
 const CALLOUT_MS = 2000;       // "PLACE YOUR BOATS" / "BEGIN" flashes
 const FOE_CARD_MS = 1800;      // "ENEMY PLAYS …" flash
@@ -1924,14 +1930,22 @@ const BattleChips = () => {
     // a Cluster or a Whirlpool takes down at once.
     if (sankSomething) {
       endTurnAfterBonus.current = left <= 0;
-      setSlots(dealSlots());                 // deal fresh cards into the slots
-      setBonus({ who: 'you', stage: 'select', choice: null, result: null });
-      setShowBonusPopup(true);
-      playSfx(SFX.bonus);
-      setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
+      // Let the boat finish going down first — cutting to the wheel on the frame
+      // the last hit lands throws away the moment the shot was for.
+      setTimeout(() => {
+        setSlots(dealSlots());               // deal fresh cards into the slots
+        setBonus({ who: 'you', stage: 'select', choice: null, result: null });
+        setShowBonusPopup(true);
+        playSfx(SFX.bonus);
+        setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
+      }, SINK_BEAT_MS);
       return;
     }
-    if (spendShot && left <= 0) setTimeout(() => handOver(next, foeShots), 700);
+    // Same on the last shot of a turn: a hit gets its explosion, a miss gets
+    // long enough to hear it, and only then does the turn change hands.
+    if (spendShot && left <= 0) {
+      setTimeout(() => handOver(next, foeShots), anyHit ? HIT_BEAT_MS : MISS_BEAT_MS);
+    }
   };
 
   const fireAt = (idx: number) => {
@@ -1979,6 +1993,11 @@ const BattleChips = () => {
       // test hooks: fire a card outright, and read back what is animating
       cardInfo: CARD_INFO,
       forceCard: areaCard,
+      /* Test hooks. Striking every cell of a boat in one volley sinks it from
+         that volley alone, so the sink path can be driven without leaning on
+         state the caller cannot see. */
+      testBattle: () => beginBattle(yourFleet),
+      testSinkFire: () => strike(cellsFor(foeFleet[0]), true),
       animCells: () => Object.entries(anim.foe).map(([i, kind]) => ({
         idx: Number(i), kind, span: kind === 'whirl' ? 2 : 1,
       })) };
