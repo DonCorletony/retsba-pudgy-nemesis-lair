@@ -1997,6 +1997,7 @@ const BattleChips = () => {
          that volley alone, so the sink path can be driven without leaning on
          state the caller cannot see. */
       testBattle: () => beginBattle(yourFleet),
+      rollColor, COLORS,
       testSinkFire: () => strike(cellsFor(foeFleet[0]), true),
       animCells: () => Object.entries(anim.foe).map(([i, kind]) => ({
         idx: Number(i), kind, span: kind === 'whirl' ? 2 : 1,
