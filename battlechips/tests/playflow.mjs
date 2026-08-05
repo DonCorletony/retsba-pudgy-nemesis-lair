@@ -8,7 +8,7 @@ const LUCKY = '0x6d35df127dc8eccb63531b9c2c93d0ce0d27c1f5';
 
 const browser = await launch('allow');
 const page = await open(browser, { viewport: DESKTOP, init: [AUDIO_REGISTRY, mockWalletScript()] });
-await page.route('**/rpc.mainnet.chain.robinhood.com/**', mockRpc({ [USDG]: 0n, [LUCKY]: 0n }));
+await page.route('**/rpc.mainnet.chain.robinhood.com/**', mockRpc({ [USDG]: 50n * 10n ** 6n, [LUCKY]: 1234n * 10n ** 18n }));
 await page.waitForTimeout(900); await page.mouse.click(800, 40); await page.waitForTimeout(1400);
 await connectMockWallet(page); await page.waitForTimeout(1200);
 
@@ -34,6 +34,10 @@ P('the switch offers $LUCKY and $USDG',
 P('LUCKY is the live side to start, so the text box shows',
   await page.getByPlaceholder('Enter amount of $LUCKY to wager').isVisible());
 P('Battle! starts grayed out', !(await battleEnabled()));
+await page.waitForTimeout(800);   // give the balance read a beat
+P('the wallet\'s LUCKY balance shows while LUCKY is selected',
+  await page.getByText('In your wallet:').isVisible()
+  && await page.getByText(/1,234 \$LUCKY/).isVisible());
 
 await page.getByPlaceholder('Enter amount of $LUCKY to wager').fill('250');
 P('typing a LUCKY amount arms Battle!', await battleEnabled());
@@ -47,6 +51,10 @@ P('USDG swaps the box for the five presets',
 P('switching sides disarms Battle! until a preset is picked', !(await battleEnabled()));
 await btn('$25').click();
 P('picking $25 arms it again', await battleEnabled());
+const balLine = await page.evaluate(() =>
+  [...document.querySelectorAll('div')].find((d) => d.textContent.startsWith('In your wallet:'))?.textContent);
+P(`and the balance line follows the switch to USDG (${balLine?.trim()})`,
+  /50 \$USDG/.test(balLine) && !/\$LUCKY/.test(balLine));
 
 /* --- Battle! ends at the honest stub for now --- */
 await btn('Battle!').click(); await page.waitForTimeout(300);

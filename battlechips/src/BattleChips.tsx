@@ -1354,7 +1354,10 @@ const BattleChips = () => {
       args: [address],
       chainId: ROBINHOOD_ID,
     })),
-    query: { enabled: showProfile && isConnected, refetchInterval: showProfile ? 15_000 : false },
+    query: {
+      enabled: (showProfile || playFlow?.step === 'wager') && isConnected,
+      refetchInterval: showProfile || playFlow?.step === 'wager' ? 15_000 : false,
+    },
   });
   const balanceOf = (symbol: string) => {
     const n = GAME_TOKENS.findIndex((t) => t.symbol === symbol);
@@ -2446,6 +2449,12 @@ const BattleChips = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* what a wager can actually be drawn against */}
+            <div className="text-right font-mono text-[10px] text-black/60 -mt-1">
+              In your wallet: <span className="font-bold text-black/80">
+                {balanceOf(playFlow.token)} ${playFlow.token}</span>
             </div>
 
             {playFlow.token === 'LUCKY' ? (
