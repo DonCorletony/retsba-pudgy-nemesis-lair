@@ -4,7 +4,9 @@ import { launch, open, P, done, settled, AUDIO_REGISTRY, DESKTOP } from './lib.m
 const browser = await launch('allow');
 const page = await open(browser, { viewport: DESKTOP, init: [AUDIO_REGISTRY] });
 await page.waitForTimeout(900); await page.mouse.click(800, 40); await page.waitForTimeout(1400);
-await page.getByRole('button', { name: 'PLAY FREE' }).click();
+await page.getByRole('button', { name: 'FREE PLAY' }).click();
+await page.waitForTimeout(300);
+await page.getByRole('button', { name: 'Play the House' }).click();
 await settled(page); await page.waitForTimeout(600);
 
 await page.getByRole('button', { name: 'New match' }).click();

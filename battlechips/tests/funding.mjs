@@ -38,10 +38,10 @@ const browser = await launch('allow');
   P('the swap chunk is not fetched just to show the title screen', chunks.length === 0);
 
   const order = await page.evaluate(() => [...document.querySelectorAll('button')]
-    .map((b) => b.textContent.trim()).filter((t) => /^(PLAY|FUND WALLET|SETTINGS)$/.test(t)));
+    .map((b) => b.textContent.trim()).filter((t) => /^(FREE PLAY|PAID PLAY|FUND WALLET|SETTINGS)$/.test(t)));
   console.log('  title buttons:', JSON.stringify(order));
-  P('FUND WALLET sits between PLAY and SETTINGS',
-    order.indexOf('FUND WALLET') === 1 && order.indexOf('SETTINGS') === 2);
+  P('FUND WALLET sits between PAID PLAY and SETTINGS',
+    order.indexOf('FUND WALLET') === 2 && order.indexOf('SETTINGS') === 3);
 
   await page.getByRole('button', { name: 'FUND WALLET' }).click();
   await page.waitForTimeout(2500);

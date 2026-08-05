@@ -33,9 +33,9 @@ P(`the pill is pinned to the top of the window (${box.top}px down)`, box.top < 4
 P(`and to the right (${box.right}px in from the edge)`, box.right < 40);
 P(`its box really is fixed, not dropped into flow (${box.position})`, box.position === 'fixed');
 
-P('PLAY has taken the place of CONNECT WALLET',
-  (await page.getByRole('button', { name: 'PLAY', exact: true }).count()) === 1 &&
-  (await page.getByRole('button', { name: 'CONNECT WALLET' }).count()) === 0);
+P('PAID PLAY has taken the place of CONNECT WALLET',
+  await page.getByRole('button', { name: 'PAID PLAY' }).isVisible()
+  && !(await page.getByRole('button', { name: 'CONNECT WALLET' }).isVisible().catch(() => false)));
 P('FUND WALLET is still there', await page.getByRole('button', { name: 'FUND WALLET' }).isVisible());
 
 const sizes = await page.evaluate(() => {
@@ -45,10 +45,10 @@ const sizes = await page.evaluate(() => {
     const r = b.getBoundingClientRect();
     return [Math.round(r.width), Math.round(r.height)];
   };
-  return { play: box('PLAY'), fund: box('FUND WALLET'), settings: box('SETTINGS') };
+  return { play: box('FREE PLAY'), fund: box('FUND WALLET'), settings: box('SETTINGS') };
 });
 console.log('  title buttons:', JSON.stringify(sizes));
-P('PLAY, FUND WALLET and SETTINGS are all the same size',
+P('FREE PLAY, FUND WALLET and SETTINGS are all the same size',
   String(sizes.play) === String(sizes.fund) && String(sizes.fund) === String(sizes.settings));
 
 // the balance menu

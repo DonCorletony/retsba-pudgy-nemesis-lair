@@ -1330,6 +1330,14 @@ const BattleChips = () => {
   useEffect(() => { (window as any).__PROFILE = ProfileStore; }, []);
   const [showHowTo, setShowHowTo] = useState(false);
   const [showFriends, setShowFriends] = useState(false);
+  /* The road in: FREE PLAY / PAID PLAY -> pick an opponent -> (paid) set the
+     wager. Everything past Battle! is still being wired, so the flow currently
+     ends at an honest COMING SOON rather than a button that does nothing. */
+  const [playFlow, setPlayFlow] = useState<{
+    tier: 'free' | 'paid'; step: 'mode' | 'wager'; mode: 'online' | 'house' | null;
+    token: 'LUCKY' | 'USDG'; amount: string; preset: number | null;
+  } | null>(null);
+  const [comingSoon, setComingSoon] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   /* Sinks land one at a time but only count once the match ends on its own
      terms, so a forfeit can throw the tally away rather than bank it. */
@@ -2380,6 +2388,124 @@ const BattleChips = () => {
     </div>
   );
 
+  /* ---------- the play flow ---------- */
+  const wagerSet = playFlow?.token === 'LUCKY'
+    ? Number(playFlow.amount) > 0
+    : playFlow?.preset != null;
+
+  const playDialog = playFlow && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setPlayFlow(null)}>
+      <div className={`${raised} w-full max-w-sm p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>{playFlow.tier === 'free' ? 'Free Play' : 'Paid Play'}</span>
+          <button {...uiSfx(() => setPlayFlow(null))} className="px-1 leading-none">X</button>
+        </div>
+
+        {playFlow.step === 'mode' ? (
+          <div className="p-4 space-y-2">
+            <button
+              {...uiSfx(() => {
+                if (playFlow.tier === 'paid') setPlayFlow({ ...playFlow, step: 'wager', mode: 'online' });
+                else setComingSoon(true);   // free online: matchmaking lands next
+              })}
+              className={`${btn98} w-full !py-2.5 font-bold tracking-wider`}
+            >
+              Play Online
+            </button>
+            <button
+              {...uiSfx(() => {
+                if (playFlow.tier === 'paid') setPlayFlow({ ...playFlow, step: 'wager', mode: 'house' });
+                else { setPlayFlow(null); startPlay(); }
+              })}
+              className={`${btn98} w-full !py-2.5 font-bold tracking-wider`}
+            >
+              Play the House
+            </button>
+            <div className="flex justify-center pt-1">
+              <button {...uiSfx(() => setPlayFlow(null))} className={`${btn98} !px-6`}>Back</button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-sm text-black whitespace-nowrap">Set Your Wager:</span>
+              {/* dual switch: the live side sits pressed in, Win98-style */}
+              <div className="flex">
+                {(['LUCKY', 'USDG'] as const).map((t) => (
+                  <button
+                    key={t}
+                    {...uiSfx(() => setPlayFlow({ ...playFlow, token: t, amount: '', preset: null }))}
+                    className={`px-3 py-1 text-[12px] font-bold text-black bg-[#c0c0c0] border-2 ${
+                      playFlow.token === t
+                        ? 'border-t-[#404040] border-l-[#404040] border-b-white border-r-white bg-[#a8a8a8]'
+                        : 'border-t-white border-l-white border-b-[#404040] border-r-[#404040]'
+                    }`}
+                  >
+                    ${t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {playFlow.token === 'LUCKY' ? (
+              <input
+                type="text"
+                inputMode="decimal"
+                value={playFlow.amount}
+                onChange={(e) => setPlayFlow({ ...playFlow, amount: e.target.value.replace(/[^0-9.]/g, '') })}
+                placeholder="Enter amount of $LUCKY to wager"
+                className={`${sunken} w-full bg-white px-2 py-2 font-mono text-[12px] text-black placeholder:text-black/40 outline-none`}
+              />
+            ) : (
+              <div className="grid grid-cols-5 gap-1.5">
+                {[5, 10, 25, 50, 100].map((v) => (
+                  <button
+                    key={v}
+                    {...uiSfx(() => setPlayFlow({ ...playFlow, preset: v }))}
+                    className={`py-2 text-[12px] font-bold text-black bg-[#c0c0c0] border-2 ${
+                      playFlow.preset === v
+                        ? 'border-t-[#404040] border-l-[#404040] border-b-white border-r-white bg-[#a8a8a8]'
+                        : 'border-t-white border-l-white border-b-[#404040] border-r-[#404040]'
+                    }`}
+                  >
+                    ${v}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between pt-1">
+              <button {...uiSfx(() => setPlayFlow({ ...playFlow, step: 'mode', mode: null }))} className={`${btn98} !px-6`}>Back</button>
+              <button
+                {...uiSfx(() => setComingSoon(true))}   /* escrow + matchmaking land next */
+                disabled={!wagerSet}
+                className={`${btn98} !px-6 font-bold ${wagerSet ? '' : '!text-[#808080] cursor-default'}`}
+              >
+                Battle!
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const comingSoonDialog = comingSoon && (
+    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setComingSoon(false)}>
+      <div className={`${raised} w-full max-w-xs p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1">One Moment</div>
+        <div className="p-4 text-center space-y-3">
+          <p className="text-[12px] text-black">
+            Online battles and wagers are still being wired up. This is where they&apos;ll start.
+          </p>
+          <button {...uiSfx(() => setComingSoon(false))} className={`${btn98} !px-8`}>OK</button>
+        </div>
+      </div>
+    </div>
+  );
+
   const friendsDialog = showFriends && (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
       onClick={() => setShowFriends(false)}>
@@ -2498,15 +2624,15 @@ const BattleChips = () => {
               transition: 'opacity 900ms ease-in-out',
             }}
           >
+            <button {...uiSfx(() => setPlayFlow({ tier: 'free', step: 'mode', mode: null, token: 'LUCKY', amount: '', preset: null }))}
+              className={`${btn98} ${titleBtn}`}>FREE PLAY</button>
             {isConnected ? (
-              <button {...uiSfx(startPlay)} className={`${btn98} ${titleBtn}`}>PLAY</button>
+              <button {...uiSfx(() => setPlayFlow({ tier: 'paid', step: 'mode', mode: null, token: 'LUCKY', amount: '', preset: null }))}
+                className={`${btn98} ${titleBtn}`}>PAID PLAY</button>
             ) : (
-              <>
-                {/* Nothing in a match needs a wallet, so there's no reason to make
-                    connecting the price of a game. Same route in as PLAY. */}
-                <button {...uiSfx(startPlay)} className={`${btn98} ${titleBtn}`}>PLAY FREE</button>
-                <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
-              </>
+              /* A paid game with no wallet has nothing to wager, so the slot
+                 holds the way to get one instead. */
+              <WalletButton big className="w-full" onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />
             )}
             {/* Nothing to fund without a wallet to fund it into. */}
             {isConnected && (
@@ -2523,6 +2649,8 @@ const BattleChips = () => {
         {profileDialog}
         {howToDialog}
         {friendsDialog}
+        {playDialog}
+        {comingSoonDialog}
         {revealed && (
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}
