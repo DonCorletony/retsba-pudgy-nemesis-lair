@@ -25,7 +25,7 @@ P('FREE PLAY sits above PAID PLAY', order.join('|') === 'FREE PLAY|PAID PLAY');
 await btn('PAID PLAY').click(); await page.waitForTimeout(300);
 P('Paid Play opens the opponent window',
   await btn('Play Online').isVisible() && await btn('Play the House').isVisible());
-await btn('Play the House').click(); await page.waitForTimeout(300);
+await btn('Play Online').click(); await page.waitForTimeout(300);
 
 P('the wager window says Set Your Wager',
   await page.getByText('Set Your Wager:').isVisible());
@@ -56,9 +56,9 @@ const balLine = await page.evaluate(() =>
 P(`and the balance line follows the switch to USDG (${balLine?.trim()})`,
   /50 \$USDG/.test(balLine) && !/\$LUCKY/.test(balLine));
 
-/* --- Battle! ends at the honest stub for now --- */
+/* --- online Battle! ends at the honest stub until matchmaking lands --- */
 await btn('Battle!').click(); await page.waitForTimeout(300);
-P('Battle! lands on the coming-soon window',
+P('online Battle! lands on the coming-soon window',
   await page.getByText(/still being wired up/).isVisible());
 await btn('OK').click(); await page.waitForTimeout(200);
 

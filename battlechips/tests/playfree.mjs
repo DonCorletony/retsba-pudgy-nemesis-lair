@@ -47,16 +47,14 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
     && await page.getByRole('button', { name: 'Play the House' }).isVisible()
     && await page.getByRole('button', { name: 'Back', exact: true }).isVisible());
   await page.getByRole('button', { name: 'Play the House' }).click();
-  await settled(page);
-  await page.waitForTimeout(600);
+  await settled(page, 9000);
+  await page.waitForTimeout(600);   // PREPARING GAME burns ~5s
   const st = await page.evaluate(() => ({ phase: window.__BC.phase, connected: !!window.ethereum }));
-  P(`it opens the game screen (phase=${st.phase})`, st.phase === 'lobby');
+  P(`the house battle begins on its own (phase=${st.phase})`, st.phase === 'setup');
   P('with no wallet involved', st.connected === false);
-  P('and New match starts a real match',
-    await page.getByRole('button', { name: 'New match' }).isVisible());
-  await page.getByRole('button', { name: 'New match' }).click();
-  await page.waitForTimeout(900);
-  P('which deals a fleet', (await page.evaluate(() => window.__BC.yourFleet.length)) === 5);
+  P('a fleet is already dealt', (await page.evaluate(() => window.__BC.yourFleet.length)) === 5);
+  P('and no New match button interrupts a running game',
+    !(await page.getByRole('button', { name: 'New match' }).isVisible().catch(() => false)));
   await page.close();
 }
 

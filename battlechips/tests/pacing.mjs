@@ -7,7 +7,7 @@ await page.waitForTimeout(900); await page.mouse.click(800, 40); await page.wait
 await page.getByRole('button', { name: 'FREE PLAY' }).click();
 await page.waitForTimeout(300);
 await page.getByRole('button', { name: 'Play the House' }).click();
-await settled(page); await page.waitForTimeout(500);
+await settled(page, 9000); await page.waitForTimeout(600);   // PREPARING GAME burns ~5s
 
 /** Time from `go` until `until` reads true. */
 const timeTo = (go, until) => page.evaluate(async ([go, until]) => {

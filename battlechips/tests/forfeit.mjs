@@ -7,11 +7,10 @@ await page.waitForTimeout(900); await page.mouse.click(800, 40); await page.wait
 await page.getByRole('button', { name: 'FREE PLAY' }).click();
 await page.waitForTimeout(300);
 await page.getByRole('button', { name: 'Play the House' }).click();
-await settled(page); await page.waitForTimeout(600);
-
-await page.getByRole('button', { name: 'New match' }).click();
-await page.waitForTimeout(1200);
-P('a match is running', (await page.evaluate(() => window.__BC.phase)) === 'setup');
+await settled(page, 9000); await page.waitForTimeout(600);   // PREPARING GAME burns ~5s
+P('a house battle lands in a running match', (await page.evaluate(() => window.__BC.phase)) === 'setup');
+P('with no New match button to interrupt it',
+  !(await page.getByRole('button', { name: 'New match' }).isVisible().catch(() => false)));
 P('and the bar offers Forfeit', await page.getByRole('button', { name: 'Forfeit' }).isVisible());
 
 await page.getByRole('button', { name: 'Forfeit' }).click();

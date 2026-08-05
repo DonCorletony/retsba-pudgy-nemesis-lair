@@ -233,3 +233,6 @@
    gutter and the overscroll area during the opening; no fixed element can
    reach either. See the effect that toggles this class. */
 html.bc-opening, html.bc-opening body { background-color: #000; }
+
+/* the PREPARING GAME pinwheel — stepped, not smooth, on period grounds */
+@keyframes bcPinwheel { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

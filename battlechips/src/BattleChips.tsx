@@ -1521,6 +1521,27 @@ const BattleChips = () => {
     navigate(enterLobby, SCREEN_FADE.holdIn);
   };
 
+  /* A house battle makes an entrance: splash and gulls as the screen dips, a
+     PREPARING GAME card at black for a few seconds, then the game page with a
+     match already under way. The match is dealt at the end of the hold, not the
+     start, so the wait never eats into the setup clock. */
+  const PREPARE_HOLD_MS = 5000;
+  // defined once, rendered beside BOTH ScreenFades — the screens swap underneath it
+
+  const [preparing, setPreparing] = useState(false);
+  const startHouseBattle = () => {
+    if (fade.busy) return;
+    setPlayFlow(null);
+    playSfx(SFX.wave);
+    wantMusic('ocean');                  // the gulls live in the ambience
+    setPreparing(true);
+    navigate(enterLobby, PREPARE_HOLD_MS);
+    fadeTimers.current.push(setTimeout(() => {
+      newMatch();
+      setPreparing(false);
+    }, SCREEN_FADE.out + PREPARE_HOLD_MS));
+  };
+
   /* Screen changes go through a dip to black. `busy` both blocks a second press
      mid-dip and keeps the overlay swallowing clicks until it has lifted. */
   const [fade, setFade] = useState<{ opaque: boolean; ms: number; busy: boolean }>(
@@ -2391,6 +2412,25 @@ const BattleChips = () => {
     </div>
   );
 
+  const preparingCard = preparing && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center pointer-events-none"
+          style={{ opacity: fade.opaque ? 1 : 0, transition: 'opacity 300ms ease-in' }}>
+          <div className={`${raised} p-1`}>
+            <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1">Please Wait</div>
+            <div className="px-8 py-5 flex items-center gap-4">
+              {/* eight-spoke pinwheel, stepping like it's 1998 */}
+              <div className="w-6 h-6"
+                style={{
+                  background: 'conic-gradient(#000 0 25deg, #c0c0c0 25deg 45deg, #000 45deg 70deg, #c0c0c0 70deg 90deg, #000 90deg 115deg, #c0c0c0 115deg 135deg, #000 135deg 160deg, #c0c0c0 160deg 180deg, #000 180deg 205deg, #c0c0c0 205deg 225deg, #000 225deg 250deg, #c0c0c0 250deg 270deg, #000 270deg 295deg, #c0c0c0 295deg 315deg, #000 315deg 340deg, #c0c0c0 340deg 360deg)',
+                  borderRadius: '9999px',
+                  animation: 'bcPinwheel 1s steps(8) infinite',
+                }} />
+              <span className="font-mono text-sm font-bold tracking-widest text-black">PREPARING GAME…</span>
+            </div>
+          </div>
+        </div>
+  );
+
   /* ---------- the play flow ---------- */
   const wagerSet = playFlow?.token === 'LUCKY'
     ? Number(playFlow.amount) > 0
@@ -2419,7 +2459,7 @@ const BattleChips = () => {
             <button
               {...uiSfx(() => {
                 if (playFlow.tier === 'paid') setPlayFlow({ ...playFlow, step: 'wager', mode: 'house' });
-                else { setPlayFlow(null); startPlay(); }
+                else startHouseBattle();
               })}
               className={`${btn98} w-full !py-2.5 font-bold tracking-wider`}
             >
@@ -2487,7 +2527,9 @@ const BattleChips = () => {
             <div className="flex justify-between pt-1">
               <button {...uiSfx(() => setPlayFlow({ ...playFlow, step: 'mode', mode: null }))} className={`${btn98} !px-6`}>Back</button>
               <button
-                {...uiSfx(() => setComingSoon(true))}   /* escrow + matchmaking land next */
+                /* online: matchmaking lands next; the house: straight in — the
+                   wager itself is not escrowed yet, that piece rides with it */
+                {...uiSfx(() => (playFlow.mode === 'house' ? startHouseBattle() : setComingSoon(true)))}
                 disabled={!wagerSet}
                 className={`${btn98} !px-6 font-bold ${wagerSet ? '' : '!text-[#808080] cursor-default'}`}
               >
@@ -2667,6 +2709,7 @@ const BattleChips = () => {
         {fundingWindow}
         {introRunning && <Intro step={introStep} shift={logoShift} />}
         <ScreenFade {...fade} />
+      {preparingCard}
         {audio === 'blocked' && !settings.muted && <SoundNudge />}
       </div>
     );
@@ -2745,6 +2788,7 @@ const BattleChips = () => {
       )}
 
       <ScreenFade {...fade} />
+      {preparingCard}
 
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
@@ -2785,9 +2829,13 @@ const BattleChips = () => {
           className="shrink min-w-0 h-8 md:h-16 w-auto max-w-[45%] object-contain pointer-events-none select-none" />
 
         <div className="flex-1 basis-0 flex justify-end items-center gap-2 relative z-10">
-          <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
-            New match
-          </button>
+          {/* Only when there's no match to interrupt: between games and after a
+              forfeit, never while one is running. */}
+          {!inGame && (
+            <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
+              New match
+            </button>
+          )}
           {/* Connecting is the title screen's job; in here the pill is only worth
               the width it takes if there's an account behind it. */}
           {isConnected && <WalletButton onHover={() => playSfx(SFX.hover)} onPress={() => playSfx(SFX.click)} />}
