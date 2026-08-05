@@ -1329,6 +1329,7 @@ const BattleChips = () => {
   const [showProfile, setShowProfile] = useState(false);
   useEffect(() => { (window as any).__PROFILE = ProfileStore; }, []);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   /* Sinks land one at a time but only count once the match ends on its own
      terms, so a forfeit can throw the tally away rather than bank it. */
@@ -2282,6 +2283,8 @@ const BattleChips = () => {
           <div className={`${raised} mt-1 w-44 p-1`}>
             {[
               ['Profile', () => setShowProfile(true)],
+              ['Friends', () => setShowFriends(true)],
+              ['Fund Wallet', () => setShowFunding(true)],
               ['Settings', () => setShowSettings(true)],
               ['How to Play', () => setShowHowTo(true)],
             ].map(([label, act]) => (
@@ -2372,6 +2375,24 @@ const BattleChips = () => {
             {stat('Cash won', `$${profile.cashWon.toFixed(2)}`)}
             {stat('Ships sunk', profile.shipsSunk.toLocaleString())}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const friendsDialog = showFriends && (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      onClick={() => setShowFriends(false)}>
+      <div className={`${raised} w-full max-w-sm p-1`} onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>Friends</span>
+          <button {...uiSfx(() => setShowFriends(false))} className="px-1 leading-none">X</button>
+        </div>
+        <div className={`${sunken} m-3 p-4 text-center`}>
+          <div className="font-mono text-[11px] tracking-widest text-black/60 uppercase">No friends yet</div>
+          <p className="text-[12px] text-black/70 mt-2">
+            Adding and challenging captains isn&apos;t wired up yet — this is where it will live.
+          </p>
         </div>
       </div>
     </div>
@@ -2489,7 +2510,7 @@ const BattleChips = () => {
             )}
             {/* Nothing to fund without a wallet to fund it into. */}
             {isConnected && (
-              <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn}`}>FUND ACCOUNT</button>
+              <button {...uiSfx(() => setShowFunding(true))} className={`${btn98} ${titleBtn}`}>FUND WALLET</button>
             )}
             <button {...uiSfx(() => setShowSettings(true))} className={`${btn98} ${titleBtn}`}>SETTINGS</button>
           </div>
@@ -2501,6 +2522,7 @@ const BattleChips = () => {
         {revealed && profileTab}
         {profileDialog}
         {howToDialog}
+        {friendsDialog}
         {revealed && (
           <SoundToggle muted={settings.muted} onToggle={() => setSettings((p) => ({ ...p, muted: !p.muted }))} />
         )}

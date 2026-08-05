@@ -10,7 +10,7 @@ const LUCKY = '0x6d35df127dc8eccb63531b9c2c93d0ce0d27c1f5';
 const browser = await launch('allow');
 const titleButtons = () => (window.__buttons = [...document.querySelectorAll('button')]
   .map((b) => b.textContent.trim())
-  .filter((t) => /^(PLAY FREE|CONNECT WALLET|PLAY|FUND ACCOUNT|SETTINGS)$/.test(t)));
+  .filter((t) => /^(PLAY FREE|CONNECT WALLET|PLAY|FUND WALLET|SETTINGS)$/.test(t)));
 
 /* --- disconnected --- */
 for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
@@ -24,7 +24,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
   console.log('  buttons:', JSON.stringify(order));
   P('PLAY FREE sits directly above CONNECT WALLET',
     order[0] === 'PLAY FREE' && order[1] === 'CONNECT WALLET');
-  P('no FUND ACCOUNT without a wallet to fund', !order.includes('FUND ACCOUNT'));
+  P('no FUND WALLET without a wallet to fund', !order.includes('FUND WALLET'));
   P('SETTINGS closes the list', order.slice(2).join() === 'SETTINGS');
 
   const sizes = await page.evaluate(() => {
@@ -68,7 +68,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
   P('PLAY FREE is gone once a wallet is on', !order.includes('PLAY FREE'));
   P('PLAY has taken its place', order[0] === 'PLAY');
   P('and CONNECT WALLET is gone too', !order.includes('CONNECT WALLET'));
-  P('FUND ACCOUNT appears now there is a wallet', order.includes('FUND ACCOUNT'));
+  P('FUND WALLET appears now there is a wallet', order.includes('FUND WALLET'));
   await page.close();
 }
 

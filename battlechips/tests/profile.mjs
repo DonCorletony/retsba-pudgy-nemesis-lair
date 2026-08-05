@@ -31,10 +31,14 @@ await page.getByRole('button', { name: /CAPTAIN/ }).click();
 await page.waitForTimeout(300);
 const items = await page.evaluate(() => [...document.querySelectorAll('button')]
   .map((b) => b.textContent.trim())
-  .filter((t) => ['Profile', 'Settings', 'How to Play', 'Logout'].includes(t)));
+  .filter((t) => ['Profile', 'Friends', 'Fund Wallet', 'Settings', 'How to Play', 'Logout'].includes(t)));
 console.log('  menu:', JSON.stringify(items));
-P('the menu lists all four entries in order',
-  items.join('|') === 'Profile|Settings|How to Play|Logout');
+P('the menu lists every entry in order',
+  items.join('|') === 'Profile|Friends|Fund Wallet|Settings|How to Play|Logout');
+P('Friends sits between Profile and Fund Wallet',
+  items.indexOf('Friends') === 1 && items.indexOf('Fund Wallet') === 2);
+P('and Fund Wallet sits directly above Settings',
+  items.indexOf('Settings') === items.indexOf('Fund Wallet') + 1);
 P('a divider sits above Logout only',
   (await page.evaluate(() => document.querySelectorAll('.border-t').length)) >= 1);
 

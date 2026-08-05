@@ -26,7 +26,7 @@ export const WalletButton = ({ className = '', big = false, onHover, onPress }: 
   className?: string; big?: boolean; onHover?: () => void; onPress?: () => void;
 }) => (
   <ConnectButton.Custom>
-    {({ account, chain, openConnectModal, openChainModal, openAccountModal, authenticationStatus, mounted }) => {
+    {({ account, chain, openConnectModal, openChainModal, authenticationStatus, mounted }) => {
       const ready = mounted && authenticationStatus !== 'loading';
       const connected =
         ready && account && chain && (!authenticationStatus || authenticationStatus === 'authenticated');
@@ -65,12 +65,65 @@ export const WalletButton = ({ className = '', big = false, onHover, onPress }: 
           address={account.address as `0x${string}`}
           onHover={onHover}
           onPress={onPress}
-          onManage={openAccountModal}
         />
       );
     }}
   </ConnectButton.Custom>
 );
+
+/** Win98 account window, in place of RainbowKit's own dark rounded modal. */
+export const AccountWindow = ({ address, onClose }: {
+  address: `0x${string}`; onClose: () => void;
+}) => {
+  const { disconnect } = useDisconnect();
+  const [copied, setCopied] = useState(false);
+  const { data } = useReadContracts({
+    contracts: GAME_TOKENS.map((t) => ({
+      address: t.address, abi: erc20Abi, functionName: 'balanceOf' as const,
+      args: [address], chainId: ROBINHOOD_ID,
+    })),
+  });
+  const short = `${address.slice(0, 6)}…${address.slice(-4)}`;
+  return (
+    <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-xs p-1 bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040]"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1 flex items-center justify-between">
+          <span>Wallet</span>
+          <button onClick={onClose} className="px-1 leading-none">X</button>
+        </div>
+        <div className="p-3 space-y-3">
+          <div className="text-center">
+            <div className="font-bold text-lg text-black">{short}</div>
+            <div className="font-mono text-[10px] text-black/60 break-all">{address}</div>
+          </div>
+          <div className="border-2 border-t-[#404040] border-l-[#404040] border-b-white border-r-white bg-[#e8e8e8] p-2 space-y-1">
+            {GAME_TOKENS.map((t, i) => (
+              <div key={t.symbol} className="flex justify-between font-mono text-[11px] text-black">
+                <span>{t.symbol}</span>
+                <span className="font-bold">{fmtBal(data?.[i]?.result as bigint | undefined, t.decimals)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { navigator.clipboard?.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 1200); }}
+              className="flex-1 px-2 py-1 text-[12px] font-bold text-black bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] active:border-t-[#404040] active:border-l-[#404040] active:border-b-white active:border-r-white"
+            >
+              {copied ? 'Copied' : 'Copy Address'}
+            </button>
+            <button
+              onClick={() => { disconnect(); onClose(); }}
+              className="flex-1 px-2 py-1 text-[12px] font-bold text-black bg-[#c0c0c0] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] active:border-t-[#404040] active:border-l-[#404040] active:border-b-white active:border-r-white"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const fmtBal = (v: bigint | undefined, decimals: number) => {
   if (v === undefined) return '—';
@@ -82,9 +135,10 @@ const fmtBal = (v: bigint | undefined, decimals: number) => {
 /** The connected pill, and the drop-down of what you hold on Robinhood Chain. */
 const ConnectedPill = ({ className, size, label, address, onHover, onPress, onManage }: {
   className: string; size: string; label: string; address: `0x${string}`;
-  onHover?: () => void; onPress?: () => void; onManage: () => void;
+  onHover?: () => void; onPress?: () => void; onManage?: () => void;
 }) => {
   const [open, setOpen] = useState(false);
+  const [details, setDetails] = useState(false);
   const { disconnect } = useDisconnect();
 
   /* Balances are read on Robinhood Chain regardless of which chain the wallet is
@@ -136,7 +190,9 @@ const ConnectedPill = ({ className, size, label, address, onHover, onPress, onMa
             <div className="px-2 pb-2 space-y-1">
               <button
                 onMouseEnter={onHover}
-                onClick={() => { onPress?.(); setOpen(false); onManage(); }}
+                /* Our own window, not RainbowKit's — theirs is a dark rounded
+                   sheet that has nothing to do with the rest of the game. */
+                onClick={() => { onPress?.(); setOpen(false); setDetails(true); }}
                 className={`${base} w-full px-2 py-1 text-[11px] font-bold`}
               >
                 WALLET DETAILS
@@ -153,6 +209,7 @@ const ConnectedPill = ({ className, size, label, address, onHover, onPress, onMa
         </>
       )}
       </div>
+      {details && <AccountWindow address={address} onClose={() => setDetails(false)} />}
     </div>
   );
 };

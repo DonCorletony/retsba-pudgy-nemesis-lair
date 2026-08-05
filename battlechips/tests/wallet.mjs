@@ -36,7 +36,7 @@ P(`its box really is fixed, not dropped into flow (${box.position})`, box.positi
 P('PLAY has taken the place of CONNECT WALLET',
   (await page.getByRole('button', { name: 'PLAY', exact: true }).count()) === 1 &&
   (await page.getByRole('button', { name: 'CONNECT WALLET' }).count()) === 0);
-P('FUND ACCOUNT is still there', await page.getByRole('button', { name: 'FUND ACCOUNT' }).isVisible());
+P('FUND WALLET is still there', await page.getByRole('button', { name: 'FUND WALLET' }).isVisible());
 
 const sizes = await page.evaluate(() => {
   const box = (t) => {
@@ -45,10 +45,10 @@ const sizes = await page.evaluate(() => {
     const r = b.getBoundingClientRect();
     return [Math.round(r.width), Math.round(r.height)];
   };
-  return { play: box('PLAY'), fund: box('FUND ACCOUNT'), settings: box('SETTINGS') };
+  return { play: box('PLAY'), fund: box('FUND WALLET'), settings: box('SETTINGS') };
 });
 console.log('  title buttons:', JSON.stringify(sizes));
-P('PLAY, FUND ACCOUNT and SETTINGS are all the same size',
+P('PLAY, FUND WALLET and SETTINGS are all the same size',
   String(sizes.play) === String(sizes.fund) && String(sizes.fund) === String(sizes.settings));
 
 // the balance menu
