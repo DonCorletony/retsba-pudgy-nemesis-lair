@@ -2300,20 +2300,23 @@ const BattleChips = () => {
       )}
 
       {/* Chrome bar — buttons stay compact on mobile so the wordmark can't overlap them */}
-      <div className={`${raised} relative flex items-center justify-between gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
-        <button
-          {...uiSfx(() => (inGame ? setShowForfeit(true) : navigate(() => resetTo('idle'))))}
-          className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
-        >
-          {inGame ? 'Forfeit' : 'Back'}
-        </button>
-        {/* Laid out in the row rather than centred over it. Absolute centring
-            ignores the buttons, so on a narrow bar they ran straight across the
-            wordmark; as a flex child it takes what's left and shrinks to fit. */}
+      <div className={`${raised} relative flex items-center gap-2 px-2 py-2 md:px-4 md:py-3 mb-3`}>
+        {/* Both sides take an equal share of the bar, which puts the wordmark on
+            the bar's true centre. Letting the middle simply fill the gap between
+            them centres it on that gap instead — and the gap is off-centre
+            whenever the two sides differ in width, which they do. */}
+        <div className="flex-1 basis-0 flex justify-start">
+          <button
+            {...uiSfx(() => (inGame ? setShowForfeit(true) : navigate(() => resetTo('idle'))))}
+            className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm relative z-10`}
+          >
+            {inGame ? 'Forfeit' : 'Back'}
+          </button>
+        </div>
         <img src="/game/logo-battlechips.webp" alt="Battle Chips"
-          className="min-w-0 flex-1 h-8 md:h-16 w-auto object-contain pointer-events-none select-none" />
+          className="shrink min-w-0 h-8 md:h-16 w-auto max-w-[45%] object-contain pointer-events-none select-none" />
 
-        <div className="flex items-center gap-2 relative z-10">
+        <div className="flex-1 basis-0 flex justify-end items-center gap-2 relative z-10">
           <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
             New match
           </button>
