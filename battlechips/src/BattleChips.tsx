@@ -4,6 +4,7 @@ import { useAccount, useDisconnect, useReadContracts } from 'wagmi';
 import { erc20Abi, formatUnits } from 'viem';
 import { GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
 import * as ProfileStore from './profile';
+import { makeTransport, findMatch, bucketFor, type PvpChannel, type PvpTransport, type Wager as PvpWager } from './pvp';
 import {
   loadProfile, saveProfile, applyMatch, levelProgress, winRate, memberSinceLabel,
   type Profile,
@@ -1338,6 +1339,19 @@ const BattleChips = () => {
     token: 'LUCKY' | 'USDG'; amount: string; preset: number | null;
   } | null>(null);
   const [comingSoon, setComingSoon] = useState(false);
+  /* ---------- online session ----------
+     The ref holds the wire; the state mirrors just what the UI needs. Message
+     handlers are wired once per match, so anything they read lives in refs. */
+  const pvpRef = useRef<{ transport: PvpTransport; channel: PvpChannel; opponent: string; wager: PvpWager } | null>(null);
+  const [pvp, setPvp] = useState<{ oppPresent: boolean; youStart: boolean; myRematch: boolean; oppRematch: boolean } | null>(null);
+  const [queueing, setQueueing] = useState(false);
+  const queueSigRef = useRef<{ cancelled: boolean } | null>(null);
+  const pvpFleetIn = useRef<Placed[] | null>(null);
+  const pvpMyFleet = useRef<Placed[] | null>(null);
+  const yourFleetRef = useRef<Placed[]>([]);
+  const yourShotsRef = useRef<Shots>({});
+  const phaseRef = useRef<Phase>('idle');
+  const pvpYouStartRef = useRef(false);
   const [menuOpen, setMenuOpen] = useState(false);
   /* Sinks land one at a time but only count once the match ends on its own
      terms, so a forfeit can throw the tally away rather than bank it. */
@@ -1468,6 +1482,9 @@ const BattleChips = () => {
   const oppDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const foeShotsRef = useRef<Shots>({});
   useEffect(() => { foeShotsRef.current = foeShots; }, [foeShots]);
+  useEffect(() => { yourFleetRef.current = yourFleet; }, [yourFleet]);
+  useEffect(() => { yourShotsRef.current = yourShots; }, [yourShots]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   const yourBoats = boatsRemaining(yourFleet, foeShots);
   const foeBoats = phase === 'battle' || phase === 'over' ? boatsRemaining(foeFleet, yourShots) : FLEET.length;
@@ -1521,6 +1538,135 @@ const BattleChips = () => {
     navigate(enterLobby, SCREEN_FADE.holdIn);
   };
 
+  /* ---------- online battles ----------
+     Same entrance as the house, but the hold at black is a real queue: you wait
+     until another captain joins the same bucket — paid queues only pair on the
+     identical wager. Cards and bonus spins are not exchanged yet, so online
+     matches are pure volleys for now; that ships with the next protocol slice. */
+  const leavePvp = () => {
+    pvpRef.current?.channel.leave();
+    pvpRef.current = null;
+    setPvp(null);
+    pvpFleetIn.current = null;
+    pvpMyFleet.current = null;
+  };
+
+  const pvpBeginBattle = () => {
+    const theirs = pvpFleetIn.current;
+    const mine = pvpMyFleet.current;
+    if (!theirs || !mine) return;                 // the other half hasn't landed
+    setFoeFleet(theirs);
+    setWaitingDone(false);
+    const stage = stageFor(FLEET.length);
+    setPhase('battle');
+    setTurn(pvpYouStartRef.current ? 'you' : 'foe');
+    setShotsLeft(stage.shots); setClock(stage.secs);
+    playSfx(SFX.start);
+    setShowBegin(true);
+    setTimeout(() => setShowBegin(false), CALLOUT_MS);
+  };
+
+  const pvpRematchStart = () => {
+    pvpFleetIn.current = null;
+    pvpMyFleet.current = null;
+    pvpYouStartRef.current = !pvpYouStartRef.current;   // alternate the opener
+    setPvp((v) => v && { ...v, myRematch: false, oppRematch: false });
+    newMatch();
+  };
+
+  const wireChannel = (channel: PvpChannel) => {
+    channel.onMessage((m) => {
+      if (m.t === 'fleet') {
+        pvpFleetIn.current = m.fleet as Placed[];
+        pvpBeginBattle();
+      } else if (m.t === 'volley') {
+        const { wiped } = applyFoeVolley(m.cells);
+        if (wiped) setPvp((v) => v && { ...v });    // profile/phase already handled
+      } else if (m.t === 'endturn') {
+        handBack(yourShotsRef.current, foeShotsRef.current);
+      } else if (m.t === 'forfeit') {
+        if (phaseRef.current === 'setup' || phaseRef.current === 'battle') {
+          setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
+          matchSinks.current = 0;
+          setWinner('you'); setPhase('over');
+        }
+      } else if (m.t === 'rematch') {
+        setPvp((v) => v && { ...v, oppRematch: true });
+        if (pvpMyRematchRef.current) pvpRematchStart();
+      }
+    });
+    channel.onPresence((ids) => {
+      const present = ids.length >= 2;
+      setPvp((v) => v && { ...v, oppPresent: present });
+      if (!present && pvpRef.current && (phaseRef.current === 'setup' || phaseRef.current === 'battle')) {
+        // They didn't forfeit, they vanished. Same outcome, less ceremony.
+        setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
+        matchSinks.current = 0;
+        setWinner('you'); setPhase('over');
+      }
+    });
+  };
+
+  const pvpMyRematchRef = useRef(false);
+  const requestRematch = () => {
+    if (!pvpRef.current || !pvp || pvp.myRematch || !pvp.oppPresent) return;
+    pvpMyRematchRef.current = true;
+    setPvp((v) => v && { ...v, myRematch: true });
+    pvpRef.current.channel.send({ t: 'rematch' });
+    if (pvp.oppRematch) pvpRematchStart();
+  };
+  useEffect(() => { pvpMyRematchRef.current = !!pvp?.myRematch; }, [pvp?.myRematch]);
+
+  const startOnlineBattle = async (wager: PvpWager) => {
+    if (fade.busy || queueSigRef.current) return;
+    setPlayFlow(null);
+    playSfx(SFX.wave);
+    wantMusic('ocean');                            // the gulls, up for the wait
+    setFade({ opaque: true, ms: SCREEN_FADE.out, busy: true });
+    setQueueing(true);
+    const sig = { cancelled: false };
+    queueSigRef.current = sig;
+    const transport = makeTransport();
+    const backOut = () => {
+      queueSigRef.current = null;
+      setQueueing(false);
+      wantMusic('title');
+      setFade({ opaque: false, ms: SCREEN_FADE.in, busy: false });
+    };
+    const paired = await findMatch(transport, bucketFor(wager), sig);
+    if (!paired || sig.cancelled) return backOut();
+    const channel = await transport.join(`match:${paired.matchId}`);
+    // both captains must be aboard before anything is exchanged
+    for (let i = 0; i < 80 && channel.members().length < 2; i++) {
+      await new Promise((r) => setTimeout(r, 100));
+      if (sig.cancelled) { channel.leave(); return backOut(); }
+    }
+    if (channel.members().length < 2) { channel.leave(); return backOut(); }
+    pvpRef.current = { transport, channel, opponent: paired.opponent, wager };
+    pvpYouStartRef.current = paired.youStart;
+    pvpMyRematchRef.current = false;
+    setPvp({ oppPresent: true, youStart: paired.youStart, myRematch: false, oppRematch: false });
+    wireChannel(channel);
+    queueSigRef.current = null;
+    newMatch();                                    // both sides land in setup together
+    setQueueing(false);
+    setFade({ opaque: false, ms: SCREEN_FADE.in, busy: true });
+    fadeTimers.current.push(setTimeout(() =>
+      setFade({ opaque: false, ms: SCREEN_FADE.in, busy: false }), SCREEN_FADE.in));
+  };
+
+  const cancelQueue = () => {
+    if (queueSigRef.current) queueSigRef.current.cancelled = true;
+  };
+
+  /* Online, New match means a new opponent: leave this table, same stakes. */
+  const requeueOnline = () => {
+    const wager = pvpRef.current?.wager ?? null;
+    leavePvp();
+    setPhase('idle');                              // entrance runs from the title screen
+    startOnlineBattle(wager);
+  };
+
   /* A house battle makes an entrance: splash and gulls as the screen dips, a
      PREPARING GAME card at black for a few seconds, then the game page with a
      match already under way. The match is dealt at the end of the hold, not the
@@ -1565,6 +1711,14 @@ const BattleChips = () => {
     if (oppDoneRef.current) clearTimeout(oppDoneRef.current);
     const mine = autoPlace(arranged);   // no-op once all five are down
     setYourFleet(mine); setSelected(null); setWaitingDone(false);
+    if (pvpRef.current) {
+      // Online: your fleet crosses the wire and battle waits for theirs.
+      pvpMyFleet.current = mine;
+      pvpRef.current.channel.send({ t: 'fleet', fleet: mine });
+      setWaitingDone(true);              // "awaiting battle" until both are in
+      pvpBeginBattle();
+      return;
+    }
     setFoeFleet(autoPlace([]));
     const stage = stageFor(FLEET.length);
     setPhase('battle'); setTurn('you'); setShotsLeft(stage.shots); setClock(stage.secs);
@@ -1635,8 +1789,13 @@ const BattleChips = () => {
       // A shield still being dragged when the clock dies locks where it stands,
       // the same way an unplaced boat auto-deploys at the end of setup.
       if (shieldPlacing) { setShield(shieldPlacing); shieldRef.current = shieldPlacing; setShieldPlacing(null); }
-      if (turn === 'you') handOver(yourShots, foeShots);
-      else handBack(yourShots, foeShots);
+      if (turn === 'you') {
+        pvpRef.current?.channel.send({ t: 'endturn' });
+        handOver(yourShots, foeShots);
+      } else if (!pvpRef.current) {
+        handBack(yourShots, foeShots);
+        // online, their own clock ends their turn — the endturn message calls it
+      }
     }
   }, [clock]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1677,11 +1836,49 @@ const BattleChips = () => {
     setTimeout(() => setFoePlayed(null), FOE_CARD_MS);
   }, [turnSeq, phase, turn, bonus, showForfeit]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** A volley landing on YOUR board — from the AI's aim or the wire, same landing. */
+  const applyFoeVolley = (area: number[]) => {
+    const prev = foeShotsRef.current;
+    const yFleet = yourFleetRef.current;
+    const fresh = area.filter((i) => prev[i] === undefined);
+    const yourCells = new Set(yFleet.flatMap(cellsFor));
+    const guarded = shieldRef.current
+      ? new Set(shieldCells(shieldRef.current.row, shieldRef.current.col))
+      : new Set<number>();
+    const next: Shots = { ...prev };
+    let isHit = false, stopped = false;
+    for (const i of fresh) {
+      if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; playExplosion('you', i, 'blue'); continue; }
+      const hit = yourCells.has(i);
+      next[i] = hit ? 'hit' : 'miss';
+      if (hit) { isHit = true; playExplosion('you', i); }
+    }
+    if (stopped) {
+      playSfx(SFX.shield);
+      setShieldHit(true);
+      setTimeout(() => setShieldHit(false), SHIELD_HIT_MS);
+    }
+    foeShotsRef.current = next;
+    setFoeShots(next);
+    const sank = fresh.some((i) => next[i] === 'hit' && didSink(yFleet, next, i));
+    if (isHit) playSfx(sank ? SFX.sunk : SFX.hit);
+    else if (!stopped) playSfx(SFX.miss);
+    const wiped = boatsRemaining(yFleet, next) === 0;
+    if (wiped) {
+      setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current }));
+      matchSinks.current = 0;
+      setWinner('foe'); setPhase('over');
+    }
+    setShotsLeft((sl) => Math.max(0, sl - 1));
+    return { next, sank, wiped };
+  };
+
   /* stand-in opponent: fires once a second (see foeTarget for how it aims),
      decrementing the shared shot counter so the rocket row reflects THEIR
      remaining shots too */
   useEffect(() => {
     if (phase !== 'battle' || turn !== 'foe' || showForfeit || bonus || foePlayed) return;
+    if (pvpRef.current) return;   // online, the other captain is real — see wireChannel
     foeTimerRef.current = setInterval(() => {
       const prev = foeShotsRef.current;
       const target = foeTarget(yourFleet, prev, ghostHitsRef.current);
@@ -1690,35 +1887,11 @@ const BattleChips = () => {
       // An armed Cluster turns their shot into a 5x5 blast, same as yours.
       const area = foeClusterRef.current ? clusterCells(target) : [target];
       if (foeClusterRef.current) foeClusterRef.current = false;
-      const fresh = area.filter((i) => prev[i] === undefined);
-      const yourCells = new Set(yourFleet.flatMap(cellsFor));
-      const guarded = shieldRef.current
-        ? new Set(shieldCells(shieldRef.current.row, shieldRef.current.col))
-        : new Set<number>();
-      const next: Shots = { ...prev };
-      let isHit = false, stopped = false;
-      for (const i of fresh) {
-        // A shielded cell swallows the shot: no explosion, no red X, nothing on
-        // the board at all — just the blue burst and the SHIELD HIT! flash.
-        if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; playExplosion('you', i, 'blue'); continue; }
-        const hit = yourCells.has(i);
-        next[i] = hit ? 'hit' : 'miss';
-        if (hit) { isHit = true; playExplosion('you', i); }
-      }
-      if (stopped) {
-        playSfx(SFX.shield);
-        setShieldHit(true);
-        setTimeout(() => setShieldHit(false), SHIELD_HIT_MS);
-      }
-      foeShotsRef.current = next;
-      setFoeShots(next);
-      const sank = fresh.some((i) => next[i] === 'hit' && didSink(yourFleet, next, i));
-      if (isHit) playSfx(sank ? SFX.sunk : SFX.hit);
-      else if (!stopped) playSfx(SFX.miss);
+      const { next, sank, wiped } = applyFoeVolley(area);
+      if (wiped) return;
       // Sinking one of your ships earns them a spin, which now plays out on screen
       // instead of resolving offstage — no spin if that shot ended the match.
-      const wiped = boatsRemaining(yourFleet, next) === 0;
-      if (sank && !wiped) {
+      if (sank) {
         setSlots(dealSlots());
         setBonus({ who: 'foe', stage: 'select', choice: COLORS[Math.floor(Math.random() * COLORS.length)].key, result: null });
         setShowFoeSpin(true);
@@ -1727,18 +1900,12 @@ const BattleChips = () => {
         // from here and restarts their turn afterwards.
       }
       setShotsLeft((sl) => {
-        const left = sl - 1;
-        if (wiped) {
-          setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current }));
-          matchSinks.current = 0;
-          setWinner('foe'); setPhase('over'); return 0;
-        }
-        if (left <= 0) {
+        if (sl <= 0) {
           // Defer the handover past the spin, or the turn would flip mid-wheel.
           if (sank) foeEndTurnAfterBonus.current = true;
           else setTimeout(() => handBack(yourShots, next), 700);
         }
-        return Math.max(0, left);
+        return sl;
       });
     }, 1000);
     return () => { if (foeTimerRef.current) clearInterval(foeTimerRef.current); };
@@ -1900,7 +2067,7 @@ const BattleChips = () => {
   }, [choosing, spinClock]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---- action cards ---- */
-  const canPlayCards = phase === 'battle' && turn === 'you' && !bonus && !showForfeit;
+  const canPlayCards = phase === 'battle' && turn === 'you' && !bonus && !showForfeit && !pvpRef.current;
 
   /** Raise the smallest boat you've lost onto a random clear berth. */
   const resurrectBoat = (): boolean => {
@@ -1997,6 +2164,8 @@ const BattleChips = () => {
     matchSinks.current += fresh.filter((i) => next[i] === 'hit' && didSink(foeFleet, next, i)).length;
     playSfx(anyHit ? (sankSomething ? SFX.sunk : SFX.hit) : SFX.miss);
 
+    pvpRef.current?.channel.send({ t: 'volley', cells: fresh });
+
     const left = spendShot ? shotsLeft - 1 : shotsLeft;
     if (spendShot) setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) {
@@ -2007,7 +2176,7 @@ const BattleChips = () => {
 
     // Sinking a ship earns the bonus spin — one per volley, however many boats
     // a Cluster or a Whirlpool takes down at once.
-    if (sankSomething) {
+    if (sankSomething && !pvpRef.current) {   // online spins ride the next slice
       endTurnAfterBonus.current = left <= 0;
       // Let the boat finish going down first — cutting to the wheel on the frame
       // the last hit lands throws away the moment the shot was for.
@@ -2023,7 +2192,10 @@ const BattleChips = () => {
     // Same on the last shot of a turn: a hit gets its explosion, a miss gets
     // long enough to hear it, and only then does the turn change hands.
     if (spendShot && left <= 0) {
-      setTimeout(() => handOver(next, foeShots), anyHit ? HIT_BEAT_MS : MISS_BEAT_MS);
+      setTimeout(() => {
+        pvpRef.current?.channel.send({ t: 'endturn' });
+        handOver(next, foeShots);
+      }, anyHit ? HIT_BEAT_MS : MISS_BEAT_MS);
     }
   };
 
@@ -2076,7 +2248,8 @@ const BattleChips = () => {
          that volley alone, so the sink path can be driven without leaning on
          state the caller cannot see. */
       testBattle: () => beginBattle(yourFleet),
-      rollColor, COLORS,
+      testWipeFoe: () => strike(foeFleet.flatMap(cellsFor), false),
+      pvp, rollColor, COLORS,
       testSinkFire: () => strike(cellsFor(foeFleet[0]), true),
       animCells: () => Object.entries(anim.foe).map(([i, kind]) => ({
         idx: Number(i), kind, span: kind === 'whirl' ? 2 : 1,
@@ -2431,6 +2604,27 @@ const BattleChips = () => {
         </div>
   );
 
+  const queueCard = queueing && (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center"
+      style={{ opacity: fade.opaque ? 1 : 0, transition: 'opacity 300ms ease-in' }}>
+      <div className={`${raised} p-1`}>
+        <div className="bg-[#000080] text-white font-bold text-sm px-2 py-1">Please Wait</div>
+        <div className="px-8 py-5 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="w-6 h-6"
+              style={{
+                background: 'conic-gradient(#000 0 25deg, #c0c0c0 25deg 45deg, #000 45deg 70deg, #c0c0c0 70deg 90deg, #000 90deg 115deg, #c0c0c0 115deg 135deg, #000 135deg 160deg, #c0c0c0 160deg 180deg, #000 180deg 205deg, #c0c0c0 205deg 225deg, #000 225deg 250deg, #c0c0c0 250deg 270deg, #000 270deg 295deg, #c0c0c0 295deg 315deg, #000 315deg 340deg, #c0c0c0 340deg 360deg)',
+                borderRadius: '9999px',
+                animation: 'bcPinwheel 1s steps(8) infinite',
+              }} />
+            <span className="font-mono text-sm font-bold tracking-widest text-black">FINDING OPPONENT…</span>
+          </div>
+          <button {...uiSfx(cancelQueue)} className={`${btn98} !px-6`}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+
   /* ---------- the play flow ---------- */
   const wagerSet = playFlow?.token === 'LUCKY'
     ? Number(playFlow.amount) > 0
@@ -2450,7 +2644,7 @@ const BattleChips = () => {
             <button
               {...uiSfx(() => {
                 if (playFlow.tier === 'paid') setPlayFlow({ ...playFlow, step: 'wager', mode: 'online' });
-                else setComingSoon(true);   // free online: matchmaking lands next
+                else startOnlineBattle(null);
               })}
               className={`${btn98} w-full !py-2.5 font-bold tracking-wider`}
             >
@@ -2527,9 +2721,13 @@ const BattleChips = () => {
             <div className="flex justify-between pt-1">
               <button {...uiSfx(() => setPlayFlow({ ...playFlow, step: 'mode', mode: null }))} className={`${btn98} !px-6`}>Back</button>
               <button
-                /* online: matchmaking lands next; the house: straight in — the
-                   wager itself is not escrowed yet, that piece rides with it */
-                {...uiSfx(() => (playFlow.mode === 'house' ? startHouseBattle() : setComingSoon(true)))}
+                /* the wager itself is not escrowed yet; that piece rides with it */
+                {...uiSfx(() => (playFlow.mode === 'house'
+                  ? startHouseBattle()
+                  : startOnlineBattle({
+                      token: playFlow.token,
+                      amount: playFlow.token === 'LUCKY' ? Number(playFlow.amount) : playFlow.preset ?? 0,
+                    })))}
                 disabled={!wagerSet}
                 className={`${btn98} !px-6 font-bold ${wagerSet ? '' : '!text-[#808080] cursor-default'}`}
               >
@@ -2710,6 +2908,7 @@ const BattleChips = () => {
         {introRunning && <Intro step={introStep} shift={logoShift} />}
         <ScreenFade {...fade} />
       {preparingCard}
+      {queueCard}
         {audio === 'blocked' && !settings.muted && <SoundNudge />}
       </div>
     );
@@ -2789,6 +2988,7 @@ const BattleChips = () => {
 
       <ScreenFade {...fade} />
       {preparingCard}
+      {queueCard}
 
       {showForfeit && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
@@ -2802,6 +3002,7 @@ const BattleChips = () => {
                 <button {...uiSfx(() => {
                   setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current, forfeited: true }));
                   matchSinks.current = 0;
+                  if (pvpRef.current) { pvpRef.current.channel.send({ t: 'forfeit' }); leavePvp(); }
                   navigate(() => resetTo('lobby'));
                 })} className={btn98}>Yes, Leave</button>
                 <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>
@@ -2831,8 +3032,21 @@ const BattleChips = () => {
         <div className="flex-1 basis-0 flex justify-end items-center gap-2 relative z-10">
           {/* Only when there's no match to interrupt: between games and after a
               forfeit, never while one is running. */}
+          {!inGame && phase === 'over' && pvp && (
+            <button
+              {...uiSfx(requestRematch)}
+              disabled={!pvp.oppPresent || pvp.myRematch}
+              className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm ${
+                !pvp.oppPresent || pvp.myRematch ? '!text-[#808080] cursor-default' : ''}`}
+            >
+              {pvp.myRematch ? 'Rematch…' : 'Rematch'}
+            </button>
+          )}
           {!inGame && (
-            <button {...uiSfx(newMatch)} className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}>
+            <button
+              {...uiSfx(() => (pvpRef.current ? requeueOnline() : newMatch()))}
+              className={`${btn98} !px-2.5 !text-[11px] md:!px-5 md:!text-sm`}
+            >
               New match
             </button>
           )}

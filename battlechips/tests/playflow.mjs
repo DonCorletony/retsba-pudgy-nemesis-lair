@@ -7,7 +7,8 @@ const USDG = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
 const LUCKY = '0x6d35df127dc8eccb63531b9c2c93d0ce0d27c1f5';
 
 const browser = await launch('allow');
-const page = await open(browser, { viewport: DESKTOP, init: [AUDIO_REGISTRY, mockWalletScript()] });
+const LOCAL = `window.__BC_LOCAL_PVP = true;`;   // keep the queue on the local wire
+const page = await open(browser, { viewport: DESKTOP, init: [AUDIO_REGISTRY, LOCAL, mockWalletScript()] });
 await page.route('**/rpc.mainnet.chain.robinhood.com/**', mockRpc({ [USDG]: 50n * 10n ** 6n, [LUCKY]: 1234n * 10n ** 18n }));
 await page.waitForTimeout(900); await page.mouse.click(800, 40); await page.waitForTimeout(1400);
 await connectMockWallet(page); await page.waitForTimeout(1200);
@@ -56,11 +57,13 @@ const balLine = await page.evaluate(() =>
 P(`and the balance line follows the switch to USDG (${balLine?.trim()})`,
   /50 \$USDG/.test(balLine) && !/\$LUCKY/.test(balLine));
 
-/* --- online Battle! ends at the honest stub until matchmaking lands --- */
-await btn('Battle!').click(); await page.waitForTimeout(300);
-P('online Battle! lands on the coming-soon window',
-  await page.getByText(/still being wired up/).isVisible());
-await btn('OK').click(); await page.waitForTimeout(200);
+/* --- online Battle! joins the real queue --- */
+await btn('Battle!').click(); await page.waitForTimeout(900);
+P('online Battle! queues for an opponent',
+  await page.getByText('FINDING OPPONENT').isVisible());
+await btn('Cancel').click(); await page.waitForTimeout(1400);
+await btn('PAID PLAY').click(); await page.waitForTimeout(300);
+await btn('Play Online').click(); await page.waitForTimeout(300);
 
 /* --- Back walks the flow in reverse --- */
 await btn('Back').click(); await page.waitForTimeout(200);
@@ -68,11 +71,12 @@ P('Back from the wager returns to the opponent choice', await btn('Play Online')
 await btn('Back').click(); await page.waitForTimeout(200);
 P('Back again closes the window', !(await btn('Play Online').isVisible().catch(() => false)));
 
-/* --- free play online: also the stub, for now --- */
+/* --- free play online queues too --- */
 await btn('FREE PLAY').click(); await page.waitForTimeout(300);
-await btn('Play Online').click(); await page.waitForTimeout(300);
-P('free Play Online lands on the coming-soon window too',
-  await page.getByText(/still being wired up/).isVisible());
+await btn('Play Online').click(); await page.waitForTimeout(900);
+P('free Play Online queues for an opponent',
+  await page.getByText('FINDING OPPONENT').isVisible());
+await btn('Cancel').click();
 
 await browser.close();
 done();
