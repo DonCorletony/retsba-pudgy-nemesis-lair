@@ -5,6 +5,7 @@ import { erc20Abi, formatUnits, parseUnits } from 'viem';
 import { BANK, GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
 import * as ProfileStore from './profile';
 import { makeTransport, findMatch, bucketFor, type PvpChannel, type PvpTransport, type Wager as PvpWager } from './pvp';
+import { sendMatchReport } from './lib/reports';
 import {
   loadProfile, saveProfile, applyMatch, levelProgress, winRate, memberSinceLabel,
   type Profile,
@@ -1372,7 +1373,13 @@ const BattleChips = () => {
   /* ---------- online session ----------
      The ref holds the wire; the state mirrors just what the UI needs. Message
      handlers are wired once per match, so anything they read lives in refs. */
-  const pvpRef = useRef<{ transport: PvpTransport; channel: PvpChannel; opponent: string; wager: PvpWager } | null>(null);
+  const pvpRef = useRef<{ transport: PvpTransport; channel: PvpChannel; opponent: string; wager: PvpWager; matchId: string } | null>(null);
+  const pvpRematchSeq = useRef(0);
+  /* Set synchronously the instant a match ends. phaseRef lags a React tick, so
+     a forfeit message and the presence drop behind it can BOTH look like live
+     endings — this flag is what actually decides who ends the match. */
+  const pvpEndedRef = useRef(false);
+  const addressRef = useRef<string | null>(null);
   const [pvp, setPvp] = useState<{ oppPresent: boolean; youStart: boolean; myRematch: boolean; oppRematch: boolean } | null>(null);
   const [queueing, setQueueing] = useState(false);
   const queueSigRef = useRef<{ cancelled: boolean } | null>(null);
@@ -1521,6 +1528,7 @@ const BattleChips = () => {
   useEffect(() => { yourFleetRef.current = yourFleet; }, [yourFleet]);
   useEffect(() => { yourShotsRef.current = yourShots; }, [yourShots]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => { addressRef.current = address ?? null; }, [address]);
 
   const yourBoats = boatsRemaining(yourFleet, foeShots);
   const foeBoats = phase === 'battle' || phase === 'over' ? boatsRemaining(foeFleet, yourShots) : FLEET.length;
@@ -1582,6 +1590,23 @@ const BattleChips = () => {
      until another captain joins the same bucket — paid queues only pair on the
      identical wager. Cards and bonus spins are not exchanged yet, so online
      matches are pure volleys for now; that ships with the next protocol slice. */
+  /* Both clients file this the moment an online match ends. Two independent
+     rows per match: a result is their agreement, not either one's claim. */
+  const reportOnline = (outcome: 'win' | 'loss' | 'forfeit-win' | 'abandon-win') => {
+    const session = pvpRef.current;
+    if (!session) return;
+    const me = session.transport.id;
+    sendMatchReport({
+      match_id: pvpRematchSeq.current ? `${session.matchId}-r${pvpRematchSeq.current}` : session.matchId,
+      reporter: me,
+      wallet: addressRef.current,
+      winner: outcome === 'loss' ? session.opponent : me,
+      outcome,
+      wager_token: session.wager?.token ?? null,
+      wager_amount: session.wager?.amount ?? null,
+    });
+  };
+
   const leavePvp = () => {
     pvpRef.current?.channel.leave();
     pvpRef.current = null;
@@ -1609,6 +1634,8 @@ const BattleChips = () => {
     pvpFleetIn.current = null;
     pvpMyFleet.current = null;
     pvpYouStartRef.current = !pvpYouStartRef.current;   // alternate the opener
+    pvpRematchSeq.current += 1;                         // a rematch is its own match
+    pvpEndedRef.current = false;
     setPvp((v) => v && { ...v, myRematch: false, oppRematch: false });
     newMatch();
   };
@@ -1624,7 +1651,9 @@ const BattleChips = () => {
       } else if (m.t === 'endturn') {
         handBack(yourShotsRef.current, foeShotsRef.current);
       } else if (m.t === 'forfeit') {
-        if (phaseRef.current === 'setup' || phaseRef.current === 'battle') {
+        if ((phaseRef.current === 'setup' || phaseRef.current === 'battle') && !pvpEndedRef.current) {
+          pvpEndedRef.current = true;
+          reportOnline('forfeit-win');
           setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
           matchSinks.current = 0;
           setWinner('you'); setPhase('over');
@@ -1637,8 +1666,11 @@ const BattleChips = () => {
     channel.onPresence((ids) => {
       const present = ids.length >= 2;
       setPvp((v) => v && { ...v, oppPresent: present });
-      if (!present && pvpRef.current && (phaseRef.current === 'setup' || phaseRef.current === 'battle')) {
+      if (!present && pvpRef.current && !pvpEndedRef.current
+          && (phaseRef.current === 'setup' || phaseRef.current === 'battle')) {
         // They didn't forfeit, they vanished. Same outcome, less ceremony.
+        pvpEndedRef.current = true;
+        reportOnline('abandon-win');
         setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
         matchSinks.current = 0;
         setWinner('you'); setPhase('over');
@@ -1681,7 +1713,9 @@ const BattleChips = () => {
       if (sig.cancelled) { channel.leave(); return backOut(); }
     }
     if (channel.members().length < 2) { channel.leave(); return backOut(); }
-    pvpRef.current = { transport, channel, opponent: paired.opponent, wager };
+    pvpRef.current = { transport, channel, opponent: paired.opponent, wager, matchId: paired.matchId };
+    pvpRematchSeq.current = 0;
+    pvpEndedRef.current = false;
     pvpYouStartRef.current = paired.youStart;
     pvpMyRematchRef.current = false;
     setPvp({ oppPresent: true, youStart: paired.youStart, myRematch: false, oppRematch: false });
@@ -1905,6 +1939,8 @@ const BattleChips = () => {
     else if (!stopped) playSfx(SFX.miss);
     const wiped = boatsRemaining(yFleet, next) === 0;
     if (wiped) {
+      pvpEndedRef.current = true;
+      reportOnline('loss');
       houseWagerRef.current = null;              // the stake stays with the bank
       setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current }));
       matchSinks.current = 0;
@@ -2226,6 +2262,8 @@ const BattleChips = () => {
     const left = spendShot ? shotsLeft - 1 : shotsLeft;
     if (spendShot) setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) {
+      pvpEndedRef.current = true;
+      reportOnline('win');
       const stake = houseWagerRef.current;
       houseWagerRef.current = null;
       setProfile((pr) => applyMatch(pr, {
@@ -3138,7 +3176,11 @@ const BattleChips = () => {
                   houseWagerRef.current = null;
                   setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current, forfeited: true }));
                   matchSinks.current = 0;
-                  if (pvpRef.current) { pvpRef.current.channel.send({ t: 'forfeit' }); leavePvp(); }
+                  if (pvpRef.current) {
+                    reportOnline('loss');
+                    pvpRef.current.channel.send({ t: 'forfeit' });
+                    leavePvp();
+                  }
                   navigate(() => resetTo('lobby'));
                 })} className={btn98}>Yes, Leave</button>
                 <button {...uiSfx(() => setShowForfeit(false))} className={btn98}>No, Stay</button>

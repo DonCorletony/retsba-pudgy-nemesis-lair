@@ -82,6 +82,15 @@ P('the winner sees the win',
 P('the loser sees the loss',
   await until(target, () => window.__BC.phase === 'over' && window.__BC.winner === 'foe'));
 
+/* --- both clients attest the result, and the attestations agree --- */
+const rA = await shooter.evaluate(() => (window.__BC_REPORTS ?? []).at(-1));
+const rB = await target.evaluate(() => (window.__BC_REPORTS ?? []).at(-1));
+console.log('  reports:', JSON.stringify({ a: rA, b: rB }));
+P('both clients filed a report', !!rA && !!rB);
+P('on the same match', rA.match_id === rB.match_id);
+P('naming the same winner', rA.winner === rB.winner && rA.winner === rA.reporter);
+P('with matching outcomes (win / loss)', rA.outcome === 'win' && rB.outcome === 'loss');
+
 /* --- rematch: both press, both restart, the opener alternates --- */
 P('Rematch sits beside New match on both screens',
   await shooter.getByRole('button', { name: 'Rematch' }).isVisible()
@@ -105,6 +114,12 @@ await target.waitForTimeout(300);
 await target.getByRole('button', { name: 'Yes, Leave' }).click();
 P('the other captain wins by forfeit',
   await until(shooter, () => window.__BC.phase === 'over' && window.__BC.winner === 'you'));
+const fA = await shooter.evaluate(() => (window.__BC_REPORTS ?? []).at(-1));
+const fB = await target.evaluate(() => (window.__BC_REPORTS ?? []).at(-1));
+console.log('  forfeit reports:', JSON.stringify({ winner: fA?.outcome, loser: fB?.outcome, ids: [fA?.match_id, fB?.match_id] }));
+P('the rematch was attested as its own match', fA.match_id.endsWith('-r1') && fA.match_id === fB.match_id);
+P('forfeit attested from both sides', fA.outcome === 'forfeit-win' && fB.outcome === 'loss'
+  && fA.winner === fA.reporter && fB.winner === fA.reporter);
 P('and their Rematch grays once the opponent is gone',
   await until(shooter, () =>
     [...document.querySelectorAll('button')].find((b) => /^Rematch/.test(b.textContent.trim()))?.disabled === true));
