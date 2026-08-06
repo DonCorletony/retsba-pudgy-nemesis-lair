@@ -1,8 +1,8 @@
 import React, { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { RotateCw, Volume2, VolumeX, X } from 'lucide-react';
-import { useAccount, useDisconnect, useReadContracts } from 'wagmi';
-import { erc20Abi, formatUnits } from 'viem';
-import { GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
+import { useAccount, useDisconnect, useReadContracts, useWriteContract, usePublicClient } from 'wagmi';
+import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { BANK, GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
 import * as ProfileStore from './profile';
 import { makeTransport, findMatch, bucketFor, type PvpChannel, type PvpTransport, type Wager as PvpWager } from './pvp';
 import {
@@ -1361,6 +1361,14 @@ const BattleChips = () => {
     token: 'LUCKY' | 'USDG'; amount: string; preset: number | null;
   } | null>(null);
   const [comingSoon, setComingSoon] = useState(false);
+  /* Staking a paid house game: the wager crosses to the bank before the match
+     is allowed to start. 'wallet' = waiting on the signature, 'confirming' =
+     waiting on the chain; any other string is an error shown to the player. */
+  const [staking, setStaking] = useState<null | 'wallet' | 'confirming' | string>(null);
+  const { writeContractAsync } = useWriteContract();
+  const robinClient = usePublicClient({ chainId: ROBINHOOD_ID });
+  /* What this house match is being played for, so a win can be recorded. */
+  const houseWagerRef = useRef<{ token: 'LUCKY' | 'USDG'; amount: number } | null>(null);
   /* ---------- online session ----------
      The ref holds the wire; the state mirrors just what the UI needs. Message
      handlers are wired once per match, so anything they read lives in refs. */
@@ -1897,6 +1905,7 @@ const BattleChips = () => {
     else if (!stopped) playSfx(SFX.miss);
     const wiped = boatsRemaining(yFleet, next) === 0;
     if (wiped) {
+      houseWagerRef.current = null;              // the stake stays with the bank
       setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current }));
       matchSinks.current = 0;
       setWinner('foe'); setPhase('over');
@@ -2217,7 +2226,13 @@ const BattleChips = () => {
     const left = spendShot ? shotsLeft - 1 : shotsLeft;
     if (spendShot) setShotsLeft(left);
     if (boatsRemaining(foeFleet, next) === 0) {
-      setProfile((pr) => applyMatch(pr, { won: true, sinks: matchSinks.current }));
+      const stake = houseWagerRef.current;
+      houseWagerRef.current = null;
+      setProfile((pr) => applyMatch(pr, {
+        won: true, sinks: matchSinks.current,
+        luckyWon: stake?.token === 'LUCKY' ? stake.amount : 0,
+        cashWon: stake?.token === 'USDG' ? stake.amount : 0,
+      }));
       matchSinks.current = 0;
       setWinner('you'); setPhase('over'); return;
     }
@@ -2689,6 +2704,53 @@ const BattleChips = () => {
     ? Number(playFlow.amount) > 0
     : playFlow?.preset != null;
 
+  const rawBalanceOf = (symbol: string): bigint | undefined => {
+    const n = GAME_TOKENS.findIndex((t) => t.symbol === symbol);
+    return tokenBalances?.[n]?.result as bigint | undefined;
+  };
+  const wagerRaw = (() => {
+    if (!playFlow) return null;
+    const token = GAME_TOKENS.find((t) => t.symbol === playFlow.token)!;
+    try {
+      const amt = playFlow.token === 'LUCKY' ? playFlow.amount : String(playFlow.preset ?? 0);
+      return amt && Number(amt) > 0 ? parseUnits(amt, token.decimals) : null;
+    } catch { return null; }
+  })();
+  const wagerOverBalance = (() => {
+    if (!playFlow || wagerRaw === null) return false;
+    const held = rawBalanceOf(playFlow.token);
+    return held !== undefined && wagerRaw > held;
+  })();
+
+  /* Paid house game: the wager crosses to the bank, and only a confirmed
+     transfer lets the match start. Anything else — rejection, revert, timeout —
+     leaves the player exactly where they were, stake untouched. */
+  const stakeAndBattle = async () => {
+    if (!playFlow || wagerRaw === null || staking === 'wallet' || staking === 'confirming') return;
+    const token = GAME_TOKENS.find((t) => t.symbol === playFlow.token)!;
+    const amount = Number(playFlow.token === 'LUCKY' ? playFlow.amount : playFlow.preset ?? 0);
+    try {
+      setStaking('wallet');
+      const hash = await writeContractAsync({
+        address: token.address as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [BANK, wagerRaw],
+        chainId: ROBINHOOD_ID,
+        // the pinned React 18 types trip viem's chain/account inference here;
+        // wagmi resolves both from the connector at call time
+      } as never);
+      setStaking('confirming');
+      const receipt = await robinClient!.waitForTransactionReceipt({ hash });
+      if (receipt.status !== 'success') throw new Error('transfer reverted');
+      setStaking(null);
+      houseWagerRef.current = { token: playFlow.token, amount };
+      startHouseBattle();
+    } catch {
+      setStaking("The stake didn't go through — nothing left your wallet.");
+    }
+  };
+
   const playDialog = playFlow && (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
       onClick={() => setPlayFlow(null)}>
@@ -2712,7 +2774,7 @@ const BattleChips = () => {
             <button
               {...uiSfx(() => {
                 if (playFlow.tier === 'paid') setPlayFlow({ ...playFlow, step: 'wager', mode: 'house' });
-                else startHouseBattle();
+                else { houseWagerRef.current = null; startHouseBattle(); }
               })}
               className={`${btn98} w-full !py-2.5 font-bold tracking-wider`}
             >
@@ -2777,20 +2839,32 @@ const BattleChips = () => {
               </div>
             )}
 
+            {wagerOverBalance && (
+              <div className="font-mono text-[10px] text-[#a30000]">
+                That's more than your wallet holds.
+              </div>
+            )}
+            {typeof staking === 'string' && staking !== 'wallet' && staking !== 'confirming' && (
+              <div className="font-mono text-[10px] text-[#a30000]">{staking}</div>
+            )}
             <div className="flex justify-between pt-1">
-              <button {...uiSfx(() => setPlayFlow({ ...playFlow, step: 'mode', mode: null }))} className={`${btn98} !px-6`}>Back</button>
+              <button {...uiSfx(() => { setStaking(null); setPlayFlow({ ...playFlow, step: 'mode', mode: null }); })} className={`${btn98} !px-6`}>Back</button>
               <button
-                /* the wager itself is not escrowed yet; that piece rides with it */
+                /* online wagers are matched but not escrowed yet — a queue you
+                   can cancel needs refunds, and refunds need the bank's signer */
                 {...uiSfx(() => (playFlow.mode === 'house'
-                  ? startHouseBattle()
+                  ? stakeAndBattle()
                   : startOnlineBattle({
                       token: playFlow.token,
                       amount: playFlow.token === 'LUCKY' ? Number(playFlow.amount) : playFlow.preset ?? 0,
                     })))}
-                disabled={!wagerSet}
-                className={`${btn98} !px-6 font-bold ${wagerSet ? '' : '!text-[#808080] cursor-default'}`}
+                disabled={!wagerSet || wagerOverBalance || staking === 'wallet' || staking === 'confirming'}
+                className={`${btn98} !px-6 font-bold ${
+                  wagerSet && !wagerOverBalance && staking !== 'wallet' && staking !== 'confirming'
+                    ? '' : '!text-[#808080] cursor-default'}`}
               >
-                Battle!
+                {staking === 'wallet' ? 'Confirm in wallet…'
+                  : staking === 'confirming' ? 'Staking…' : 'Battle!'}
               </button>
             </div>
           </div>
@@ -3061,6 +3135,7 @@ const BattleChips = () => {
                 {/* Out of the match, not out of the game — you land back on the
                     lobby where New match is waiting. */}
                 <button {...uiSfx(() => {
+                  houseWagerRef.current = null;
                   setProfile((pr) => applyMatch(pr, { won: false, sinks: matchSinks.current, forfeited: true }));
                   matchSinks.current = 0;
                   if (pvpRef.current) { pvpRef.current.channel.send({ t: 'forfeit' }); leavePvp(); }

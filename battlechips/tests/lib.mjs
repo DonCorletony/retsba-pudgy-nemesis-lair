@@ -68,7 +68,7 @@ export const mockWalletScript = (address = MOCK_ADDRESS) => `
   const provider = {
     on: (e, f) => { (listeners[e] ||= []).push(f); },
     removeListener: (e, f) => { listeners[e] = (listeners[e] || []).filter((x) => x !== f); },
-    request: async ({ method }) => {
+    request: async ({ method, params }) => {
       switch (method) {
         case 'eth_requestAccounts':
         case 'eth_accounts':          return accounts;
@@ -77,6 +77,11 @@ export const mockWalletScript = (address = MOCK_ADDRESS) => `
         case 'wallet_switchEthereumChain':
         case 'wallet_addEthereumChain': return null;
         case 'eth_blockNumber':       return '0x1';
+        case 'eth_sendTransaction': {
+          if (window.__rejectTx) { const e = new Error('User rejected'); e.code = 4001; throw e; }
+          (window.__sentTxs ||= []).push(params[0]);
+          return '0x' + '11'.repeat(32);
+        }
         default:                      return null;
       }
     },
@@ -105,6 +110,16 @@ export const mockRpc = (balances) => async (route) => {
       const to = (c.params?.[0]?.to || '').toLowerCase();
       const raw = balances[to] ?? 0n;
       result = '0x' + raw.toString(16).padStart(64, '0');
+    } else if (c.method === 'eth_getTransactionReceipt') {
+      const hash = c.params?.[0];
+      result = {
+        transactionHash: hash, transactionIndex: '0x0',
+        blockHash: '0x' + '22'.repeat(32), blockNumber: '0x1',
+        from: '0x' + '00'.repeat(20), to: '0x' + '00'.repeat(20),
+        cumulativeGasUsed: '0x5208', gasUsed: '0x5208', effectiveGasPrice: '0x1',
+        contractAddress: null, logs: [], logsBloom: '0x' + '0'.repeat(512),
+        status: '0x1', type: '0x2',
+      };
     }
     return { jsonrpc: '2.0', id: c.id, result };
   });
