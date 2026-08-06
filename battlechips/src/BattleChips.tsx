@@ -1497,6 +1497,12 @@ const BattleChips = () => {
   const [turnSeq, setTurnSeq] = useState(0);   // ticks on every turn start, incl. repeats
 
   const endTurnAfterBonus = useRef(false);
+  /* A turn with no hits at all gifts the OTHER side a spin. One flag watches
+     the current turn; the other two say whose turn starts once the pity spin
+     has played out. */
+  const turnHitRef = useRef(false);
+  const whiffHandOverRef = useRef(false);   // your whiff -> their spin -> their turn
+  const whiffHandBackRef = useRef(false);   // their whiff -> your spin -> your turn
   // Their turn can also run out mid-sink; hand back only once the spin has played.
   const foeEndTurnAfterBonus = useRef(false);
   const foeSpinResult = useRef<Color | null>(null);
@@ -1539,6 +1545,9 @@ const BattleChips = () => {
     shieldRef.current = null;
     endTurnAfterBonus.current = false;
     foeEndTurnAfterBonus.current = false;
+    turnHitRef.current = false;
+    whiffHandOverRef.current = false;
+    whiffHandBackRef.current = false;
     foeSpinResult.current = null;
     if (to === 'setup') {
       // The whole fleet is on the board from the first frame, already legal, with
@@ -1752,6 +1761,7 @@ const BattleChips = () => {
   const startTurn = (who: 'you' | 'foe', yFleet: Placed[], fFleet: Placed[], yShots: Shots, fShots: Shots) => {
     const stage = stageFor(Math.min(boatsRemaining(yFleet, fShots), boatsRemaining(fFleet, yShots)));
     setTurn(who); setShotsLeft(stage.shots); setClock(stage.secs);
+    turnHitRef.current = false;
     // A Skip can hand the same side two turns running, where `turn` never changes
     // — this counter still moves, so "new turn" logic fires either way.
     setTurnSeq((n) => n + 1);
@@ -1873,7 +1883,7 @@ const BattleChips = () => {
       if (guarded.has(i)) { next[i] = 'blocked'; stopped = true; playExplosion('you', i, 'blue'); continue; }
       const hit = yourCells.has(i);
       next[i] = hit ? 'hit' : 'miss';
-      if (hit) { isHit = true; playExplosion('you', i); }
+      if (hit) { isHit = true; turnHitRef.current = true; playExplosion('you', i); }
     }
     if (stopped) {
       playSfx(SFX.shield);
@@ -1925,7 +1935,17 @@ const BattleChips = () => {
         if (sl <= 0) {
           // Defer the handover past the spin, or the turn would flip mid-wheel.
           if (sank) foeEndTurnAfterBonus.current = true;
-          else setTimeout(() => handBack(yourShots, next), 700);
+          else if (!turnHitRef.current) {
+            // They whiffed the whole turn: your consolation spin, then your turn.
+            setTimeout(() => {
+              setSlots(dealSlots());
+              setBonus({ who: 'you', stage: 'select', choice: null, result: null });
+              setShowBonusPopup(true);
+              playSfx(SFX.bonus);
+              setTimeout(() => setShowBonusPopup(false), BONUS_POPUP_MS);
+              whiffHandBackRef.current = true;
+            }, 700);
+          } else setTimeout(() => handBack(yourShots, next), 700);
         }
         return sl;
       });
@@ -1977,6 +1997,9 @@ const BattleChips = () => {
       if (foeEndTurnAfterBonus.current) {
         foeEndTurnAfterBonus.current = false;
         handBack(yourShots, foeShotsRef.current);
+      } else if (whiffHandOverRef.current) {
+        whiffHandOverRef.current = false;
+        handOver(yourShotsRef.current, foeShotsRef.current);
       }
       // Otherwise their shots aren't spent: clearing bonus restarts their fire loop.
     }, RESULT_MS);
@@ -2070,6 +2093,9 @@ const BattleChips = () => {
         if (endTurnAfterBonus.current) {
           endTurnAfterBonus.current = false;
           handOver(yourShots, foeShots);
+        } else if (whiffHandBackRef.current) {
+          whiffHandBackRef.current = false;
+          handBack(yourShotsRef.current, foeShotsRef.current);
         }
       }, RESULT_MS);
     }, SPIN_MS);
@@ -2169,7 +2195,7 @@ const BattleChips = () => {
       next[i] = hit ? 'hit' : 'miss';
       // A card with its own effect draws that instead, over every space it
       // touched — hit or not — rather than fire on the hits alone.
-      if (hit) { anyHit = true; if (!fx) playExplosion('foe', i); }
+      if (hit) { anyHit = true; turnHitRef.current = true; if (!fx) playExplosion('foe', i); }
     }
     if (fx) {
       const cry = fx.kind === 'bolt' ? SFX.thunder : fx.kind === 'whirl' ? SFX.whirlpool : null;
@@ -2215,6 +2241,16 @@ const BattleChips = () => {
     // long enough to hear it, and only then does the turn change hands.
     if (spendShot && left <= 0) {
       setTimeout(() => {
+        // Whiff the whole turn and the other side spins. Offline only until
+        // spins cross the wire; online turns hand over as before.
+        if (!pvpRef.current && !turnHitRef.current) {
+          setSlots(dealSlots());
+          setBonus({ who: 'foe', stage: 'select', choice: COLORS[Math.floor(Math.random() * COLORS.length)].key, result: null });
+          setShowFoeSpin(true);
+          playSfx(SFX.bonus);
+          whiffHandOverRef.current = true;
+          return;
+        }
         pvpRef.current?.channel.send({ t: 'endturn' });
         handOver(next, foeShots);
       }, anyHit ? HIT_BEAT_MS : MISS_BEAT_MS);
@@ -2273,6 +2309,7 @@ const BattleChips = () => {
       testWipeFoe: () => strike(foeFleet.flatMap(cellsFor), false),
       pvp, rollColor, COLORS,
       testSinkFire: () => strike(cellsFor(foeFleet[0]), true),
+      foeCells: () => foeFleet.flatMap(cellsFor),
       animCells: () => Object.entries(anim.foe).map(([i, kind]) => ({
         idx: Number(i), kind, span: kind === 'whirl' ? 2 : 1,
       })) };
@@ -2812,6 +2849,8 @@ const BattleChips = () => {
             9 in 19; green pays 1 in 19 and holds the cards that swing a match.</p>
           <p><b>Cards are one use.</b> Extra shots, a skipped turn, a shield over your own
             water, or a strike that covers ground you haven&apos;t aimed at.</p>
+          <p><b>Whiff a whole turn and your opponent spins.</b> Missing every shot
+            you fire hands them a bonus spin — keep your volleys honest.</p>
           <p><b>Sink all five to win.</b> Forfeiting ends the match as a loss, and the
             boats you sank in it don&apos;t count.</p>
         </div>
