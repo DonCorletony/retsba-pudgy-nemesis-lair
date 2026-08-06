@@ -188,6 +188,10 @@ const isUnlockGesture = () => unlockingGesture;
 const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const;
 const primeTracks = () => {
   (Object.keys(TRACKS) as TrackName[]).forEach((n) => {
+    // Never prime the track a cue already wants: resumeMusicIfWanted starts it
+    // for real, and a muted prime would make it look started — leaving it
+    // playing, unmuted, at gain zero. Silent but running.
+    if (n === sounding) return;
     const t = trackFor(n);
     if (!t.el.paused || t.gain > 0) return;
     t.el.muted = true;
