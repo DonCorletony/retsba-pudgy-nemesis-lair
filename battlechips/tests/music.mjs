@@ -55,7 +55,7 @@ await page.waitForTimeout(400);
 P(`unmuting brings it straight back (${(await page.evaluate(themeState)).vol})`, (await page.evaluate(themeState)).vol > 0.5);
 
 await page.evaluate(() => window.__BC.newMatch());
-await page.waitForTimeout(1600);
+await page.waitForTimeout(3400);   // the hand-over fade is 2400ms now, by design
 P('starting a match fades it out', (await page.evaluate(themeState)).playing === false);
 await page.close();
 

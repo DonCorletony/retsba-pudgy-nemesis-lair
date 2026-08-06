@@ -186,8 +186,27 @@ let unlockingGesture = false;
 const isUnlockGesture = () => unlockingGesture;
 
 const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const;
+const primeTracks = () => {
+  (Object.keys(TRACKS) as TrackName[]).forEach((n) => {
+    const t = trackFor(n);
+    if (!t.el.paused || t.gain > 0) return;
+    t.el.muted = true;
+    t.el.play().then(() => {
+      t.el.muted = false;
+      // If a real cue claimed this track while our muted play was in flight,
+      // leave it alone — pausing now would kill genuine playback. `sounding`
+      // is set synchronously at play time; gain may still be mid-rise.
+      if (sounding === n) return;
+      t.el.pause(); t.el.currentTime = 0;
+    }).catch(() => { t.el.muted = false; });
+  });
+};
+
 const onFirstGesture = () => {
   GESTURES.forEach((t) => window.removeEventListener(t, onFirstGesture, true));
+  // Bless every music element while we hold a gesture: mobile refuses a track
+  // whose FIRST play happens off-gesture (battle music starts on a timer).
+  primeTracks();
   unlockingGesture = audioState === 'blocked';
   setAudioState('ok');
   setTimeout(() => {
@@ -253,7 +272,7 @@ const CUE: Record<Cue, TrackName[]> = {
 /* Ambience can repeat and nobody hears the join. Written pieces get a fade
    around the seam instead — which is also how one battle track hands to the next. */
 const AMBIENT: Record<TrackName, boolean> = { theme: false, ocean: true, battle1: false, battle2: false };
-const MUSIC = { fadeIn: 3000, fadeOut: 900, tail: 4000 } as const;
+const MUSIC = { fadeIn: 3000, fadeOut: 2400, tail: 4000 } as const;
 
 interface Track {
   el: HTMLAudioElement;
@@ -996,10 +1015,9 @@ const Intro = ({ step, shift }: { step: number; shift: number }) => {
           draggable={false}
           className="w-[min(80vw,560px)] h-auto select-none"
           style={{
-            // cuts in, no fade — only the move onto the title screen is animated
             opacity: logo ? 1 : 0,
             transform: `translateY(${step >= 3 ? shift : 0}px)`,
-            transition: 'transform 1200ms ease-in-out',
+            transition: 'transform 1200ms ease-in-out, opacity 900ms ease-in-out',
           }}
         />
       </div>

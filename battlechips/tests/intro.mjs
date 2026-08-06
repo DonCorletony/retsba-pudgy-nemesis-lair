@@ -47,8 +47,8 @@ P(`the card is modest in size (${card.studioW}px across 1600)`, card.studioW <= 
 P('no wordmark while the card is up', card.logos === 0);
 P('three seconds of black in between', gap.studio < 0.05 && gap.logos === 0 && gap.black === 1);
 P('the wordmark then appears, still on black', onBlack.logos === 1 && onBlack.black === 1);
-P(`it cuts in rather than fading (transition: ${cut.logoTrans ?? onBlack.logoTrans})`,
-  !/opacity/.test(cut.logoTrans ?? onBlack.logoTrans ?? ''));
+P(`the wordmark fades in rather than cutting (transition: ${cut.logoTrans ?? onBlack.logoTrans})`,
+  /opacity/.test(cut.logoTrans ?? onBlack.logoTrans ?? ''));
 P(`and is fully opaque the instant it shows (${cut.logoOpacity ?? onBlack.logoOpacity})`,
   (cut.logoOpacity ?? onBlack.logoOpacity) === 1);
 P('exactly one wordmark mid-reveal — the intro copy, not two', moving.logos === 1);
