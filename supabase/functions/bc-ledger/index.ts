@@ -14,7 +14,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.52.0";
-import { createPublicClient, http, defineChain, decodeFunctionData, erc20Abi, formatUnits } from "https://esm.sh/viem@2.21.19";
+import { createPublicClient, createWalletClient, http, defineChain, decodeFunctionData, erc20Abi, formatUnits, parseUnits, verifyMessage } from "https://esm.sh/viem@2.21.19";
+import { privateKeyToAccount } from "https://esm.sh/viem@2.21.19/accounts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +41,7 @@ serve(async (req) => {
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "content-type": "application/json" } });
 
   try {
-    const { action, tx_hash, wallet } = await req.json();
+    const { action, tx_hash, wallet, token: sym, amount, match_id, signature, nonce } = await req.json();
     const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     if (action === "balance") {
@@ -73,6 +74,71 @@ serve(async (req) => {
       });
       if (error) return json(409, { error: `already credited or rejected: ${error.message}` });
       return json(200, { credited: amount, token: token.symbol, wallet: from });
+    }
+
+    const SYMBOLS: Record<string, { address: `0x${string}`; decimals: number }> = {
+      USDG: { address: "0x5fc5360d0400a0fd4f2af552add042d716f1d168", decimals: 6 },
+      LUCKY: { address: "0x6d35df127Dc8eccB63531B9c2C93D0ce0D27C1f5", decimals: 18 },
+    };
+    const balanceIn = async (w: string, t: string) => {
+      const { data } = await db.from("bc_balances").select("balance")
+        .eq("wallet", w.toLowerCase()).eq("token", t);
+      return Number(data?.[0]?.balance ?? 0);
+    };
+    const STAKE_CAP = 100;   // house verdicts are client-reported until refereed
+
+    if (action === "stake") {
+      if (!wallet || !sym || !amount || !match_id || !signature) return json(400, { error: "missing fields" });
+      if (Number(amount) <= 0 || Number(amount) > STAKE_CAP) return json(409, { error: `stakes are 0-${STAKE_CAP}` });
+      const ok = await verifyMessage({
+        address: wallet as `0x${string}`,
+        message: `battlechips stake ${match_id} ${sym} ${amount}`,
+        signature: signature as `0x${string}`,
+      });
+      if (!ok) return json(401, { error: "signature does not match the wallet" });
+      if ((await balanceIn(wallet, sym)) < Number(amount)) return json(409, { error: "insufficient account balance" });
+      const { error } = await db.from("bc_ledger").insert({
+        wallet: String(wallet).toLowerCase(), token: sym, delta: -Number(amount), kind: "stake", ref: match_id,
+      });
+      if (error) return json(409, { error: `already staked: ${error.message}` });
+      return json(200, { staked: Number(amount) });
+    }
+
+    if (action === "settle-house") {
+      if (!match_id) return json(400, { error: "match_id required" });
+      const { data: stakeRow } = await db.from("bc_ledger").select("*")
+        .eq("kind", "stake").eq("ref", match_id).single();
+      if (!stakeRow) return json(409, { error: "no stake on record for that match" });
+      const { error } = await db.from("bc_ledger").insert({
+        wallet: stakeRow.wallet, token: stakeRow.token,
+        delta: 2 * Math.abs(Number(stakeRow.delta)), kind: "payout", ref: match_id,
+      });
+      if (error) return json(409, { error: `already settled: ${error.message}` });
+      return json(200, { paid: 2 * Math.abs(Number(stakeRow.delta)) });
+    }
+
+    if (action === "withdraw") {
+      if (!wallet || !sym || !amount || !nonce || !signature) return json(400, { error: "missing fields" });
+      const ok = await verifyMessage({
+        address: wallet as `0x${string}`,
+        message: `battlechips withdraw ${sym} ${amount} ${nonce}`,
+        signature: signature as `0x${string}`,
+      });
+      if (!ok) return json(401, { error: "signature does not match the wallet" });
+      if ((await balanceIn(wallet, sym)) < Number(amount)) return json(409, { error: "insufficient account balance" });
+      const { error } = await db.from("bc_ledger").insert({
+        wallet: String(wallet).toLowerCase(), token: sym, delta: -Number(amount),
+        kind: "withdraw", ref: `${String(wallet).toLowerCase()}:${nonce}`,
+      });
+      if (error) return json(409, { error: `nonce already used: ${error.message}` });
+      const t = SYMBOLS[sym];
+      const account = privateKeyToAccount(Deno.env.get("BC_BANK_KEY")! as `0x${string}`);
+      const bank = createWalletClient({ account, chain: robinhood, transport: http() });
+      const hash = await bank.writeContract({
+        address: t.address, abi: erc20Abi, functionName: "transfer",
+        args: [wallet as `0x${string}`, parseUnits(String(amount), t.decimals)],
+      });
+      return json(200, { sent: Number(amount), tx: hash });
     }
 
     return json(400, { error: "unknown action" });
