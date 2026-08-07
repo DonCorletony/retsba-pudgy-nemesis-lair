@@ -6,6 +6,7 @@ import { BANK, GAME_TOKENS, ROBINHOOD_ID } from './lib/tokens';
 import * as ProfileStore from './profile';
 import { makeTransport, findMatch, bucketFor, type PvpChannel, type PvpTransport, type Wager as PvpWager } from './pvp';
 import { sendMatchReport } from './lib/reports';
+import { accountBalances, creditDeposit, retryPendingDeposits } from './lib/ledger';
 import {
   loadProfile, saveProfile, applyMatch, levelProgress, winRate, memberSinceLabel,
   type Profile,
@@ -1370,6 +1371,17 @@ const BattleChips = () => {
   const robinClient = usePublicClient({ chainId: ROBINHOOD_ID });
   /* What this house match is being played for, so a win can be recorded. */
   const houseWagerRef = useRef<{ token: 'LUCKY' | 'USDG'; amount: number } | null>(null);
+  /* The game account at the bank — the ledger's word, not the wallet's. */
+  const [account, setAccount] = useState<Record<string, number> | null>(null);
+  const [depositing, setDepositing] = useState<null | 'wallet' | 'confirming' | 'crediting' | string>(null);
+  const refreshAccount = () => {
+    if (!addressRef.current) return;
+    accountBalances(addressRef.current).then(setAccount).catch(() => setAccount(null));
+  };
+  useEffect(() => {
+    if (playFlow?.step !== 'wager' || !isConnected) return;
+    retryPendingDeposits().finally(refreshAccount);
+  }, [playFlow?.step, isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
   /* ---------- online session ----------
      The ref holds the wire; the state mirrors just what the UI needs. Message
      handlers are wired once per match, so anything they read lives in refs. */
@@ -2760,6 +2772,33 @@ const BattleChips = () => {
     return held !== undefined && wagerRaw > held;
   })();
 
+  /* Deposit the entered amount: transfer to the bank, then have the ledger
+     verify the hash and credit the account. A confirmed transfer that fails to
+     credit queues locally and retries — crediting is idempotent. */
+  const depositToAccount = async () => {
+    if (!playFlow || wagerRaw === null || depositing === 'wallet' || depositing === 'confirming' || depositing === 'crediting') return;
+    const token = GAME_TOKENS.find((t) => t.symbol === playFlow.token)!;
+    try {
+      setDepositing('wallet');
+      const hash = await writeContractAsync({
+        address: token.address as `0x${string}`,
+        abi: erc20Abi,
+        functionName: 'transfer',
+        args: [BANK, wagerRaw],
+        chainId: ROBINHOOD_ID,
+      } as never);
+      setDepositing('confirming');
+      const receipt = await robinClient!.waitForTransactionReceipt({ hash });
+      if (receipt.status !== 'success') throw new Error('transfer reverted');
+      setDepositing('crediting');
+      const credited = await creditDeposit(hash);
+      setDepositing(credited ? null : 'Deposit confirmed — crediting is delayed and will retry.');
+      refreshAccount();
+    } catch {
+      setDepositing("The deposit didn't go through — nothing left your wallet.");
+    }
+  };
+
   /* Paid house game: the wager crosses to the bank, and only a confirmed
      transfer lets the match start. Anything else — rejection, revert, timeout —
      leaves the player exactly where they were, stake untouched. */
@@ -2845,10 +2884,33 @@ const BattleChips = () => {
             </div>
 
             {/* what a wager can actually be drawn against */}
-            <div className="text-right font-mono text-[10px] text-black/60 -mt-1">
-              In your wallet: <span className="font-bold text-black/80">
-                {balanceOf(playFlow.token)} ${playFlow.token}</span>
+            <div className="flex items-center justify-between -mt-1">
+              <span className="font-mono text-[10px] text-black/60">
+                In your account: <span className="font-bold text-black/80">
+                  {(account?.[playFlow.token] ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${playFlow.token}</span>
+              </span>
+              <span className="font-mono text-[10px] text-black/60">
+                In your wallet: <span className="font-bold text-black/80">
+                  {balanceOf(playFlow.token)} ${playFlow.token}</span>
+              </span>
             </div>
+            <button
+              {...uiSfx(depositToAccount)}
+              disabled={wagerRaw === null || wagerOverBalance
+                || depositing === 'wallet' || depositing === 'confirming' || depositing === 'crediting'}
+              className={`${btn98} w-full !py-1.5 !text-[11px] ${
+                wagerRaw !== null && !wagerOverBalance
+                && depositing !== 'wallet' && depositing !== 'confirming' && depositing !== 'crediting'
+                  ? '' : '!text-[#808080] cursor-default'}`}
+            >
+              {depositing === 'wallet' ? 'Confirm in wallet…'
+                : depositing === 'confirming' ? 'Depositing…'
+                : depositing === 'crediting' ? 'Crediting…'
+                : 'Deposit this amount to your account'}
+            </button>
+            {typeof depositing === 'string' && !['wallet', 'confirming', 'crediting'].includes(depositing) && (
+              <div className="font-mono text-[10px] text-[#a30000]">{depositing}</div>
+            )}
 
             {playFlow.token === 'LUCKY' ? (
               <input

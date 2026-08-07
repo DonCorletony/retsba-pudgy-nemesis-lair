@@ -53,7 +53,7 @@ P('switching sides disarms Battle! until a preset is picked', !(await battleEnab
 await btn('$25').click();
 P('picking $25 arms it again', await battleEnabled());
 const balLine = await page.evaluate(() =>
-  [...document.querySelectorAll('div')].find((d) => d.textContent.startsWith('In your wallet:'))?.textContent);
+  [...document.querySelectorAll('span')].find((d) => d.textContent.startsWith('In your wallet:'))?.textContent);
 P(`and the balance line follows the switch to USDG (${balLine?.trim()})`,
   /50 \$USDG/.test(balLine) && !/\$LUCKY/.test(balLine));
 
